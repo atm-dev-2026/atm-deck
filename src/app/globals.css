@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Dark mode is driven by data-theme on <html> (set by the inline
+   script in the root layout + src/lib/theme.ts), not directly by
+   prefers-color-scheme, so "light"/"dark"/"system" all work. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #ffffff;
   --foreground: #09090b;
@@ -18,13 +23,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0b;
-    --foreground: #f4f4f5;
-    --accent: #6366f1;
-    --accent-hover: #818cf8;
-  }
+[data-theme="dark"] {
+  --background: #0a0a0b;
+  --foreground: #f4f4f5;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
 }
 
 * {
