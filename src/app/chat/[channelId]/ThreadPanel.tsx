@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Send, X } from "lucide-react";
 import { ChatMessage } from "../types";
 import { MessageItem } from "../MessageItem";
 
@@ -75,9 +76,10 @@ export function ThreadPanel({
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Thread</h2>
         <button
           onClick={onClose}
-          className="text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          aria-label="Close thread"
         >
-          Close
+          <X size={14} />
         </button>
       </div>
 
@@ -118,13 +120,13 @@ export function ThreadPanel({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Reply…"
-          className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
         />
         <button
           type="submit"
-          className="rounded bg-zinc-950 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-white hover:bg-accent-hover"
         >
-          Send
+          <Send size={13} />
         </button>
       </form>
     </aside>

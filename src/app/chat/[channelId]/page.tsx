@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, use } from "react";
+import { Hash, Send } from "lucide-react";
 import { useChatUserId } from "../ChatUserContext";
 import { MessageItem } from "../MessageItem";
 import { ThreadPanel } from "./ThreadPanel";
@@ -159,7 +160,7 @@ function ChannelView({ channelId }: { channelId: string }) {
   const other = channel.isDirect
     ? channel.members.find((m) => m.userId !== currentUserId)?.user
     : null;
-  const title = channel.isDirect ? other?.name ?? other?.email ?? "Direct message" : `#${channel.name}`;
+  const title = channel.isDirect ? other?.name ?? other?.email ?? "Direct message" : channel.name;
 
   const typingLabel =
     typingUsers.length > 0
@@ -171,13 +172,16 @@ function ChannelView({ channelId }: { channelId: string }) {
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            {title}
-          </h1>
-          {channel.topic && (
-            <p className="text-xs text-zinc-500">{channel.topic}</p>
-          )}
+        <div className="flex items-center gap-1.5 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+          {!channel.isDirect && <Hash size={14} className="text-zinc-400" />}
+          <div>
+            <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+              {title}
+            </h1>
+            {channel.topic && (
+              <p className="text-xs text-zinc-500">{channel.topic}</p>
+            )}
+          </div>
         </div>
 
         <div ref={listRef} className="flex-1 overflow-y-auto px-2 py-3">
@@ -214,13 +218,13 @@ function ChannelView({ channelId }: { channelId: string }) {
               sendTyping();
             }}
             placeholder={channel.isDirect ? `Message ${title}` : `Message #${channel.name}`}
-            className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           />
           <button
             type="submit"
-            className="rounded bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover"
           >
-            Send
+            <Send size={14} />
           </button>
         </form>
       </div>

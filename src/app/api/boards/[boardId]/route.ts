@@ -10,10 +10,17 @@ export async function GET(
   const board = await prisma.board.findUnique({
     where: { id: boardId },
     include: {
+      labels: { orderBy: { name: "asc" } },
       columns: {
         orderBy: { order: "asc" },
         include: {
-          tasks: { orderBy: { order: "asc" } },
+          tasks: {
+            orderBy: { order: "asc" },
+            include: {
+              labels: true,
+              checklist: { orderBy: { order: "asc" } },
+            },
+          },
         },
       },
     },

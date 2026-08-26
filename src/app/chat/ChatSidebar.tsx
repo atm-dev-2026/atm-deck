@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Compass, Plus } from "lucide-react";
+import { Avatar } from "@/components/Avatar";
 
 type Channel = {
   id: string;
@@ -101,33 +103,33 @@ export function ChatSidebar() {
   };
 
   const linkClass = (channelId: string) =>
-    `block truncate rounded px-2 py-1 text-sm ${
+    `flex items-center gap-2 truncate rounded-md px-2 py-1 text-sm ${
       pathname === `/chat/${channelId}`
-        ? "bg-zinc-200 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50"
+        ? "bg-accent/10 font-medium text-accent dark:bg-accent/20"
         : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
     }`;
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <aside className="flex w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
       <div>
-        <div className="mb-1 flex items-center justify-between">
+        <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
             Channels
           </h2>
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             <button
               onClick={() => setShowBrowse((v) => !v)}
-              className="text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               title="Browse channels"
             >
-              #
+              <Compass size={13} />
             </button>
             <button
               onClick={() => setShowCreate((v) => !v)}
-              className="text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               title="Create channel"
             >
-              +
+              <Plus size={13} />
             </button>
           </div>
         </div>
@@ -139,11 +141,11 @@ export function ChatSidebar() {
               value={newChannelName}
               onChange={(e) => setNewChannelName(e.target.value)}
               placeholder="channel-name"
-              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
             />
             <button
               type="submit"
-              className="rounded bg-zinc-950 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover"
             >
               Add
             </button>
@@ -171,23 +173,24 @@ export function ChatSidebar() {
         <nav className="flex flex-col gap-0.5">
           {joined.map((c) => (
             <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)}>
-              #{c.name}
+              <span className="text-zinc-400">#</span>
+              <span className="truncate">{c.name}</span>
             </Link>
           ))}
         </nav>
       </div>
 
       <div>
-        <div className="mb-1 flex items-center justify-between">
+        <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
             Direct Messages
           </h2>
           <button
             onClick={openNewDm}
-            className="text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             title="New message"
           >
-            +
+            <Plus size={13} />
           </button>
         </div>
 
@@ -209,11 +212,15 @@ export function ChatSidebar() {
         )}
 
         <nav className="flex flex-col gap-0.5">
-          {dms.map((dm) => (
-            <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)}>
-              {dm.other?.name ?? dm.other?.email ?? "Unknown"}
-            </Link>
-          ))}
+          {dms.map((dm) => {
+            const label = dm.other?.name ?? dm.other?.email ?? "Unknown";
+            return (
+              <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)}>
+                <Avatar label={label} image={dm.other?.image} size="xs" />
+                <span className="truncate">{label}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </aside>

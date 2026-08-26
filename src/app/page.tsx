@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
 
 type Board = {
   id: string;
   name: string;
   createdAt: string;
+  columnCount: number;
+  taskCount: number;
 };
 
 export default function Home() {
   const [boards, setBoards] = useState<Board[]>([]);
+  const [query, setQuery] = useState("");
   const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadBoards = async () => {
@@ -44,6 +49,7 @@ export default function Home() {
       body: JSON.stringify({ name }),
     });
     setName("");
+    setCreating(false);
     loadBoards();
   };
 
@@ -57,58 +63,110 @@ export default function Home() {
     loadBoards();
   };
 
+  const filtered = useMemo(
+    () => boards.filter((b) => b.name.toLowerCase().includes(query.toLowerCase())),
+    [boards, query],
+  );
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          ATM Deck
-        </h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Boards for tracking work.
-        </p>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+        <div className="flex items-center gap-2">
+          <LayoutGrid size={16} className="text-zinc-400" />
+          <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
+          <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            {boards.length}
+          </span>
+        </div>
+        <button
+          onClick={() => setCreating((v) => !v)}
+          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-white hover:bg-accent-hover"
+        >
+          <Plus size={13} strokeWidth={2.5} />
+          New board
+        </button>
+      </div>
 
-        <form onSubmit={createBoard} className="mt-8 flex gap-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="New board name"
-            className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+      <div className="mx-auto w-full max-w-4xl flex-1 overflow-y-auto px-6 py-6">
+        {creating && (
+          <form
+            onSubmit={createBoard}
+            className="mb-5 flex gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
           >
-            Create board
-          </button>
-        </form>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Board name"
+              className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+            />
+            <button
+              type="submit"
+              className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreating(false)}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              Cancel
+            </button>
+          </form>
+        )}
 
-        <div className="mt-10 grid gap-3">
-          {loading && (
-            <p className="text-sm text-zinc-500">Loading boards…</p>
-          )}
-          {!loading && boards.length === 0 && (
+        <div className="relative mb-4">
+          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter boards…"
+            className="w-full rounded-md border border-zinc-200 bg-white py-1.5 pl-8 pr-3 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+          />
+        </div>
+
+        {loading && <p className="px-1 text-sm text-zinc-500">Loading boards…</p>}
+
+        {!loading && filtered.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-300 py-16 text-center dark:border-zinc-700">
+            <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
             <p className="text-sm text-zinc-500">
-              No boards yet — create one above.
+              {boards.length === 0 ? "No boards yet — create one to get started." : "No boards match your filter."}
             </p>
-          )}
-          {boards.map((board) => (
+          </div>
+        )}
+
+        <div className="grid gap-2">
+          {filtered.map((board) => (
             <Link
               key={board.id}
               href={`/board/${board.id}`}
-              className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-950 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:border-zinc-700"
+              className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
             >
-              {board.name}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">
+                  <SquareKanban size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
+                  <p className="text-xs text-zinc-500">
+                    {board.columnCount} {board.columnCount === 1 ? "column" : "columns"} · {board.taskCount}{" "}
+                    {board.taskCount === 1 ? "task" : "tasks"}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={(e) => deleteBoard(e, board.id)}
-                className="text-xs text-zinc-400 hover:text-red-500"
+                className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
                 aria-label="Delete board"
               >
-                ✕
+                <Trash2 size={14} />
               </button>
             </Link>
           ))}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

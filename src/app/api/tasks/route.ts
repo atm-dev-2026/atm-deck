@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       dueDate: dueDate ? new Date(dueDate) : undefined,
       order: lastTask ? lastTask.order + 1 : 0,
     },
+    include: { labels: true, checklist: true },
   });
 
   return NextResponse.json(task, { status: 201 });

@@ -16,10 +16,15 @@ export async function PATCH(
       ...(data.assignee !== undefined && { assignee: data.assignee }),
       ...(data.columnId !== undefined && { columnId: data.columnId }),
       ...(data.order !== undefined && { order: data.order }),
+      ...(data.priority !== undefined && { priority: data.priority }),
       ...(data.dueDate !== undefined && {
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
       }),
+      ...(data.labelIds !== undefined && {
+        labels: { set: (data.labelIds as string[]).map((id) => ({ id })) },
+      }),
     },
+    include: { labels: true, checklist: { orderBy: { order: "asc" } } },
   });
 
   return NextResponse.json(task);

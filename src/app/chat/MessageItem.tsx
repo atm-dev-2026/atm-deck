@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Avatar } from "@/components/Avatar";
 import { ChatMessage, QUICK_REACTIONS } from "./types";
 
 export function MessageItem({
@@ -33,18 +34,7 @@ export function MessageItem({
 
   return (
     <div className="group flex gap-3 rounded px-2 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-        {message.user.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={message.user.image}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        ) : (
-          (message.user.name ?? message.user.email ?? "?").slice(0, 1).toUpperCase()
-        )}
-      </div>
+      <Avatar label={message.user.name ?? message.user.email ?? "?"} image={message.user.image} size="md" />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
@@ -65,11 +55,11 @@ export function MessageItem({
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
             />
             <button
               type="submit"
-              className="rounded bg-zinc-950 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover"
             >
               Save
             </button>

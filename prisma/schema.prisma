@@ -19,6 +19,7 @@ model Board {
   updatedAt DateTime @updatedAt
 
   columns Column[]
+  labels  Label[]
 }
 
 model Column {
@@ -33,20 +34,56 @@ model Column {
   @@index([boardId])
 }
 
+enum Priority {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model Task {
   id          String    @id @default(cuid())
   title       String
   description String?   @db.Text
   order       Int
+  priority    Priority  @default(NONE)
   assignee    String?
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   columnId    String
 
-  column Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  column    Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  labels    Label[]
+  checklist ChecklistItem[]
 
   @@index([columnId])
+}
+
+model Label {
+  id      String @id @default(cuid())
+  name    String
+  color   String
+  boardId String
+
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks Task[]
+
+  @@index([boardId])
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  text      String
+  done      Boolean  @default(false)
+  order     Int
+  taskId    String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 // Auth.js (next-auth v5) models — required shape for @auth/prisma-adapter

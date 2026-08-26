@@ -4,8 +4,19 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const boards = await prisma.board.findMany({
     orderBy: { createdAt: "asc" },
+    include: {
+      _count: { select: { columns: true } },
+      columns: { select: { _count: { select: { tasks: true } } } },
+    },
   });
-  return NextResponse.json(boards);
+
+  const result = boards.map(({ columns, _count, ...board }) => ({
+    ...board,
+    columnCount: _count.columns,
+    taskCount: columns.reduce((sum, c) => sum + c._count.tasks, 0),
+  }));
+
+  return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
