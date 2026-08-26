@@ -18,7 +18,7 @@ Internal taskboard for ATM Holding — boards, columns, and tasks, Trello-style.
    - `AUTH_LINE_ID` / `AUTH_LINE_SECRET` — from the LINE Developers console (add
      `<origin>/api/auth/callback/line` as a callback URL)
 2. Install dependencies: `npm install`
-3. Apply the schema to the database: `npx prisma migrate dev --name init`
+3. Apply the schema to the database: `npx prisma migrate deploy` (or `npx prisma migrate dev` while iterating on the schema)
 4. Run the app: `npm run dev`
 
 Any signed-in Google or LINE account can access the board — there's no allowlist.
@@ -27,7 +27,14 @@ Any signed-in Google or LINE account can access the board — there's no allowli
 
 - **Board** has many **Columns**
 - **Column** has many **Tasks**, ordered by `order`
-- Tasks move between columns and reorder via `PATCH /api/tasks/[taskId]`
+- Tasks move between columns via `PATCH /api/tasks/[taskId]`; boards and columns cascade-delete their children
+
+## Features
+
+- Create and delete boards
+- Add, rename (via delete + re-add), and delete columns
+- Add tasks, move them between columns, and delete them
+- Click a task to edit its title, description, assignee, and due date
 
 ## Deployment
 

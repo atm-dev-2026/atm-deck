@@ -47,6 +47,16 @@ export default function Home() {
     loadBoards();
   };
 
+  const deleteBoard = async (e: React.MouseEvent, boardId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Delete this board? This removes all its columns and tasks.")) {
+      return;
+    }
+    await fetch(`/api/boards/${boardId}`, { method: "DELETE" });
+    loadBoards();
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <main className="mx-auto max-w-3xl px-6 py-16">
@@ -85,9 +95,16 @@ export default function Home() {
             <Link
               key={board.id}
               href={`/board/${board.id}`}
-              className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-950 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:border-zinc-700"
+              className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-950 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:border-zinc-700"
             >
               {board.name}
+              <button
+                onClick={(e) => deleteBoard(e, board.id)}
+                className="text-xs text-zinc-400 hover:text-red-500"
+                aria-label="Delete board"
+              >
+                ✕
+              </button>
             </Link>
           ))}
         </div>
