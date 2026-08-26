@@ -1,12 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBoardIdForTask, requireBoardAccess } from "@/lib/permissions";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ taskId: string }> },
 ) {
   const { taskId } = await params;
+
+  const boardId = await getBoardIdForTask(taskId);
+  if (!boardId) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
+
   const data = await request.json();
+
+  if (data.columnId !== undefined) {
+    const destinationColumn = await prisma.column.findUnique({
+      where: { id: data.columnId },
+      select: { boardId: true },
+    });
+    if (!destinationColumn || destinationColumn.boardId !== boardId) {
+      return NextResponse.json(
+        { error: "Cannot move a task to a column outside its board" },
+        { status: 400 },
+      );
+    }
+  }
 
   const task = await prisma.task.update({
     where: { id: taskId },
@@ -35,6 +57,14 @@ export async function DELETE(
   { params }: { params: Promise<{ taskId: string }> },
 ) {
   const { taskId } = await params;
+
+  const boardId = await getBoardIdForTask(taskId);
+  if (!boardId) {
+    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
+
   await prisma.task.delete({ where: { id: taskId } });
   return NextResponse.json({ ok: true });
 }

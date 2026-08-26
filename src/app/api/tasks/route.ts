@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
 
 export async function POST(request: Request) {
   const { columnId, title, description, assignee, dueDate } =
@@ -11,6 +12,13 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const boardId = await getBoardIdForColumn(columnId);
+  if (!boardId) {
+    return NextResponse.json({ error: "Column not found" }, { status: 404 });
+  }
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
 
   const lastTask = await prisma.task.findFirst({
     where: { columnId },

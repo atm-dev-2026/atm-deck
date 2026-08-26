@@ -12,14 +12,76 @@ datasource db {
   provider = "mysql"
 }
 
+enum BoardVisibility {
+  GLOBAL
+  DEPARTMENT
+  PERSONAL
+}
+
+enum BoardRole {
+  READ_ONLY
+  CAN_EDIT
+}
+
 model Board {
+  id             String          @id @default(cuid())
+  name           String
+  visibilityType BoardVisibility @default(PERSONAL)
+  ownerId        String
+  departmentId   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  owner      User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  department Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  members    BoardMember[]
+  columns    Column[]
+  labels     Label[]
+
+  @@index([ownerId])
+  @@index([visibilityType, departmentId])
+}
+
+model BoardMember {
+  id        String    @id @default(cuid())
+  boardId   String
+  userId    String
+  role      BoardRole @default(READ_ONLY)
+  invitedAt DateTime  @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, userId])
+  @@index([userId])
+}
+
+enum DepartmentRole {
+  MANAGER
+  MEMBER
+}
+
+model Department {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  columns Column[]
-  labels  Label[]
+  members DepartmentMember[]
+  boards  Board[]
+}
+
+model DepartmentMember {
+  id           String         @id @default(cuid())
+  departmentId String
+  userId       String
+  role         DepartmentRole @default(MEMBER)
+  joinedAt     DateTime       @default(now())
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([departmentId, userId])
+  @@index([userId])
 }
 
 model Column {
@@ -86,6 +148,11 @@ model ChecklistItem {
   @@index([taskId])
 }
 
+enum GlobalRole {
+  ADMIN
+  USER
+}
+
 // Auth.js (next-auth v5) models — required shape for @auth/prisma-adapter
 model User {
   id            String    @id @default(cuid())
@@ -93,6 +160,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  globalRole    GlobalRole @default(USER)
 
   accounts Account[]
   sessions Session[]
@@ -102,6 +170,10 @@ model User {
   messages         Message[]
   reactions        Reaction[]
   typingIndicators TypingIndicator[]
+
+  ownedBoards           Board[]
+  boardMemberships      BoardMember[]
+  departmentMemberships DepartmentMember[]
 }
 
 model Channel {

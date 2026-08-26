@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireBoardAccess } from "@/lib/permissions";
 
 export async function POST(request: Request) {
   const { boardId, name } = await request.json();
@@ -9,6 +10,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
 
   const lastColumn = await prisma.column.findFirst({
     where: { boardId },

@@ -23,7 +23,8 @@ export default function Home() {
 
   const loadBoards = async () => {
     const res = await fetch("/api/boards");
-    setBoards(await res.json());
+    const data = await res.json();
+    setBoards(Array.isArray(data) ? data : []);
     setLoading(false);
   };
 
@@ -33,7 +34,7 @@ export default function Home() {
       const res = await fetch("/api/boards");
       const data = await res.json();
       if (!ignore) {
-        setBoards(data);
+        setBoards(Array.isArray(data) ? data : []);
         setLoading(false);
       }
     })();

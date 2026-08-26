@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ columnId: string }> },
 ) {
   const { columnId } = await params;
+
+  const boardId = await getBoardIdForColumn(columnId);
+  if (!boardId) {
+    return NextResponse.json({ error: "Column not found" }, { status: 404 });
+  }
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
+
   const data = await request.json();
 
   const column = await prisma.column.update({
@@ -24,6 +33,14 @@ export async function DELETE(
   { params }: { params: Promise<{ columnId: string }> },
 ) {
   const { columnId } = await params;
+
+  const boardId = await getBoardIdForColumn(columnId);
+  if (!boardId) {
+    return NextResponse.json({ error: "Column not found" }, { status: 404 });
+  }
+  const gate = await requireBoardAccess(boardId, { minEdit: true });
+  if ("error" in gate) return gate.error;
+
   await prisma.column.delete({ where: { id: columnId } });
   return NextResponse.json({ ok: true });
 }
