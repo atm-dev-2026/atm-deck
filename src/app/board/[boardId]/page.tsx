@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ListChecks, Plus, Trash2, X } from "lucide-react
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
 import { Spinner } from "@/components/Spinner";
+import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import type { LabelColor } from "@/components/labelColors";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
 
@@ -19,6 +20,7 @@ type Column = {
 type Board = {
   id: string;
   name: string;
+  visibilityType: BoardVisibility;
   labels: LabelT[];
   columns: Column[];
 };
@@ -296,6 +298,7 @@ export default function BoardPage({
           <ChevronLeft size={16} />
         </Link>
         <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{board.name}</h1>
+        <VisibilityBadge visibilityType={board.visibilityType} />
       </div>
 
       <div className="flex flex-1 gap-3 overflow-x-auto p-4">

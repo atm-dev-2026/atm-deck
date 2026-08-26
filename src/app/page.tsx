@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 
 type Board = {
   id: string;
@@ -11,6 +12,7 @@ type Board = {
   createdAt: string;
   columnCount: number;
   taskCount: number;
+  visibilityType: BoardVisibility;
 };
 
 export default function Home() {
@@ -164,7 +166,10 @@ export default function Home() {
                   <SquareKanban size={16} />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
+                    <VisibilityBadge visibilityType={board.visibilityType} />
+                  </div>
                   <p className="text-xs text-zinc-500">
                     {board.columnCount} {board.columnCount === 1 ? "column" : "columns"} · {board.taskCount}{" "}
                     {board.taskCount === 1 ? "task" : "tasks"}
