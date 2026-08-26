@@ -28,7 +28,10 @@ export async function POST(
     );
   }
 
-  const targetUser = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+  const targetUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, email: true, image: true },
+  });
   if (!targetUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -39,5 +42,5 @@ export async function POST(
     update: { role },
   });
 
-  return NextResponse.json(member, { status: 201 });
+  return NextResponse.json({ ...member, user: targetUser }, { status: 201 });
 }

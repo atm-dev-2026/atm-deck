@@ -27,6 +27,11 @@ export async function GET(
           },
         },
       },
+      owner: { select: { id: true, name: true, email: true, image: true } },
+      members: {
+        orderBy: { invitedAt: "asc" },
+        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+      },
     },
   });
 
@@ -34,7 +39,7 @@ export async function GET(
     return NextResponse.json({ error: "Board not found" }, { status: 404 });
   }
 
-  return NextResponse.json(board);
+  return NextResponse.json({ ...board, access: gate.access });
 }
 
 export async function DELETE(

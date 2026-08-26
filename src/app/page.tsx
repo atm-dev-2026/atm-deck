@@ -15,13 +15,19 @@ type Board = {
   visibilityType: BoardVisibility;
 };
 
+type Department = { id: string; name: string };
+
 export default function Home() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
+  const [visibility, setVisibility] = useState<BoardVisibility>("PERSONAL");
+  const [departmentId, setDepartmentId] = useState("");
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const loadBoards = async () => {
     const res = await fetch("/api/boards");
@@ -45,20 +51,45 @@ export default function Home() {
     };
   }, []);
 
+  const openCreate = () => {
+    setCreating((v) => !v);
+    setCreateError(null);
+    if (departments.length === 0) {
+      fetch("/api/departments")
+        .then((res) => res.json())
+        .then((data) => setDepartments(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  };
+
   const createBoard = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || submitting) return;
+    if (visibility === "DEPARTMENT" && !departmentId) {
+      setCreateError("Pick a department for a department board.");
+      return;
+    }
     setSubmitting(true);
+    setCreateError(null);
     try {
       const res = await fetch("/api/boards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({
+          name,
+          visibilityType: visibility,
+          departmentId: visibility === "DEPARTMENT" ? departmentId : undefined,
+        }),
       });
       if (res.ok) {
         setName("");
+        setVisibility("PERSONAL");
+        setDepartmentId("");
         setCreating(false);
         await loadBoards();
+      } else {
+        const data = await res.json().catch(() => null);
+        setCreateError(data?.error ?? "Couldn't create the board.");
       }
     } finally {
       setSubmitting(false);
@@ -93,7 +124,7 @@ export default function Home() {
           </span>
         </div>
         <button
-          onClick={() => setCreating((v) => !v)}
+          onClick={openCreate}
           className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-white hover:bg-accent-hover"
         >
           <Plus size={13} strokeWidth={2.5} />
@@ -105,31 +136,62 @@ export default function Home() {
         {creating && (
           <form
             onSubmit={createBoard}
-            className="mb-5 flex gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+            className="mb-5 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <input
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Board name"
-              className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
-            >
-              {submitting && <Spinner size={13} />}
-              Create
-            </button>
-            <button
-              type="button"
-              onClick={() => setCreating(false)}
-              disabled={submitting}
-              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-            >
-              Cancel
-            </button>
+            <div className="flex gap-2">
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Board name"
+                className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              />
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as BoardVisibility)}
+                className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              >
+                <option value="PERSONAL">Personal</option>
+                <option value="DEPARTMENT">Department</option>
+                <option value="GLOBAL">Global</option>
+              </select>
+            </div>
+
+            {visibility === "DEPARTMENT" && (
+              <select
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              >
+                <option value="">Select a department…</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {createError && <p className="text-xs text-red-500">{createError}</p>}
+
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+              >
+                {submitting && <Spinner size={13} />}
+                Create
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreating(false)}
+                disabled={submitting}
+                className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         )}
 

@@ -1,0 +1,161 @@
+"use client";
+
+import { useState } from "react";
+import { Users } from "lucide-react";
+import { Avatar } from "./Avatar";
+import { Spinner } from "./Spinner";
+
+export type BoardMemberRole = "READ_ONLY" | "CAN_EDIT";
+
+type UserSummary = { id: string; name: string | null; email: string | null; image: string | null };
+export type BoardMemberT = { role: BoardMemberRole; user: UserSummary };
+
+export function InviteMembersPanel({
+  boardId,
+  owner,
+  members,
+  canManageMembers,
+  onInvited,
+}: {
+  boardId: string;
+  owner: UserSummary | null;
+  members: BoardMemberT[];
+  canManageMembers: boolean;
+  onInvited: (member: BoardMemberT) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState<UserSummary[] | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedRole, setSelectedRole] = useState<BoardMemberRole>("READ_ONLY");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const toggleOpen = () => {
+    setOpen((v) => !v);
+    setError(null);
+    if (users === null) {
+      fetch("/api/users")
+        .then((res) => res.json())
+        .then((data) => setUsers(Array.isArray(data) ? data : []))
+        .catch(() => setUsers([]));
+    }
+  };
+
+  const memberIds = new Set(members.map((m) => m.user.id));
+  const invitable = (users ?? []).filter((u) => u.id !== owner?.id && !memberIds.has(u.id));
+
+  const submitInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserId || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/boards/${boardId}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selectedUserId, role: selectedRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onInvited(data);
+        setSelectedUserId("");
+        setSelectedRole("READ_ONLY");
+      } else {
+        setError(data?.error ?? "Couldn't send the invite.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={toggleOpen}
+        className="flex items-center gap-1.5 rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+      >
+        <Users size={13} />
+        Members
+        <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          {members.length + (owner ? 1 : 0)}
+        </span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 z-20 mt-1 w-72 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="max-h-56 overflow-y-auto p-1">
+              {owner && (
+                <div className="flex items-center gap-2 rounded px-2 py-1.5">
+                  <Avatar label={owner.name ?? owner.email ?? "?"} image={owner.image} size="sm" />
+                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-950 dark:text-zinc-50">
+                    {owner.name ?? owner.email}
+                  </p>
+                  <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent dark:bg-accent/20">
+                    Owner
+                  </span>
+                </div>
+              )}
+              {members.map((m) => (
+                <div key={m.user.id} className="flex items-center gap-2 rounded px-2 py-1.5">
+                  <Avatar label={m.user.name ?? m.user.email ?? "?"} image={m.user.image} size="sm" />
+                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-950 dark:text-zinc-50">
+                    {m.user.name ?? m.user.email}
+                  </p>
+                  <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    {m.role === "CAN_EDIT" ? "Can edit" : "Read only"}
+                  </span>
+                </div>
+              ))}
+              {members.length === 0 && !owner && (
+                <p className="px-2 py-2 text-xs text-zinc-400">No members yet.</p>
+              )}
+            </div>
+
+            {canManageMembers && (
+              <div className="mt-1 border-t border-zinc-100 p-1.5 dark:border-zinc-800">
+                <form onSubmit={submitInvite} className="flex flex-col gap-1.5">
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                  >
+                    <option value="">
+                      {users === null ? "Loading people…" : "Invite someone…"}
+                    </option>
+                    {invitable.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name ?? u.email}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex gap-1.5">
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value as BoardMemberRole)}
+                      className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                    >
+                      <option value="READ_ONLY">Read only</option>
+                      <option value="CAN_EDIT">Can edit</option>
+                    </select>
+                    <button
+                      type="submit"
+                      disabled={!selectedUserId || submitting}
+                      className="flex items-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {submitting && <Spinner size={11} />}
+                      Invite
+                    </button>
+                  </div>
+                  {error && <p className="text-[11px] text-red-500">{error}</p>}
+                </form>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

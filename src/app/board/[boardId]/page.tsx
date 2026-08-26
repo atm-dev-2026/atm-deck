@@ -7,6 +7,7 @@ import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
 import { Spinner } from "@/components/Spinner";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
+import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMembersPanel";
 import type { LabelColor } from "@/components/labelColors";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
 
@@ -17,12 +18,18 @@ type Column = {
   tasks: TaskT[];
 };
 
+type UserSummary = { id: string; name: string | null; email: string | null; image: string | null };
+
 type Board = {
   id: string;
   name: string;
+  ownerId: string;
+  owner: UserSummary;
   visibilityType: BoardVisibility;
   labels: LabelT[];
   columns: Column[];
+  members: BoardMemberT[];
+  access: { role: string; canEdit: boolean; canDelete: boolean; canManageMembers: boolean };
 };
 
 type DragOver = { columnId: string; index: number };
@@ -299,6 +306,24 @@ export default function BoardPage({
         </Link>
         <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{board.name}</h1>
         <VisibilityBadge visibilityType={board.visibilityType} />
+        <div className="ml-auto">
+          <InviteMembersPanel
+            boardId={board.id}
+            owner={board.owner}
+            members={board.members}
+            canManageMembers={board.access.canManageMembers}
+            onInvited={(member) =>
+              setBoard((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      members: [...prev.members.filter((m) => m.user.id !== member.user.id), member],
+                    }
+                  : prev,
+              )
+            }
+          />
+        </div>
       </div>
 
       <div className="flex flex-1 gap-3 overflow-x-auto p-4">
