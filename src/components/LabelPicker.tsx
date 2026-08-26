@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Plus, Tag } from "lucide-react";
 import { LABEL_COLORS, type LabelColor } from "./labelColors";
+import { Spinner } from "./Spinner";
 
 type BoardLabel = { id: string; name: string; color: string };
 
@@ -15,17 +16,20 @@ export function LabelPicker({
   boardLabels: BoardLabel[];
   selectedIds: string[];
   onToggle: (labelId: string) => void;
-  onCreate: (name: string, color: LabelColor) => void;
+  onCreate: (name: string, color: LabelColor) => Promise<void> | void;
 }) {
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState<LabelColor>("sky");
 
-  const submitCreate = (e: React.FormEvent) => {
+  const submitCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onCreate(name.trim(), color);
+    if (!name.trim() || submitting) return;
+    setSubmitting(true);
+    await onCreate(name.trim(), color);
+    setSubmitting(false);
     setName("");
     setCreating(false);
   };
@@ -90,8 +94,10 @@ export function LabelPicker({
                     </div>
                     <button
                       type="submit"
-                      className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover"
+                      disabled={submitting}
+                      className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
                     >
+                      {submitting && <Spinner size={11} />}
                       Add
                     </button>
                   </div>

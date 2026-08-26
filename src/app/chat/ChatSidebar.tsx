@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Compass, Plus } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
+import { Spinner } from "@/components/Spinner";
 
 type Channel = {
   id: string;
@@ -36,6 +37,8 @@ export function ChatSidebar() {
   const [showNewDm, setShowNewDm] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
   const [users, setUsers] = useState<ChatUser[]>([]);
+  const [creatingChannel, setCreatingChannel] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const loadChannels = async () => {
     const res = await fetch("/api/channels");
@@ -59,25 +62,32 @@ export function ChatSidebar() {
 
   const createChannel = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newChannelName.trim()) return;
-    const res = await fetch("/api/channels", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newChannelName.trim() }),
-    });
-    setNewChannelName("");
-    setShowCreate(false);
-    await loadChannels();
-    if (res.ok) {
-      const channel = await res.json();
-      router.push(`/chat/${channel.id}`);
+    if (!newChannelName.trim() || creatingChannel) return;
+    setCreatingChannel(true);
+    try {
+      const res = await fetch("/api/channels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newChannelName.trim() }),
+      });
+      setNewChannelName("");
+      setShowCreate(false);
+      await loadChannels();
+      if (res.ok) {
+        const channel = await res.json();
+        router.push(`/chat/${channel.id}`);
+      }
+    } finally {
+      setCreatingChannel(false);
     }
   };
 
   const joinChannel = async (channelId: string) => {
+    setPendingId(channelId);
     await fetch(`/api/channels/${channelId}/join`, { method: "POST" });
     await loadChannels();
     router.push(`/chat/${channelId}`);
+    setPendingId(null);
   };
 
   const openNewDm = async () => {
@@ -89,6 +99,7 @@ export function ChatSidebar() {
   };
 
   const startDm = async (userId: string) => {
+    setPendingId(userId);
     const res = await fetch("/api/dms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -96,6 +107,7 @@ export function ChatSidebar() {
     });
     setShowNewDm(false);
     await loadDms();
+    setPendingId(null);
     if (res.ok) {
       const dm = await res.json();
       router.push(`/chat/${dm.id}`);
@@ -145,8 +157,10 @@ export function ChatSidebar() {
             />
             <button
               type="submit"
-              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover"
+              disabled={creatingChannel}
+              className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
+              {creatingChannel && <Spinner size={11} />}
               Add
             </button>
           </form>
@@ -161,10 +175,11 @@ export function ChatSidebar() {
               <button
                 key={c.id}
                 onClick={() => joinChannel(c.id)}
-                className="flex items-center justify-between rounded px-1 py-0.5 text-left text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                disabled={pendingId === c.id}
+                className="flex items-center justify-between rounded px-1 py-0.5 text-left text-xs text-zinc-600 hover:bg-zinc-100 disabled:cursor-wait dark:text-zinc-400 dark:hover:bg-zinc-900"
               >
                 <span className="truncate">#{c.name}</span>
-                <span className="text-zinc-400">join</span>
+                {pendingId === c.id ? <Spinner size={11} /> : <span className="text-zinc-400">join</span>}
               </button>
             ))}
           </div>
@@ -203,9 +218,11 @@ export function ChatSidebar() {
               <button
                 key={u.id}
                 onClick={() => startDm(u.id)}
-                className="truncate rounded px-1 py-0.5 text-left text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+                disabled={pendingId === u.id}
+                className="flex items-center justify-between gap-2 truncate rounded px-1 py-0.5 text-left text-xs text-zinc-600 hover:bg-zinc-100 disabled:cursor-wait dark:text-zinc-400 dark:hover:bg-zinc-900"
               >
-                {u.name ?? u.email}
+                <span className="truncate">{u.name ?? u.email}</span>
+                {pendingId === u.id && <Spinner size={11} />}
               </button>
             ))}
           </div>

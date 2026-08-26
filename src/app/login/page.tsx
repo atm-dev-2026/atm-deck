@@ -1,4 +1,5 @@
 import { signIn } from "../../../auth";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function LoginPage({
   searchParams,
@@ -27,13 +28,13 @@ export default async function LoginPage({
               await signIn("google", { redirectTo: callbackUrl ?? "/" });
             }}
           >
-            <button
-              type="submit"
+            <SubmitButton
+              pendingLabel="Redirecting to Google…"
               className="flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-800"
             >
               <GoogleMark />
               Continue with Google
-            </button>
+            </SubmitButton>
           </form>
 
           <form
@@ -42,13 +43,13 @@ export default async function LoginPage({
               await signIn("line", { redirectTo: callbackUrl ?? "/" });
             }}
           >
-            <button
-              type="submit"
+            <SubmitButton
+              pendingLabel="Redirecting to LINE…"
               className="flex w-full items-center justify-center gap-2 rounded-md bg-[#06C755] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#05b34c]"
             >
               <LineMark />
               Continue with LINE
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </div>

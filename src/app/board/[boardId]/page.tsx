@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Calendar, ChevronLeft, ListChecks, Plus, Trash2, X } from "lucide-react";
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
+import { Spinner } from "@/components/Spinner";
 import type { LabelColor } from "@/components/labelColors";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
 
@@ -68,6 +69,24 @@ export default function BoardPage({
     const title = newTaskTitle[columnId]?.trim();
     if (!title) return;
     setNewTaskTitle((prev) => ({ ...prev, [columnId]: "" }));
+
+    const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+    const tempTask: TaskT = {
+      id: tempId,
+      title,
+      description: null,
+      assignee: null,
+      dueDate: null,
+      order: 0,
+      columnId,
+      priority: "NONE",
+      labels: [],
+      checklist: [],
+    };
+    updateColumns((cols) =>
+      cols.map((c) => (c.id === columnId ? { ...c, tasks: [...c.tasks, tempTask] } : c)),
+    );
+
     const res = await fetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,35 +94,57 @@ export default function BoardPage({
     });
     if (res.ok) {
       const task: TaskT = await res.json();
-      updateColumns((cols) => cols.map((c) => (c.id === columnId ? { ...c, tasks: [...c.tasks, task] } : c)));
+      updateColumns((cols) =>
+        cols.map((c) =>
+          c.id === columnId ? { ...c, tasks: c.tasks.map((t) => (t.id === tempId ? task : t)) } : c,
+        ),
+      );
+    } else {
+      updateColumns((cols) =>
+        cols.map((c) => (c.id === columnId ? { ...c, tasks: c.tasks.filter((t) => t.id !== tempId) } : c)),
+      );
     }
   };
 
   const addColumn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newColumnName.trim()) return;
+    const name = newColumnName.trim();
+    if (!name) return;
+    setNewColumnName("");
+    setAddingColumn(false);
+
+    const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+    const tempColumn: Column = { id: tempId, name, order: board?.columns.length ?? 0, tasks: [] };
+    setBoard((prev) => (prev ? { ...prev, columns: [...prev.columns, tempColumn] } : prev));
+
     const res = await fetch("/api/columns", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ boardId, name: newColumnName.trim() }),
+      body: JSON.stringify({ boardId, name }),
     });
-    setNewColumnName("");
-    setAddingColumn(false);
     if (res.ok) {
       const column = await res.json();
-      updateColumns((cols) => [...cols, { ...column, tasks: [] }]);
+      setBoard((prev) =>
+        prev
+          ? { ...prev, columns: prev.columns.map((c) => (c.id === tempId ? { ...column, tasks: [] } : c)) }
+          : prev,
+      );
+    } else {
+      setBoard((prev) => (prev ? { ...prev, columns: prev.columns.filter((c) => c.id !== tempId) } : prev));
     }
   };
 
   const deleteTask = async (taskId: string) => {
     updateColumns((cols) => cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) })));
     setEditingTaskId((id) => (id === taskId ? null : id));
+    if (taskId.startsWith("temp-")) return;
     await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
   };
 
   const deleteColumn = async (columnId: string) => {
     if (!confirm("Delete this column? This removes all its tasks.")) return;
     updateColumns((cols) => cols.filter((c) => c.id !== columnId));
+    if (columnId.startsWith("temp-")) return;
     await fetch(`/api/columns/${columnId}`, { method: "DELETE" });
   };
 
@@ -258,20 +299,27 @@ export default function BoardPage({
       </div>
 
       <div className="flex flex-1 gap-3 overflow-x-auto p-4">
-        {columns.map((column) => (
+        {columns.map((column) => {
+          const columnPending = column.id.startsWith("temp-");
+          return (
           <div
             key={column.id}
-            className="flex w-72 shrink-0 flex-col rounded-lg bg-zinc-100/70 dark:bg-zinc-900/60"
+            className={`flex w-72 shrink-0 flex-col rounded-lg bg-zinc-100/70 dark:bg-zinc-900/60 ${columnPending ? "opacity-50" : ""}`}
           >
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">{column.name}</h2>
-                <span className="rounded-full bg-zinc-200/70 px-1.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                  {column.tasks.length}
-                </span>
+                {columnPending ? (
+                  <Spinner size={11} />
+                ) : (
+                  <span className="rounded-full bg-zinc-200/70 px-1.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    {column.tasks.length}
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => deleteColumn(column.id)}
+                disabled={columnPending}
                 className="rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-red-500 dark:hover:bg-zinc-800"
                 aria-label="Delete column"
               >
@@ -337,11 +385,13 @@ export default function BoardPage({
                 value={newTaskTitle[column.id] ?? ""}
                 onChange={(e) => setNewTaskTitle((prev) => ({ ...prev, [column.id]: e.target.value }))}
                 placeholder="Add a task"
-                className="min-w-0 flex-1 bg-transparent py-1 text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-300"
+                disabled={columnPending}
+                className="min-w-0 flex-1 bg-transparent py-1 text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none disabled:cursor-wait dark:text-zinc-300"
               />
             </form>
           </div>
-        ))}
+          );
+        })}
 
         {addingColumn ? (
           <form
@@ -424,23 +474,28 @@ function TaskCard({
   const PriorityIcon = priority.icon;
   const doneCount = task.checklist.filter((c) => c.done).length;
   const overdue = task.dueDate ? new Date(task.dueDate) < new Date(new Date().toDateString()) : false;
+  const pending = task.id.startsWith("temp-");
 
   return (
     <div
-      draggable
+      draggable={!pending}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onClick={onClick}
-      className={`group cursor-pointer rounded-md border border-zinc-200 bg-white p-2.5 text-sm shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700 ${
-        dragging ? "opacity-40" : ""
-      }`}
+      onClick={pending ? undefined : onClick}
+      className={`group rounded-md border border-zinc-200 bg-white p-2.5 text-sm shadow-sm transition dark:border-zinc-800 dark:bg-zinc-950 ${
+        pending ? "opacity-50" : "cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700"
+      } ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-1.5">
-          {task.priority !== "NONE" && (
-            <PriorityIcon size={13} strokeWidth={2.5} className={`mt-0.5 shrink-0 ${priority.className}`} />
+          {pending ? (
+            <Spinner size={13} />
+          ) : (
+            task.priority !== "NONE" && (
+              <PriorityIcon size={13} strokeWidth={2.5} className={`mt-0.5 shrink-0 ${priority.className}`} />
+            )
           )}
           <span className="text-zinc-900 dark:text-zinc-50">{task.title}</span>
         </div>

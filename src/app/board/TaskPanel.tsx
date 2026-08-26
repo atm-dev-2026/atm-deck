@@ -46,7 +46,7 @@ export function TaskPanel({
     labelIds: string[];
   }>) => void;
   onDelete: () => void;
-  onCreateLabel: (name: string, color: LabelColor) => void;
+  onCreateLabel: (name: string, color: LabelColor) => Promise<void>;
   onAddChecklistItem: (text: string) => void;
   onToggleChecklistItem: (itemId: string, done: boolean) => void;
   onDeleteChecklistItem: (itemId: string) => void;

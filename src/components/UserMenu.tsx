@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { Avatar } from "./Avatar";
+import { SubmitButton } from "./SubmitButton";
 
 export function UserMenu({
   name,
@@ -38,13 +39,13 @@ export function UserMenu({
               {email && <p className="truncate text-xs text-zinc-500">{email}</p>}
             </div>
             <form action={signOutAction}>
-              <button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Signing out…"
                 className="mt-1 flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 <LogOut size={14} />
                 Sign out
-              </button>
+              </SubmitButton>
             </form>
           </div>
         </>
