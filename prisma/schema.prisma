@@ -59,6 +59,82 @@ model User {
 
   accounts Account[]
   sessions Session[]
+
+  createdChannels  Channel[]
+  channelMembers   ChannelMember[]
+  messages         Message[]
+  reactions        Reaction[]
+  typingIndicators TypingIndicator[]
+}
+
+model Channel {
+  id          String   @id @default(cuid())
+  name        String?
+  topic       String?
+  isDirect    Boolean  @default(false)
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User              @relation(fields: [createdById], references: [id])
+  members   ChannelMember[]
+  messages  Message[]
+  typing    TypingIndicator[]
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  channelId String
+  userId    String
+  parentId  String?
+  body      String    @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  editedAt  DateTime?
+
+  channel   Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Message?   @relation("ThreadReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Message[]  @relation("ThreadReplies")
+  reactions Reaction[]
+
+  @@index([channelId, parentId, updatedAt])
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}
+
+model TypingIndicator {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  updatedAt DateTime @updatedAt
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
 }
 
 model Account {

@@ -7,12 +7,22 @@ export async function Header() {
 
   return (
     <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <Link
-        href="/"
-        className="text-sm font-semibold text-zinc-950 dark:text-zinc-50"
-      >
-        ATM Deck
-      </Link>
+      <div className="flex items-center gap-6">
+        <Link
+          href="/"
+          className="text-sm font-semibold text-zinc-950 dark:text-zinc-50"
+        >
+          ATM Deck
+        </Link>
+        <nav className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+          <Link href="/" className="hover:text-zinc-950 dark:hover:text-zinc-50">
+            Boards
+          </Link>
+          <Link href="/chat" className="hover:text-zinc-950 dark:hover:text-zinc-50">
+            Chat
+          </Link>
+        </nav>
+      </div>
 
       <div className="flex items-center gap-3">
         <span className="text-sm text-zinc-600 dark:text-zinc-400">
