@@ -71,7 +71,14 @@ export function ThreadPanel({
   };
 
   return (
-    <aside className="flex w-96 shrink-0 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      className="fixed inset-0 z-30 flex justify-end bg-black/20 md:static md:z-auto md:shrink-0 md:bg-transparent"
+      onClick={onClose}
+    >
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-full w-full max-w-sm shrink-0 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:w-96 md:max-w-none"
+      >
       <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Thread</h2>
         <button
@@ -129,6 +136,7 @@ export function ThreadPanel({
           <Send size={13} />
         </button>
       </form>
-    </aside>
+      </aside>
+    </div>
   );
 }

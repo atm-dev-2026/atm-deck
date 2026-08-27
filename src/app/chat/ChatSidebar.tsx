@@ -25,7 +25,7 @@ type Dm = {
   other: ChatUser | null;
 };
 
-export function ChatSidebar() {
+export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -88,6 +88,7 @@ export function ChatSidebar() {
     await loadChannels();
     router.push(`/chat/${channelId}`);
     setPendingId(null);
+    onNavigate?.();
   };
 
   const openNewDm = async () => {
@@ -111,6 +112,7 @@ export function ChatSidebar() {
     if (res.ok) {
       const dm = await res.json();
       router.push(`/chat/${dm.id}`);
+      onNavigate?.();
     }
   };
 
@@ -122,7 +124,7 @@ export function ChatSidebar() {
     }`;
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+    <aside className="flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
       <div>
         <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -187,7 +189,7 @@ export function ChatSidebar() {
 
         <nav className="flex flex-col gap-0.5">
           {joined.map((c) => (
-            <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)}>
+            <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)} onClick={onNavigate}>
               <span className="text-zinc-400">#</span>
               <span className="truncate">{c.name}</span>
             </Link>
@@ -232,7 +234,7 @@ export function ChatSidebar() {
           {dms.map((dm) => {
             const label = dm.other?.name ?? dm.other?.email ?? "Unknown";
             return (
-              <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)}>
+              <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)} onClick={onNavigate}>
                 <Avatar label={label} image={dm.other?.image} size="xs" />
                 <span className="truncate">{label}</span>
               </Link>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, use } from "react";
-import { Hash, Send } from "lucide-react";
+import { Hash, Menu, Send } from "lucide-react";
 import { useChatUserId } from "../ChatUserContext";
+import { useChatSidebar } from "../ChatSidebarContext";
 import { MessageItem } from "../MessageItem";
 import { ThreadPanel } from "./ThreadPanel";
 import { ChatMessage, ChatUser } from "../types";
@@ -31,6 +32,7 @@ export default function ChannelPage({
 
 function ChannelView({ channelId }: { channelId: string }) {
   const currentUserId = useChatUserId();
+  const { toggleSidebar } = useChatSidebar();
 
   const [channel, setChannel] = useState<Channel | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -143,16 +145,22 @@ function ChannelView({ channelId }: { channelId: string }) {
 
   if (notFound) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-        Channel not found, or you don&apos;t have access.
+      <div className="flex min-h-0 flex-1 flex-col">
+        <MobileChatHeader onMenuClick={toggleSidebar} />
+        <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
+          Channel not found, or you don&apos;t have access.
+        </div>
       </div>
     );
   }
 
   if (!channel) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-        Loading…
+      <div className="flex min-h-0 flex-1 flex-col">
+        <MobileChatHeader onMenuClick={toggleSidebar} />
+        <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
+          Loading…
+        </div>
       </div>
     );
   }
@@ -172,14 +180,21 @@ function ChannelView({ channelId }: { channelId: string }) {
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex items-center gap-1.5 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          {!channel.isDirect && <Hash size={14} className="text-zinc-400" />}
-          <div>
-            <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+        <div className="flex items-center gap-1.5 border-b border-zinc-200 px-2 py-3 dark:border-zinc-800 sm:px-4">
+          <button
+            onClick={toggleSidebar}
+            className="mr-1 shrink-0 rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 md:hidden"
+            aria-label="Toggle channel list"
+          >
+            <Menu size={16} />
+          </button>
+          {!channel.isDirect && <Hash size={14} className="shrink-0 text-zinc-400" />}
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">
               {title}
             </h1>
             {channel.topic && (
-              <p className="text-xs text-zinc-500">{channel.topic}</p>
+              <p className="truncate text-xs text-zinc-500">{channel.topic}</p>
             )}
           </div>
         </div>
@@ -236,6 +251,20 @@ function ChannelView({ channelId }: { channelId: string }) {
           onClose={() => setOpenThreadId(null)}
         />
       )}
+    </div>
+  );
+}
+
+function MobileChatHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  return (
+    <div className="flex items-center gap-1.5 border-b border-zinc-200 px-2 py-3 dark:border-zinc-800 md:hidden">
+      <button
+        onClick={onMenuClick}
+        className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+        aria-label="Toggle channel list"
+      >
+        <Menu size={16} />
+      </button>
     </div>
   );
 }

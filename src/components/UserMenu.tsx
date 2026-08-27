@@ -11,30 +11,43 @@ export function UserMenu({
   email,
   image,
   signOutAction,
+  placement = "right",
 }: {
   name: string | null;
   email: string | null;
   image: string | null;
   signOutAction: () => Promise<void>;
+  placement?: "right" | "top";
 }) {
   const [open, setOpen] = useState(false);
   const label = name ?? email ?? "?";
 
   return (
-    <div className="relative">
+    <div className={placement === "right" ? "relative" : "relative flex flex-1"}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        className={
+          placement === "right"
+            ? "flex h-10 w-10 items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            : "mx-1 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-zinc-400 dark:text-zinc-500"
+        }
         title={label}
       >
-        <Avatar label={label} image={image} size="sm" />
+        <Avatar label={label} image={image} size={placement === "right" ? "sm" : "xs"} />
+        {placement === "top" && "Me"}
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-0 left-full z-20 ml-2 w-52 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          <div
+            className={
+              placement === "right"
+                ? "absolute bottom-0 left-full z-20 ml-2 w-52 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                : "fixed bottom-16 right-3 z-20 w-52 max-w-[calc(100vw-1.5rem)] rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+            }
+          >
             <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
               <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{name ?? "Signed in"}</p>
               {email && <p className="truncate text-xs text-zinc-500">{email}</p>}

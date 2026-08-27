@@ -115,7 +115,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-5">
         <div className="flex items-center gap-2">
           <LayoutGrid size={16} className="text-zinc-400" />
           <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
@@ -132,13 +132,13 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl flex-1 overflow-y-auto px-6 py-6">
+      <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 py-6 sm:px-6">
         {creating && (
           <form
             onSubmit={createBoard}
             className="mb-5 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 autoFocus
                 value={name}
@@ -216,7 +216,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="grid gap-2">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((board) => (
             <Link
               key={board.id}

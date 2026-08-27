@@ -297,14 +297,16 @@ export default function BoardPage({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+      <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
         <Link
           href="/"
-          className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
         >
           <ChevronLeft size={16} />
         </Link>
-        <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{board.name}</h1>
+        <h1 className="min-w-0 max-w-[50vw] truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50 sm:max-w-xs">
+          {board.name}
+        </h1>
         <VisibilityBadge visibilityType={board.visibilityType} />
         <div className="ml-auto">
           <InviteMembersPanel
@@ -332,7 +334,7 @@ export default function BoardPage({
           return (
           <div
             key={column.id}
-            className={`flex w-72 shrink-0 flex-col rounded-lg bg-zinc-100/70 dark:bg-zinc-900/60 ${columnPending ? "opacity-50" : ""}`}
+            className={`flex w-[85vw] max-w-72 shrink-0 flex-col rounded-lg bg-zinc-100/70 dark:bg-zinc-900/60 sm:w-72 ${columnPending ? "opacity-50" : ""}`}
           >
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-1.5">
@@ -424,7 +426,7 @@ export default function BoardPage({
         {addingColumn ? (
           <form
             onSubmit={addColumn}
-            className="flex w-72 shrink-0 flex-col gap-2 rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700"
+            className="flex w-[85vw] max-w-72 shrink-0 flex-col gap-2 rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700 sm:w-72"
           >
             <input
               autoFocus
@@ -452,7 +454,7 @@ export default function BoardPage({
         ) : (
           <button
             onClick={() => setAddingColumn(true)}
-            className="flex h-9 w-56 shrink-0 items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 text-xs font-medium text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:border-zinc-700 dark:hover:text-zinc-300"
+            className="flex h-9 w-[85vw] max-w-56 shrink-0 items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 text-xs font-medium text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 dark:border-zinc-700 dark:hover:text-zinc-300 sm:w-56"
           >
             <Plus size={13} />
             Add column
