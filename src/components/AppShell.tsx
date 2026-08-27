@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { auth, signOut } from "../../auth";
+import { prisma } from "@/lib/prisma";
 import { NavRail } from "./NavRail";
 import { UserMenu } from "./UserMenu";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) return <>{children}</>;
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { globalRole: true },
+  });
+  const isAdmin = dbUser?.globalRole === "ADMIN";
 
   const signOutAction = async () => {
     "use server";
@@ -23,7 +30,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           AD
         </Link>
 
-        <NavRail />
+        <NavRail isAdmin={isAdmin} />
 
         <div className="flex-1" />
 
@@ -38,7 +45,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
 
       <div className="glass relative z-20 flex shrink-0 items-stretch py-1 sm:hidden">
-        <NavRail variant="bottom" />
+        <NavRail variant="bottom" isAdmin={isAdmin} />
         <UserMenu
           name={session.user.name ?? null}
           email={session.user.email ?? null}
