@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { AttachmentView } from "./AttachmentView";
 import { ChatMessage, QUICK_REACTIONS } from "./types";
 
 export function MessageItem({
@@ -75,9 +76,16 @@ export function MessageItem({
             </button>
           </form>
         ) : (
-          <p className="whitespace-pre-wrap break-words text-sm text-zinc-800 dark:text-zinc-200">
-            {message.body}
-          </p>
+          <>
+            {message.body && (
+              <p className="whitespace-pre-wrap break-words text-sm text-zinc-800 dark:text-zinc-200">
+                {message.body}
+              </p>
+            )}
+            {message.attachments.map((attachment) => (
+              <AttachmentView key={attachment.id} attachment={attachment} />
+            ))}
+          </>
         )}
 
         <div className="mt-1 flex flex-wrap items-center gap-1">

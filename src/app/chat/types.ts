@@ -11,6 +11,13 @@ export type ReactionSummary = {
   reactedByMe: boolean;
 };
 
+export type ChatAttachment = {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+};
+
 export type ChatMessage = {
   id: string;
   channelId: string;
@@ -21,6 +28,7 @@ export type ChatMessage = {
   editedAt: string | null;
   user: ChatUser;
   reactions: ReactionSummary[];
+  attachments: ChatAttachment[];
   replyCount: number;
 };
 

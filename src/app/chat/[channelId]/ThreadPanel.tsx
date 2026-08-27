@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Send, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Paperclip, Send, X } from "lucide-react";
 import { ChatMessage } from "../types";
 import { MessageItem } from "../MessageItem";
+import { PendingAttachmentList } from "../AttachmentView";
+import { useAttachmentUpload } from "../useAttachmentUpload";
 
 export function ThreadPanel({
   messageId,
@@ -17,6 +19,8 @@ export function ThreadPanel({
   const [parent, setParent] = useState<ChatMessage | null>(null);
   const [replies, setReplies] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachmentUpload = useAttachmentUpload(parent?.channelId ?? "");
 
   const load = async () => {
     const res = await fetch(`/api/messages/${messageId}/thread`);
@@ -60,11 +64,21 @@ export function ThreadPanel({
 
   const sendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!draft.trim() || !parent) return;
+    if (!parent) return;
+    const body = draft.trim();
+    if (!body && attachmentUpload.pending.length === 0) return;
+
+    let attachments;
+    try {
+      attachments = await attachmentUpload.uploadAll();
+    } catch {
+      return;
+    }
+
     await fetch(`/api/channels/${parent.channelId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: draft.trim(), parentId: parent.id }),
+      body: JSON.stringify({ body, parentId: parent.id, attachments }),
     });
     setDraft("");
     load();
@@ -119,10 +133,36 @@ export function ThreadPanel({
         </div>
       </div>
 
+      {attachmentUpload.error && (
+        <p className="px-3 pt-2 text-xs text-red-500">{attachmentUpload.error}</p>
+      )}
+      <PendingAttachmentList
+        pending={attachmentUpload.pending}
+        onRemove={attachmentUpload.removeFile}
+      />
+
       <form
         onSubmit={sendReply}
         className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) attachmentUpload.addFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="shrink-0 rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          aria-label="Attach file"
+        >
+          <Paperclip size={14} />
+        </button>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -131,7 +171,8 @@ export function ThreadPanel({
         />
         <button
           type="submit"
-          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-white hover:bg-accent-hover"
+          disabled={attachmentUpload.uploading}
+          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-white hover:bg-accent-hover disabled:opacity-50"
         >
           <Send size={13} />
         </button>

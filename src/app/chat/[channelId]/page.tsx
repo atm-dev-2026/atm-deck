@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, use } from "react";
-import { Hash, Menu, Send } from "lucide-react";
+import { Hash, Menu, Paperclip, Send } from "lucide-react";
 import { useChatUserId } from "../ChatUserContext";
 import { useChatSidebar } from "../ChatSidebarContext";
 import { MessageItem } from "../MessageItem";
+import { PendingAttachmentList } from "../AttachmentView";
+import { useAttachmentUpload } from "../useAttachmentUpload";
 import { ThreadPanel } from "./ThreadPanel";
 import { ChatMessage, ChatUser } from "../types";
 
@@ -42,7 +44,9 @@ function ChannelView({ channelId }: { channelId: string }) {
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const lastTypingSentRef = useRef(0);
+  const attachmentUpload = useAttachmentUpload(channelId);
 
   useEffect(() => {
     let ignore = false;
@@ -101,12 +105,20 @@ function ChannelView({ channelId }: { channelId: string }) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const body = draft.trim();
-    if (!body) return;
+    if (!body && attachmentUpload.pending.length === 0) return;
+
+    let attachments;
+    try {
+      attachments = await attachmentUpload.uploadAll();
+    } catch {
+      return;
+    }
+
     setDraft("");
     const res = await fetch(`/api/channels/${channelId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body, attachments }),
     });
     if (res.ok) {
       const message: ChatMessage = await res.json();
@@ -220,12 +232,40 @@ function ChannelView({ channelId }: { channelId: string }) {
           </div>
         </div>
 
-        <div className="h-5 px-4 text-xs text-zinc-400">{typingLabel}</div>
+        <div className="h-5 px-4 text-xs text-zinc-400">
+          {typingLabel}
+          {attachmentUpload.error && (
+            <span className="text-red-500">{attachmentUpload.error}</span>
+          )}
+        </div>
+
+        <PendingAttachmentList
+          pending={attachmentUpload.pending}
+          onRemove={attachmentUpload.removeFile}
+        />
 
         <form
           onSubmit={sendMessage}
           className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
         >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) attachmentUpload.addFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 rounded-md p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            aria-label="Attach file"
+          >
+            <Paperclip size={16} />
+          </button>
           <input
             value={draft}
             onChange={(e) => {
@@ -237,7 +277,8 @@ function ChannelView({ channelId }: { channelId: string }) {
           />
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+            disabled={attachmentUpload.uploading}
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
           >
             <Send size={14} />
           </button>

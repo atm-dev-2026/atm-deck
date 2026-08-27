@@ -4,6 +4,10 @@ const messageWithRelations = {
   include: {
     user: { select: { id: true, name: true, email: true, image: true } },
     reactions: { select: { emoji: true, userId: true } },
+    attachments: {
+      select: { id: true, fileName: true, fileType: true, fileSize: true },
+      orderBy: { createdAt: "asc" },
+    },
     _count: { select: { replies: true } },
   },
 } satisfies Prisma.MessageDefaultArgs;
@@ -40,6 +44,7 @@ export function serializeMessage(
     editedAt: message.editedAt,
     user: message.user,
     reactions: Array.from(grouped.values()),
+    attachments: message.attachments,
     replyCount: message._count.replies,
   };
 }

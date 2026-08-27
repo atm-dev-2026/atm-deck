@@ -42,10 +42,29 @@ export async function POST(
   const userId = session.user.id;
 
   const { channelId } = await params;
-  const { body, parentId } = await request.json();
+  const { body, parentId, attachments } = await request.json();
 
-  if (!body || typeof body !== "string" || !body.trim()) {
-    return NextResponse.json({ error: "body is required" }, { status: 400 });
+  const text = typeof body === "string" ? body.trim() : "";
+  const attachmentInputs = Array.isArray(attachments) ? attachments : [];
+
+  if (!text && attachmentInputs.length === 0) {
+    return NextResponse.json(
+      { error: "body or attachments is required" },
+      { status: 400 },
+    );
+  }
+
+  for (const a of attachmentInputs) {
+    if (
+      !a ||
+      typeof a.key !== "string" ||
+      typeof a.fileName !== "string" ||
+      typeof a.fileType !== "string" ||
+      typeof a.fileSize !== "number" ||
+      !a.key.startsWith(`chat/${channelId}/`)
+    ) {
+      return NextResponse.json({ error: "Invalid attachment" }, { status: 400 });
+    }
   }
 
   const membership = await prisma.channelMember.findUnique({
@@ -67,7 +86,17 @@ export async function POST(
       channelId,
       userId,
       parentId: parentId || null,
-      body: body.trim(),
+      body: text,
+      attachments: attachmentInputs.length
+        ? {
+            create: attachmentInputs.map((a) => ({
+              key: a.key,
+              fileName: a.fileName,
+              fileType: a.fileType,
+              fileSize: a.fileSize,
+            })),
+          }
+        : undefined,
     },
     include: messageInclude,
   });

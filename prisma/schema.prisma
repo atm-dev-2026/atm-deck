@@ -212,13 +212,28 @@ model Message {
   updatedAt DateTime  @updatedAt
   editedAt  DateTime?
 
-  channel   Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent    Message?   @relation("ThreadReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Message[]  @relation("ThreadReplies")
-  reactions Reaction[]
+  channel     Channel      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      Message?     @relation("ThreadReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Message[]    @relation("ThreadReplies")
+  reactions   Reaction[]
+  attachments Attachment[]
 
   @@index([channelId, parentId, updatedAt])
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  messageId String
+  key       String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
 }
 
 model Reaction {
