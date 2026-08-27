@@ -142,14 +142,14 @@ export default function Home() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-5">
         <div className="flex items-center gap-2">
           <LayoutGrid size={16} className="text-zinc-400" />
-          <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
+          <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
           <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
             {boards.length}
           </span>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-white hover:bg-accent-hover"
+          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent-hover"
         >
           <Plus size={13} strokeWidth={2.5} />
           New board
@@ -160,7 +160,7 @@ export default function Home() {
         {creating && (
           <form
             onSubmit={createBoard}
-            className="mb-5 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900"
+            className="mb-5 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-surface p-3 dark:border-zinc-800"
           >
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
@@ -202,7 +202,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submitting && <Spinner size={13} />}
                 Create
@@ -245,7 +245,7 @@ export default function Home() {
             <Link
               key={board.id}
               href={`/board/${board.id}`}
-              className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
+              className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-surface px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md hover:shadow-zinc-950/5 dark:border-zinc-800 dark:hover:border-accent/30 dark:hover:shadow-black/30"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">

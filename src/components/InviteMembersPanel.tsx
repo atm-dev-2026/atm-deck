@@ -221,7 +221,7 @@ export function InviteMembersPanel({
                     <button
                       type="submit"
                       disabled={!selectedUserId || submitting}
-                      className="flex items-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex items-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {submitting && <Spinner size={11} />}
                       Invite

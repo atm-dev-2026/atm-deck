@@ -60,7 +60,7 @@ export function MessageItem({
             />
             <button
               type="submit"
-              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover"
+              className="rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover"
             >
               Save
             </button>

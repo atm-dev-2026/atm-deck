@@ -64,8 +64,10 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-white disabled:cursor-wait disabled:opacity-70 ${
-              destructive ? "bg-red-600 hover:bg-red-700" : "bg-accent hover:bg-accent-hover"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium disabled:cursor-wait disabled:opacity-70 ${
+              destructive
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-accent text-accent-foreground hover:bg-accent-hover"
             }`}
           >
             {pending && <Spinner size={12} />}

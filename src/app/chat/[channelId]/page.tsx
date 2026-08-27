@@ -202,7 +202,7 @@ function ChannelView({ channelId }: { channelId: string }) {
           </button>
           {!channel.isDirect && <Hash size={14} className="shrink-0 text-zinc-400" />}
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+            <h1 className="truncate font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">
               {title}
             </h1>
             {channel.topic && (
@@ -278,7 +278,7 @@ function ChannelView({ channelId }: { channelId: string }) {
           <button
             type="submit"
             disabled={attachmentUpload.uploading}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
           >
             <Send size={14} />
           </button>

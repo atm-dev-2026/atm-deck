@@ -172,7 +172,7 @@ export function ThreadPanel({
         <button
           type="submit"
           disabled={attachmentUpload.uploading}
-          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-white hover:bg-accent-hover disabled:opacity-50"
+          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
         >
           <Send size={13} />
         </button>

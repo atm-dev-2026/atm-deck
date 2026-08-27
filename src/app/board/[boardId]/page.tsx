@@ -545,7 +545,7 @@ export default function BoardPage({
             <button
               type="submit"
               disabled={savingBoard}
-              className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+              className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {savingBoard && <Spinner size={12} />}
               Save
@@ -562,7 +562,7 @@ export default function BoardPage({
           </form>
         ) : (
           <>
-            <h1 className="min-w-0 max-w-[50vw] truncate text-sm font-semibold text-zinc-950 dark:text-zinc-50 sm:max-w-xs">
+            <h1 className="min-w-0 max-w-[50vw] truncate font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50 sm:max-w-xs">
               {board.name}
             </h1>
             <VisibilityBadge visibilityType={board.visibilityType} />
@@ -630,7 +630,7 @@ export default function BoardPage({
           return (
           <div
             key={column.id}
-            className={`flex w-[85vw] max-w-72 shrink-0 flex-col rounded-lg bg-zinc-100/70 dark:bg-zinc-900/60 sm:w-72 ${columnPending ? "opacity-50" : ""}`}
+            className={`flex w-[85vw] max-w-72 shrink-0 flex-col rounded-lg bg-zinc-100/60 dark:bg-zinc-900/50 sm:w-72 ${columnPending ? "opacity-50" : ""}`}
           >
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-1.5">
@@ -741,7 +741,7 @@ export default function BoardPage({
               <button
                 type="submit"
                 disabled={submittingColumn}
-                className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+                className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submittingColumn && <Spinner size={11} />}
                 Add column
@@ -858,8 +858,8 @@ function TaskCard({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onClick={pending ? undefined : onClick}
-      className={`group rounded-md border border-zinc-200 bg-white p-2.5 text-sm shadow-sm transition dark:border-zinc-800 dark:bg-zinc-950 ${
-        pending ? "opacity-50" : "cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700"
+      className={`group rounded-md border border-zinc-200 bg-surface p-2.5 text-sm shadow-sm transition dark:border-zinc-800 ${
+        pending ? "opacity-50" : "cursor-pointer hover:border-accent/30 hover:shadow-md dark:hover:border-accent/30"
       } ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">

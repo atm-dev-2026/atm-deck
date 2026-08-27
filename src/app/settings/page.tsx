@@ -16,7 +16,7 @@ export default async function SettingsPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
-        <h1 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Settings</h1>
+        <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Settings</h1>
       </div>
 
       <div className="mx-auto w-full max-w-xl flex-1 px-6 py-8">

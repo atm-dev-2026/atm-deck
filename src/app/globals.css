@@ -6,28 +6,55 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-foreground: #ffffff;
+  --background: #fbfaf6;
+  --surface: #ffffff;
+  --foreground: #1c1a16;
+  --accent: #8a6a2f;
+  --accent-hover: #6f5525;
+  --accent-foreground: #fffaf0;
+}
+
+@theme {
+  /* A warm graphite scale (replaces Tailwind's cool default zinc) so every
+     zinc-* utility already used throughout the app reads as part of one
+     deliberate, warm dark-elegant palette instead of a generic SaaS gray. */
+  --color-zinc-50: #faf9f6;
+  --color-zinc-100: #f2f0ea;
+  --color-zinc-200: #e5e1d6;
+  --color-zinc-300: #cdc7b7;
+  --color-zinc-400: #9c9585;
+  --color-zinc-500: #756e5f;
+  --color-zinc-600: #565046;
+  --color-zinc-700: #403b33;
+  --color-zinc-800: #292520;
+  --color-zinc-900: #1b1814;
+  --color-zinc-950: #100e0b;
+
+  /* Slightly softer, more premium corners app-wide. */
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);
 }
 
 [data-theme="dark"] {
-  --background: #0a0a0b;
-  --foreground: #f4f4f5;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
+  --background: #0e0d0a;
+  --surface: #17150f;
+  --foreground: #f3f0e8;
+  --accent: #d3ac66;
+  --accent-hover: #e2bd7c;
+  --accent-foreground: #1c1509;
 }
 
 * {
@@ -39,5 +66,5 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }

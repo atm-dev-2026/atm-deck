@@ -9,15 +9,15 @@ export default async function LoginPage({
   const { callbackUrl } = await searchParams;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-surface p-8 shadow-xl shadow-zinc-950/5 dark:border-zinc-800 dark:shadow-black/40">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent font-serif text-base italic font-semibold text-accent-foreground shadow-sm">
           AD
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="mt-5 font-serif text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
           Sign in to ATM Deck
         </h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="mt-1.5 text-sm text-zinc-500">
           Boards and team chat for ATM Holding.
         </p>
 

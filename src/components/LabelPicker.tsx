@@ -95,7 +95,7 @@ export function LabelPicker({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+                      className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
                     >
                       {submitting && <Spinner size={11} />}
                       Add

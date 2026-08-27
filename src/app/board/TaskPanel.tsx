@@ -78,7 +78,7 @@ export function TaskPanel({
     <div className="fixed inset-0 z-30 flex justify-end bg-black/20" onClick={onClose}>
       <aside
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+        className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 bg-surface shadow-2xl dark:border-zinc-800"
       >
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
           <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Task</span>
@@ -111,7 +111,7 @@ export function TaskPanel({
                 commit("title", { title: title.trim() }, () => setTitle(task.title))
               }
               rows={2}
-              className="w-full resize-none border-none bg-transparent text-lg font-semibold leading-snug text-zinc-950 focus:outline-none dark:text-zinc-50"
+              className="w-full resize-none border-none bg-transparent font-serif text-xl font-semibold leading-snug text-zinc-950 focus:outline-none dark:text-zinc-50"
             />
             {savingFields.has("title") && <Spinner size={13} />}
           </div>
@@ -221,7 +221,7 @@ export function TaskPanel({
                     onClick={() => onToggleChecklistItem(item.id, !item.done)}
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                       item.done
-                        ? "border-accent bg-accent text-white"
+                        ? "border-accent bg-accent text-accent-foreground"
                         : "border-zinc-300 dark:border-zinc-600"
                     }`}
                   >
