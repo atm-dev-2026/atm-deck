@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForTask, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 
 export async function POST(
   request: Request,
@@ -20,18 +21,22 @@ export async function POST(
     return NextResponse.json({ error: "text is required" }, { status: 400 });
   }
 
-  const lastItem = await prisma.checklistItem.findFirst({
-    where: { taskId },
-    orderBy: { order: "desc" },
-  });
+  try {
+    const lastItem = await prisma.checklistItem.findFirst({
+      where: { taskId },
+      orderBy: { order: "desc" },
+    });
 
-  const item = await prisma.checklistItem.create({
-    data: {
-      taskId,
-      text,
-      order: lastItem ? lastItem.order + 1 : 0,
-    },
-  });
+    const item = await prisma.checklistItem.create({
+      data: {
+        taskId,
+        text,
+        order: lastItem ? lastItem.order + 1 : 0,
+      },
+    });
 
-  return NextResponse.json(item, { status: 201 });
+    return NextResponse.json(item, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

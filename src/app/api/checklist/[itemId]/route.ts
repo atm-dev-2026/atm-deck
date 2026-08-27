@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForChecklistItem, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 
 export async function PATCH(
   request: Request,
@@ -17,15 +18,19 @@ export async function PATCH(
 
   const data = await request.json();
 
-  const item = await prisma.checklistItem.update({
-    where: { id: itemId },
-    data: {
-      ...(data.text !== undefined && { text: data.text }),
-      ...(data.done !== undefined && { done: data.done }),
-    },
-  });
+  try {
+    const item = await prisma.checklistItem.update({
+      where: { id: itemId },
+      data: {
+        ...(data.text !== undefined && { text: data.text }),
+        ...(data.done !== undefined && { done: data.done }),
+      },
+    });
 
-  return NextResponse.json(item);
+    return NextResponse.json(item);
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
 
 export async function DELETE(
@@ -41,6 +46,10 @@ export async function DELETE(
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
-  await prisma.checklistItem.delete({ where: { id: itemId } });
-  return NextResponse.json({ ok: true });
+  try {
+    await prisma.checklistItem.delete({ where: { id: itemId } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

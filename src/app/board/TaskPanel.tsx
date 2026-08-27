@@ -5,6 +5,7 @@ import { Calendar, Check, Plus, Trash2, User, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
 import { LabelPicker } from "@/components/LabelPicker";
 import { LabelChip } from "@/components/LabelChip";
+import { Spinner } from "@/components/Spinner";
 import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
 
@@ -23,6 +24,15 @@ export type TaskT = {
   checklist: ChecklistItemT[];
 };
 
+type TaskPatch = Partial<{
+  title: string;
+  description: string;
+  assignee: string;
+  dueDate: string;
+  priority: Priority;
+  labelIds: string[];
+}>;
+
 export function TaskPanel({
   task,
   boardLabels,
@@ -37,14 +47,7 @@ export function TaskPanel({
   task: TaskT;
   boardLabels: LabelT[];
   onClose: () => void;
-  onUpdate: (patch: Partial<{
-    title: string;
-    description: string;
-    assignee: string;
-    dueDate: string;
-    priority: Priority;
-    labelIds: string[];
-  }>) => void;
+  onUpdate: (patch: TaskPatch) => Promise<boolean>;
   onDelete: () => void;
   onCreateLabel: (name: string, color: LabelColor) => Promise<void>;
   onAddChecklistItem: (text: string) => void;
@@ -56,6 +59,18 @@ export function TaskPanel({
   const [assignee, setAssignee] = useState(task.assignee ?? "");
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
+  const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
+
+  const commit = async (field: string, patch: TaskPatch, revertLocal?: () => void) => {
+    setSavingFields((prev) => new Set(prev).add(field));
+    const ok = await onUpdate(patch);
+    if (!ok) revertLocal?.();
+    setSavingFields((prev) => {
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  };
 
   const doneCount = task.checklist.filter((c) => c.done).length;
 
@@ -86,26 +101,40 @@ export function TaskPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          <textarea
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => title.trim() && title !== task.title && onUpdate({ title: title.trim() })}
-            rows={2}
-            className="w-full resize-none border-none bg-transparent text-lg font-semibold leading-snug text-zinc-950 focus:outline-none dark:text-zinc-50"
-          />
+          <div className="flex items-start gap-2">
+            <textarea
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() =>
+                title.trim() &&
+                title !== task.title &&
+                commit("title", { title: title.trim() }, () => setTitle(task.title))
+              }
+              rows={2}
+              className="w-full resize-none border-none bg-transparent text-lg font-semibold leading-snug text-zinc-950 focus:outline-none dark:text-zinc-50"
+            />
+            {savingFields.has("title") && <Spinner size={13} />}
+          </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <PrioritySelect value={task.priority} onChange={(priority) => onUpdate({ priority })} />
+            <div className="flex items-center gap-1.5">
+              <PrioritySelect value={task.priority} onChange={(priority) => commit("priority", { priority })} />
+              {savingFields.has("priority") && <Spinner size={11} />}
+            </div>
 
             <div className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
               <User size={12} className="text-zinc-400" />
               <input
                 value={assignee}
                 onChange={(e) => setAssignee(e.target.value)}
-                onBlur={() => assignee !== (task.assignee ?? "") && onUpdate({ assignee })}
+                onBlur={() =>
+                  assignee !== (task.assignee ?? "") &&
+                  commit("assignee", { assignee }, () => setAssignee(task.assignee ?? ""))
+                }
                 placeholder="Unassigned"
                 className="w-24 bg-transparent focus:outline-none"
               />
+              {savingFields.has("assignee") && <Spinner size={11} />}
             </div>
 
             <div className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
@@ -114,15 +143,24 @@ export function TaskPanel({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                onBlur={() => dueDate !== (task.dueDate ? task.dueDate.slice(0, 10) : "") && onUpdate({ dueDate })}
+                onBlur={() =>
+                  dueDate !== (task.dueDate ? task.dueDate.slice(0, 10) : "") &&
+                  commit("dueDate", { dueDate }, () => setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : ""))
+                }
                 className="bg-transparent focus:outline-none"
               />
+              {savingFields.has("dueDate") && <Spinner size={11} />}
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             {task.labels.map((label) => (
-              <button key={label.id} onClick={() => onUpdate({ labelIds: task.labels.filter((l) => l.id !== label.id).map((l) => l.id) })}>
+              <button
+                key={label.id}
+                onClick={() =>
+                  commit("labels", { labelIds: task.labels.filter((l) => l.id !== label.id).map((l) => l.id) })
+                }
+              >
                 <LabelChip name={label.name} color={label.color} />
               </button>
             ))}
@@ -134,17 +172,24 @@ export function TaskPanel({
                 const ids = has
                   ? task.labels.filter((l) => l.id !== labelId).map((l) => l.id)
                   : [...task.labels.map((l) => l.id), labelId];
-                onUpdate({ labelIds: ids });
+                commit("labels", { labelIds: ids });
               }}
               onCreate={onCreateLabel}
             />
+            {savingFields.has("labels") && <Spinner size={11} />}
           </div>
 
-          <label className="mt-5 block text-xs font-medium text-zinc-500">Description</label>
+          <div className="mt-5 flex items-center gap-2">
+            <label className="block text-xs font-medium text-zinc-500">Description</label>
+            {savingFields.has("description") && <Spinner size={11} />}
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => description !== (task.description ?? "") && onUpdate({ description })}
+            onBlur={() =>
+              description !== (task.description ?? "") &&
+              commit("description", { description }, () => setDescription(task.description ?? ""))
+            }
             rows={4}
             placeholder="Add more detail…"
             className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"

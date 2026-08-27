@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForTask, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 
 export async function PATCH(
   request: Request,
@@ -30,26 +31,30 @@ export async function PATCH(
     }
   }
 
-  const task = await prisma.task.update({
-    where: { id: taskId },
-    data: {
-      ...(data.title !== undefined && { title: data.title }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.assignee !== undefined && { assignee: data.assignee }),
-      ...(data.columnId !== undefined && { columnId: data.columnId }),
-      ...(data.order !== undefined && { order: data.order }),
-      ...(data.priority !== undefined && { priority: data.priority }),
-      ...(data.dueDate !== undefined && {
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
-      }),
-      ...(data.labelIds !== undefined && {
-        labels: { set: (data.labelIds as string[]).map((id) => ({ id })) },
-      }),
-    },
-    include: { labels: true, checklist: { orderBy: { order: "asc" } } },
-  });
+  try {
+    const task = await prisma.task.update({
+      where: { id: taskId },
+      data: {
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.assignee !== undefined && { assignee: data.assignee }),
+        ...(data.columnId !== undefined && { columnId: data.columnId }),
+        ...(data.order !== undefined && { order: data.order }),
+        ...(data.priority !== undefined && { priority: data.priority }),
+        ...(data.dueDate !== undefined && {
+          dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        }),
+        ...(data.labelIds !== undefined && {
+          labels: { set: (data.labelIds as string[]).map((id) => ({ id })) },
+        }),
+      },
+      include: { labels: true, checklist: { orderBy: { order: "asc" } } },
+    });
 
-  return NextResponse.json(task);
+    return NextResponse.json(task);
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
 
 export async function DELETE(
@@ -65,6 +70,10 @@ export async function DELETE(
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
-  await prisma.task.delete({ where: { id: taskId } });
-  return NextResponse.json({ ok: true });
+  try {
+    await prisma.task.delete({ where: { id: taskId } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

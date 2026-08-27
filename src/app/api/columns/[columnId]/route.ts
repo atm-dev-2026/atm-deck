@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 
 export async function PATCH(
   request: Request,
@@ -17,15 +18,19 @@ export async function PATCH(
 
   const data = await request.json();
 
-  const column = await prisma.column.update({
-    where: { id: columnId },
-    data: {
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.order !== undefined && { order: data.order }),
-    },
-  });
+  try {
+    const column = await prisma.column.update({
+      where: { id: columnId },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.order !== undefined && { order: data.order }),
+      },
+    });
 
-  return NextResponse.json(column);
+    return NextResponse.json(column);
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
 
 export async function DELETE(
@@ -41,6 +46,10 @@ export async function DELETE(
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
-  await prisma.column.delete({ where: { id: columnId } });
-  return NextResponse.json({ ok: true });
+  try {
+    await prisma.column.delete({ where: { id: columnId } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

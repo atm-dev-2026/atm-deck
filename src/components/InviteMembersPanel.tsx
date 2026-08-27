@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Users } from "lucide-react";
+import { Trash2, Users } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { Spinner } from "./Spinner";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useToast } from "./Toast";
 
 export type BoardMemberRole = "READ_ONLY" | "CAN_EDIT";
 
@@ -16,19 +18,68 @@ export function InviteMembersPanel({
   members,
   canManageMembers,
   onInvited,
+  onRemoved,
+  onRoleChanged,
 }: {
   boardId: string;
   owner: UserSummary | null;
   members: BoardMemberT[];
   canManageMembers: boolean;
   onInvited: (member: BoardMemberT) => void;
+  onRemoved: (userId: string) => void;
+  onRoleChanged: (userId: string, role: BoardMemberRole) => void;
 }) {
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<UserSummary[] | null>(null);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState<BoardMemberRole>("READ_ONLY");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<BoardMemberT | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  const changeRole = async (userId: string, role: BoardMemberRole) => {
+    setPendingRoleUserId(userId);
+    try {
+      const res = await fetch(`/api/boards/${boardId}/members/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        onRoleChanged(userId, role);
+        toast.success("Role updated.");
+      } else {
+        toast.error(data?.error ?? "Couldn't update the role.");
+      }
+    } finally {
+      setPendingRoleUserId(null);
+    }
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    setRemoving(true);
+    setRemoveError(null);
+    try {
+      const res = await fetch(`/api/boards/${boardId}/members/${removeTarget.user.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        onRemoved(removeTarget.user.id);
+        setRemoveTarget(null);
+      } else {
+        const data = await res.json().catch(() => null);
+        setRemoveError(data?.error ?? "Couldn't remove this member.");
+      }
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const toggleOpen = () => {
     setOpen((v) => !v);
@@ -60,6 +111,7 @@ export function InviteMembersPanel({
         onInvited(data);
         setSelectedUserId("");
         setSelectedRole("READ_ONLY");
+        toast.success("Invite sent.");
       } else {
         setError(data?.error ?? "Couldn't send the invite.");
       }
@@ -104,9 +156,35 @@ export function InviteMembersPanel({
                   <p className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-950 dark:text-zinc-50">
                     {m.user.name ?? m.user.email}
                   </p>
-                  <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                    {m.role === "CAN_EDIT" ? "Can edit" : "Read only"}
-                  </span>
+                  {canManageMembers ? (
+                    <>
+                      <select
+                        value={m.role}
+                        disabled={pendingRoleUserId === m.user.id}
+                        onChange={(e) => changeRole(m.user.id, e.target.value as BoardMemberRole)}
+                        className="shrink-0 rounded border border-zinc-200 bg-transparent px-1 py-0.5 text-[10px] font-medium text-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-400"
+                      >
+                        <option value="READ_ONLY">Read only</option>
+                        <option value="CAN_EDIT">Can edit</option>
+                      </select>
+                      {pendingRoleUserId === m.user.id && <Spinner size={11} />}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRemoveError(null);
+                          setRemoveTarget(m);
+                        }}
+                        className="shrink-0 rounded p-1 text-zinc-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+                        aria-label={`Remove ${m.user.name ?? m.user.email}`}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                      {m.role === "CAN_EDIT" ? "Can edit" : "Read only"}
+                    </span>
+                  )}
                 </div>
               ))}
               {members.length === 0 && !owner && (
@@ -156,6 +234,20 @@ export function InviteMembersPanel({
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={removeTarget !== null}
+        title={`Remove ${removeTarget?.user.name ?? removeTarget?.user.email ?? "this member"}?`}
+        description="They'll lose access to this board immediately."
+        confirmLabel="Remove"
+        pendingLabel="Removing…"
+        pending={removing}
+        error={removeError}
+        onConfirm={confirmRemove}
+        onCancel={() => {
+          if (!removing) setRemoveTarget(null);
+        }}
+      />
     </div>
   );
 }

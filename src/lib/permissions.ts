@@ -74,6 +74,34 @@ export function resolveBoardAccess(
   return null;
 }
 
+/**
+ * Validates a (visibilityType, departmentId) pair for a board create/update.
+ * DEPARTMENT boards require a departmentId the user belongs to (or global admin);
+ * any other visibility forces departmentId to null.
+ */
+export function validateBoardVisibility(
+  user: CurrentUser,
+  visibilityType: BoardVisibility,
+  departmentId: string | null | undefined,
+): { ok: true; departmentId: string | null } | { ok: false; status: number; error: string } {
+  if (visibilityType !== "DEPARTMENT") {
+    return { ok: true, departmentId: null };
+  }
+
+  if (!departmentId || typeof departmentId !== "string") {
+    return { ok: false, status: 400, error: "departmentId is required for DEPARTMENT boards" };
+  }
+  const isMember = user.departmentMemberships.some((d) => d.departmentId === departmentId);
+  if (user.globalRole !== "ADMIN" && !isMember) {
+    return {
+      ok: false,
+      status: 403,
+      error: "You must be a member of this department to create a board for it",
+    };
+  }
+  return { ok: true, departmentId };
+}
+
 /** Builds the Prisma `where` for "boards visible to this user" — filtering happens in the DB query. */
 export function boardListWhereClause(user: CurrentUser): Prisma.BoardWhereInput {
   if (user.globalRole === "ADMIN") {

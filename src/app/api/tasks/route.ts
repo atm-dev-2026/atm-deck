@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 
 export async function POST(request: Request) {
   const { columnId, title, description, assignee, dueDate } =
@@ -20,22 +21,26 @@ export async function POST(request: Request) {
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
-  const lastTask = await prisma.task.findFirst({
-    where: { columnId },
-    orderBy: { order: "desc" },
-  });
+  try {
+    const lastTask = await prisma.task.findFirst({
+      where: { columnId },
+      orderBy: { order: "desc" },
+    });
 
-  const task = await prisma.task.create({
-    data: {
-      columnId,
-      title,
-      description,
-      assignee,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      order: lastTask ? lastTask.order + 1 : 0,
-    },
-    include: { labels: true, checklist: true },
-  });
+    const task = await prisma.task.create({
+      data: {
+        columnId,
+        title,
+        description,
+        assignee,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        order: lastTask ? lastTask.order + 1 : 0,
+      },
+      include: { labels: true, checklist: true },
+    });
 
-  return NextResponse.json(task, { status: 201 });
+    return NextResponse.json(task, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+
+type BoardAccess = { canEdit: boolean; canDelete: boolean; canManageMembers: boolean };
 
 type Board = {
   id: string;
@@ -13,6 +16,7 @@ type Board = {
   columnCount: number;
   taskCount: number;
   visibilityType: BoardVisibility;
+  access: BoardAccess;
 };
 
 type Department = { id: string; name: string };
@@ -96,16 +100,36 @@ export default function Home() {
     }
   };
 
-  const deleteBoard = async (e: React.MouseEvent, boardId: string) => {
+  const [deleteTarget, setDeleteTarget] = useState<Board | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const requestDeleteBoard = (e: React.MouseEvent, board: Board) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Delete this board? This removes all its columns and tasks.")) {
-      return;
-    }
+    setDeleteError(null);
+    setDeleteTarget(board);
+  };
+
+  const confirmDeleteBoard = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleting(true);
+    setDeleteError(null);
     const previous = boards;
-    setBoards((prev) => prev.filter((b) => b.id !== boardId));
-    const res = await fetch(`/api/boards/${boardId}`, { method: "DELETE" });
-    if (!res.ok) setBoards(previous);
+    setBoards((prev) => prev.filter((b) => b.id !== target.id));
+    try {
+      const res = await fetch(`/api/boards/${target.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setBoards(previous);
+        setDeleteError(data?.error ?? "Couldn't delete the board.");
+        return;
+      }
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const filtered = useMemo(
@@ -238,17 +262,39 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={(e) => deleteBoard(e, board.id)}
-                className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
-                aria-label="Delete board"
-              >
-                <Trash2 size={14} />
-              </button>
+              {board.access.canDelete && (
+                <button
+                  onClick={(e) => requestDeleteBoard(e, board)}
+                  className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
+                  aria-label="Delete board"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </Link>
           ))}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget ? `Delete "${deleteTarget.name}"?` : ""}
+        description={
+          deleteTarget
+            ? `This permanently removes ${deleteTarget.columnCount} ${
+                deleteTarget.columnCount === 1 ? "column" : "columns"
+              } and ${deleteTarget.taskCount} ${
+                deleteTarget.taskCount === 1 ? "task" : "tasks"
+              }. This can't be undone.`
+            : undefined
+        }
+        pending={deleting}
+        error={deleteError}
+        onConfirm={confirmDeleteBoard}
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

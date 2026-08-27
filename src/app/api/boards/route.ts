@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
-import { boardListWhereClause } from "@/lib/permissions";
+import { boardListWhereClause, resolveBoardAccess, validateBoardVisibility } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 import type { BoardVisibility } from "@/generated/prisma/client";
 
 const VISIBILITY_TYPES: BoardVisibility[] = ["GLOBAL", "DEPARTMENT", "PERSONAL"];
@@ -18,13 +19,15 @@ export async function GET() {
     include: {
       _count: { select: { columns: true } },
       columns: { select: { _count: { select: { tasks: true } } } },
+      members: { where: { userId: user.id }, select: { role: true } },
     },
   });
 
-  const result = boards.map(({ columns, _count, ...board }) => ({
+  const result = boards.map(({ columns, _count, members, ...board }) => ({
     ...board,
     columnCount: _count.columns,
     taskCount: columns.reduce((sum, c) => sum + c._count.tasks, 0),
+    access: resolveBoardAccess(user, { ...board, members }),
   }));
 
   return NextResponse.json(result);
@@ -44,37 +47,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid visibilityType" }, { status: 400 });
   }
 
-  if (visibilityType === "DEPARTMENT") {
-    if (!departmentId || typeof departmentId !== "string") {
-      return NextResponse.json(
-        { error: "departmentId is required for DEPARTMENT boards" },
-        { status: 400 },
-      );
-    }
-    const isMember = user.departmentMemberships.some((d) => d.departmentId === departmentId);
-    if (user.globalRole !== "ADMIN" && !isMember) {
-      return NextResponse.json(
-        { error: "You must be a member of this department to create a board for it" },
-        { status: 403 },
-      );
-    }
+  const visibility = validateBoardVisibility(user, visibilityType, departmentId);
+  if (!visibility.ok) {
+    return NextResponse.json({ error: visibility.error }, { status: visibility.status });
   }
 
-  const board = await prisma.board.create({
-    data: {
-      name,
-      ownerId: user.id,
-      visibilityType,
-      departmentId: visibilityType === "DEPARTMENT" ? departmentId : null,
-      columns: {
-        create: [
-          { name: "To Do", order: 0 },
-          { name: "In Progress", order: 1 },
-          { name: "Done", order: 2 },
-        ],
+  try {
+    const board = await prisma.board.create({
+      data: {
+        name,
+        ownerId: user.id,
+        visibilityType,
+        departmentId: visibility.departmentId,
+        columns: {
+          create: [
+            { name: "To Do", order: 0 },
+            { name: "In Progress", order: 1 },
+            { name: "Done", order: 2 },
+          ],
+        },
       },
-    },
-  });
+    });
 
-  return NextResponse.json(board, { status: 201 });
+    return NextResponse.json(board, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

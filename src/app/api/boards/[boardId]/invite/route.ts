@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
 import type { BoardRole } from "@/generated/prisma/client";
 
 const BOARD_ROLES: BoardRole[] = ["READ_ONLY", "CAN_EDIT"];
@@ -36,11 +37,15 @@ export async function POST(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const member = await prisma.boardMember.upsert({
-    where: { boardId_userId: { boardId, userId } },
-    create: { boardId, userId, role },
-    update: { role },
-  });
+  try {
+    const member = await prisma.boardMember.upsert({
+      where: { boardId_userId: { boardId, userId } },
+      create: { boardId, userId, role },
+      update: { role },
+    });
 
-  return NextResponse.json({ ...member, user: targetUser }, { status: 201 });
+    return NextResponse.json({ ...member, user: targetUser }, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }
