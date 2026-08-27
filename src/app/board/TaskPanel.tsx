@@ -75,10 +75,10 @@ export function TaskPanel({
   const doneCount = task.checklist.filter((c) => c.done).length;
 
   return (
-    <div className="fixed inset-0 z-30 flex justify-end bg-black/20" onClick={onClose}>
+    <div className="fixed inset-0 z-30 flex justify-end bg-black/15 backdrop-blur-[2px]" onClick={onClose}>
       <aside
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 bg-surface shadow-2xl dark:border-zinc-800"
+        className="glass-strong flex h-full w-full max-w-md flex-col rounded-none border-y-0 border-r-0"
       >
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
           <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Task</span>
@@ -122,7 +122,7 @@ export function TaskPanel({
               {savingFields.has("priority") && <Spinner size={11} />}
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+            <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
               <User size={12} className="text-zinc-400" />
               <input
                 value={assignee}
@@ -137,7 +137,7 @@ export function TaskPanel({
               {savingFields.has("assignee") && <Spinner size={11} />}
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+            <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
               <Calendar size={12} className="text-zinc-400" />
               <input
                 type="date"
@@ -192,7 +192,7 @@ export function TaskPanel({
             }
             rows={4}
             placeholder="Add more detail…"
-            className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-2.5 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+            className="glass-field mt-1 w-full rounded-md px-2.5 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-200"
           />
 
           <div className="mt-5">
@@ -216,7 +216,7 @@ export function TaskPanel({
 
             <div className="mt-2 flex flex-col gap-0.5">
               {task.checklist.map((item) => (
-                <div key={item.id} className="group flex items-center gap-2 rounded px-1 py-1 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                <div key={item.id} className="group flex items-center gap-2 rounded px-1 py-1 transition-colors hover:bg-zinc-900/5 dark:hover:bg-white/5">
                   <button
                     onClick={() => onToggleChecklistItem(item.id, !item.done)}
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${

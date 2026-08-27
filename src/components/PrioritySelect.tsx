@@ -19,7 +19,7 @@ export function PrioritySelect({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-md border border-zinc-200 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-zinc-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
       >
         <Icon size={13} className={current.className} strokeWidth={2.5} />
         {current.label}
@@ -28,7 +28,7 @@ export function PrioritySelect({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 z-20 mt-1 w-40 rounded-md border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="glass-strong absolute left-0 z-20 mt-1 w-40 rounded-md p-1">
             {PRIORITIES.map((p) => {
               const PIcon = p.icon;
               return (

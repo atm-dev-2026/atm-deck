@@ -15,7 +15,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
+      <div className="glass relative z-10 rounded-none border-x-0 border-t-0 px-5 py-3">
         <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Settings</h1>
       </div>
 
@@ -36,7 +36,7 @@ export default async function SettingsPage() {
             <User size={13} />
             Account
           </h2>
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+          <div className="glass mt-3 flex items-center gap-3 rounded-lg p-3">
             <Avatar
               label={session.user.name ?? session.user.email ?? "?"}
               image={session.user.image}
@@ -58,7 +58,7 @@ export default async function SettingsPage() {
           <form action={signOutAction}>
             <SubmitButton
               pendingLabel="Signing out…"
-              className="flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="glass-field flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-zinc-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
             >
               <LogOut size={14} />
               Sign out

@@ -139,7 +139,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800 sm:px-5">
+      <div className="glass relative z-10 flex flex-wrap items-center justify-between gap-2 rounded-none border-x-0 border-t-0 px-4 py-3 sm:px-5">
         <div className="flex items-center gap-2">
           <LayoutGrid size={16} className="text-zinc-400" />
           <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
@@ -149,7 +149,7 @@ export default function Home() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-accent-foreground hover:bg-accent-hover"
+          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
         >
           <Plus size={13} strokeWidth={2.5} />
           New board
@@ -160,7 +160,7 @@ export default function Home() {
         {creating && (
           <form
             onSubmit={createBoard}
-            className="mb-5 flex flex-col gap-2 rounded-lg border border-zinc-200 bg-surface p-3 dark:border-zinc-800"
+            className="glass mb-5 flex flex-col gap-2 rounded-lg p-3"
           >
             <div className="flex flex-col gap-2 sm:flex-row">
               <input
@@ -168,12 +168,12 @@ export default function Home() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Board name"
-                className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="glass-field min-w-0 flex-1 rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               />
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as BoardVisibility)}
-                className="rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="glass-field rounded-md px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               >
                 <option value="PERSONAL">Personal</option>
                 <option value="DEPARTMENT">Department</option>
@@ -185,7 +185,7 @@ export default function Home() {
               <select
                 value={departmentId}
                 onChange={(e) => setDepartmentId(e.target.value)}
-                className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               >
                 <option value="">Select a department…</option>
                 {departments.map((d) => (
@@ -202,7 +202,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submitting && <Spinner size={13} />}
                 Create
@@ -211,7 +211,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setCreating(false)}
                 disabled={submitting}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-300"
               >
                 Cancel
               </button>
@@ -225,14 +225,14 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter boards…"
-            className="w-full rounded-md border border-zinc-200 bg-white py-1.5 pl-8 pr-3 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+            className="glass-field w-full rounded-md py-1.5 pl-8 pr-3 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
           />
         </div>
 
         {loading && <p className="px-1 text-sm text-zinc-500">Loading boards…</p>}
 
         {!loading && filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-300 py-16 text-center dark:border-zinc-700">
+          <div className="glass flex flex-col items-center justify-center gap-2 rounded-lg py-16 text-center">
             <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
             <p className="text-sm text-zinc-500">
               {boards.length === 0 ? "No boards yet — create one to get started." : "No boards match your filter."}
@@ -245,7 +245,7 @@ export default function Home() {
             <Link
               key={board.id}
               href={`/board/${board.id}`}
-              className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-surface px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-md hover:shadow-zinc-950/5 dark:border-zinc-800 dark:hover:border-accent/30 dark:hover:shadow-black/30"
+              className="glass group flex items-center justify-between rounded-lg px-4 py-3.5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-glow"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">

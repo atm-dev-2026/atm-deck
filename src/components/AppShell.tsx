@@ -14,10 +14,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col sm:flex-row">
-      <aside className="hidden w-14 shrink-0 flex-col items-center gap-4 border-r border-zinc-200 bg-surface py-3 dark:border-zinc-800 sm:flex">
+      <aside className="glass relative z-20 hidden w-16 shrink-0 flex-col items-center gap-4 py-4 sm:flex">
         <Link
           href="/"
-          className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent font-serif text-sm italic font-semibold text-accent-foreground shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent font-serif text-sm italic font-semibold text-accent-foreground shadow-glow"
           title="ATM Deck"
         >
           AD
@@ -37,7 +37,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
 
-      <div className="flex shrink-0 items-stretch border-t border-zinc-200 bg-surface py-1 dark:border-zinc-800 sm:hidden">
+      <div className="glass relative z-20 flex shrink-0 items-stretch py-1 sm:hidden">
         <NavRail variant="bottom" />
         <UserMenu
           name={session.user.name ?? null}

@@ -29,8 +29,8 @@ export function UserMenu({
         onClick={() => setOpen((v) => !v)}
         className={
           placement === "right"
-            ? "flex h-10 w-10 items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            : "mx-1 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-zinc-400 dark:text-zinc-500"
+            ? "flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-zinc-900/5 dark:hover:bg-white/5"
+            : "mx-1 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-zinc-400 transition-colors dark:text-zinc-500"
         }
         title={label}
       >
@@ -44,8 +44,8 @@ export function UserMenu({
           <div
             className={
               placement === "right"
-                ? "absolute bottom-0 left-full z-20 ml-2 w-52 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-                : "fixed bottom-16 right-3 z-20 w-52 max-w-[calc(100vw-1.5rem)] rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                ? "glass-strong absolute bottom-0 left-full z-20 ml-2 w-52 rounded-lg p-1"
+                : "glass-strong fixed bottom-16 right-3 z-20 w-52 max-w-[calc(100vw-1.5rem)] rounded-lg p-1"
             }
           >
             <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">

@@ -34,7 +34,7 @@ export function MessageItem({
   };
 
   return (
-    <div className="group flex gap-3 rounded px-2 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
+    <div className="group flex gap-3 rounded-lg px-2 py-1.5 transition-colors duration-300 hover:bg-zinc-900/[0.03] dark:hover:bg-white/[0.04]">
       <Avatar label={message.user.name ?? message.user.email ?? "?"} image={message.user.image} size="md" />
 
       <div className="min-w-0 flex-1">
@@ -56,7 +56,7 @@ export function MessageItem({
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              className="glass-field min-w-0 flex-1 rounded px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             />
             <button
               type="submit"

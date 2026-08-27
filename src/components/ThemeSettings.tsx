@@ -32,12 +32,12 @@ export function ThemeSettings() {
           key={value}
           type="button"
           onClick={() => choose(value)}
-          className={`flex flex-col items-center gap-2 rounded-lg border px-4 py-3 text-sm transition ${
+          className={`flex flex-col items-center gap-2 rounded-lg px-4 py-3 text-sm transition-all duration-300 ${
             theme === null
-              ? "border-transparent text-transparent"
+              ? "border border-transparent text-transparent"
               : theme === value
-                ? "border-accent bg-accent/5 text-accent dark:bg-accent/10"
-                : "border-zinc-200 text-zinc-600 hover:border-zinc-300 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700"
+                ? "glass border-accent/40 text-accent shadow-glow"
+                : "glass-field text-zinc-600 hover:-translate-y-0.5 dark:text-zinc-400"
           }`}
         >
           <Icon size={18} className={theme === null ? "opacity-0" : undefined} />

@@ -46,6 +46,15 @@
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);
+
+  /* visionOS-style focus/hover glow: keeps the glass material's inner
+     specular highlight, adds a thin accent-tinted rim and a soft colored
+     bloom underneath — reads as the surface lifting toward the light
+     rather than a flat drop shadow replacing the glass edge. */
+  --shadow-glow: inset 0 1px 0 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 20px 45px -14px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 [data-theme="dark"] {
@@ -63,8 +72,57 @@
 }
 
 body {
-  background: var(--background);
+  /* Soft, fixed ambient color blooms behind the UI so translucent glass
+     panels have something with depth and color to blur and refract,
+     rather than blurring a single flat tone. */
+  background:
+    radial-gradient(1100px circle at 12% -8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 55%),
+    radial-gradient(900px circle at 100% 15%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 50%),
+    radial-gradient(1000px circle at 20% 110%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 50%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   font-size: 14.5px;
+}
+
+/* --- Glass material system (Apple visionOS-inspired) ------------------- */
+
+/* Structural glass: sidebars, sticky toolbars, cards and columns that sit
+   inline in the layout. Translucent enough to hint at what's behind it
+   without compromising text legibility. */
+@utility glass {
+  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3),
+    inset 0 0 0 1px rgb(255 255 255 / 0.04),
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 16px 40px -20px rgb(0 0 0 / 0.35);
+}
+
+/* Floating glass: modals, drawers, dropdowns and toasts that stack above
+   other content — more opaque for readability, heavier blur, deeper
+   ambient shadow to read as elevated in Z-space. */
+@utility glass-strong {
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(255 255 255 / 0.05),
+    0 1px 3px rgb(0 0 0 / 0.08),
+    0 30px 70px -20px rgb(0 0 0 / 0.45);
+}
+
+/* A faint glass tint for form fields living on a glass surface — keeps the
+   material consistent without competing with the text inside it. */
+@utility glass-field {
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
 }

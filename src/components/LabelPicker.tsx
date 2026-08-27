@@ -39,7 +39,7 @@ export function LabelPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-md border border-dashed border-zinc-300 px-2 py-1 text-xs text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        className="flex items-center gap-1.5 rounded-md border border-dashed border-zinc-300 px-2 py-1 text-xs text-zinc-500 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
       >
         <Tag size={12} />
         Labels
@@ -48,7 +48,7 @@ export function LabelPicker({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 z-20 mt-1 w-52 rounded-md border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="glass-strong absolute left-0 z-20 mt-1 w-52 rounded-md p-1">
             <div className="max-h-48 overflow-y-auto">
               {boardLabels.length === 0 && (
                 <p className="px-2 py-2 text-xs text-zinc-400">No labels yet.</p>
@@ -78,7 +78,7 @@ export function LabelPicker({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Label name"
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                    className="glass-field w-full rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
                   />
                   <div className="mt-1.5 flex items-center justify-between">
                     <div className="flex gap-1">

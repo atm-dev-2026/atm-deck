@@ -192,7 +192,7 @@ function ChannelView({ channelId }: { channelId: string }) {
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex items-center gap-1.5 border-b border-zinc-200 px-2 py-3 dark:border-zinc-800 sm:px-4">
+        <div className="glass relative z-10 flex items-center gap-1.5 rounded-none border-x-0 border-t-0 px-2 py-3 sm:px-4">
           <button
             onClick={toggleSidebar}
             className="mr-1 shrink-0 rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 md:hidden"
@@ -246,7 +246,7 @@ function ChannelView({ channelId }: { channelId: string }) {
 
         <form
           onSubmit={sendMessage}
-          className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
+          className="glass relative z-10 flex gap-2 rounded-none border-x-0 border-b-0 p-3"
         >
           <input
             ref={fileInputRef}
@@ -273,12 +273,12 @@ function ChannelView({ channelId }: { channelId: string }) {
               sendTyping();
             }}
             placeholder={channel.isDirect ? `Message ${title}` : `Message #${channel.name}`}
-            className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="glass-field min-w-0 flex-1 rounded-md px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
           />
           <button
             type="submit"
             disabled={attachmentUpload.uploading}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50"
           >
             <Send size={14} />
           </button>
@@ -298,7 +298,7 @@ function ChannelView({ channelId }: { channelId: string }) {
 
 function MobileChatHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
-    <div className="flex items-center gap-1.5 border-b border-zinc-200 px-2 py-3 dark:border-zinc-800 md:hidden">
+    <div className="glass relative z-10 flex items-center gap-1.5 rounded-none border-x-0 border-t-0 px-2 py-3 md:hidden">
       <button
         onClick={onMenuClick}
         className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"

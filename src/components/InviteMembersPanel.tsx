@@ -125,7 +125,7 @@ export function InviteMembersPanel({
       <button
         type="button"
         onClick={toggleOpen}
-        className="flex items-center gap-1.5 rounded-md border border-zinc-300 px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="glass-field flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
       >
         <Users size={13} />
         Members
@@ -137,7 +137,7 @@ export function InviteMembersPanel({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="glass-strong absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-lg p-1">
             <div className="max-h-56 overflow-y-auto p-1">
               {owner && (
                 <div className="flex items-center gap-2 rounded px-2 py-1.5">
@@ -198,7 +198,7 @@ export function InviteMembersPanel({
                   <select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                    className="glass-field w-full rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
                   >
                     <option value="">
                       {users === null ? "Loading people…" : "Invite someone…"}
@@ -213,7 +213,7 @@ export function InviteMembersPanel({
                     <select
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value as BoardMemberRole)}
-                      className="flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                      className="glass-field flex-1 rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
                     >
                       <option value="READ_ONLY">Read only</option>
                       <option value="CAN_EDIT">Can edit</option>

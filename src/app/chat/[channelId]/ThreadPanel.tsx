@@ -86,15 +86,15 @@ export function ThreadPanel({
 
   return (
     <div
-      className="fixed inset-0 z-30 flex justify-end bg-black/20 md:static md:z-auto md:shrink-0 md:bg-transparent"
+      className="fixed inset-0 z-30 flex justify-end bg-black/15 backdrop-blur-[2px] md:static md:z-auto md:shrink-0 md:bg-transparent md:backdrop-blur-none"
       onClick={onClose}
     >
       <aside
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-sm shrink-0 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 md:w-96 md:max-w-none"
+        className="glass-strong flex h-full w-full max-w-sm shrink-0 flex-col rounded-none border-y-0 border-r-0 md:w-96 md:max-w-none"
       >
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Thread</h2>
+      <div className="flex items-center justify-between border-b border-zinc-200/60 px-4 py-3 dark:border-zinc-800/60">
+        <h2 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Thread</h2>
         <button
           onClick={onClose}
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
@@ -143,7 +143,7 @@ export function ThreadPanel({
 
       <form
         onSubmit={sendReply}
-        className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
+        className="flex gap-2 border-t border-zinc-200/60 p-3 dark:border-zinc-800/60"
       >
         <input
           ref={fileInputRef}
@@ -167,12 +167,12 @@ export function ThreadPanel({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Reply…"
-          className="min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="glass-field min-w-0 flex-1 rounded-md px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
         />
         <button
           type="submit"
           disabled={attachmentUpload.uploading}
-          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
+          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50"
         >
           <Send size={13} />
         </button>

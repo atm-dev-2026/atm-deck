@@ -10,8 +10,8 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-xl border border-zinc-200 bg-surface p-8 shadow-xl shadow-zinc-950/5 dark:border-zinc-800 dark:shadow-black/40">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent font-serif text-base italic font-semibold text-accent-foreground shadow-sm">
+      <div className="glass-strong w-full max-w-sm rounded-2xl p-8">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent font-serif text-base italic font-semibold text-accent-foreground shadow-glow">
           AD
         </div>
         <h1 className="mt-5 font-serif text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
@@ -30,7 +30,7 @@ export default async function LoginPage({
           >
             <SubmitButton
               pendingLabel="Redirecting to Google…"
-              className="flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              className="glass-field flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-zinc-950 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-50"
             >
               <GoogleMark />
               Continue with Google
@@ -45,7 +45,7 @@ export default async function LoginPage({
           >
             <SubmitButton
               pendingLabel="Redirecting to LINE…"
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-[#06C755] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#05b34c]"
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-[#06C755] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-[#06C755]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#05b34c]"
             >
               <LineMark />
               Continue with LINE

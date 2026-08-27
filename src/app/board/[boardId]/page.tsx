@@ -504,7 +504,7 @@ export default function BoardPage({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+      <div className="glass relative z-10 flex flex-wrap items-center gap-3 rounded-none border-x-0 border-t-0 px-4 py-3">
         <Link
           href="/"
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
@@ -517,12 +517,12 @@ export default function BoardPage({
               autoFocus
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="min-w-0 max-w-xs flex-1 rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              className="glass-field min-w-0 max-w-xs flex-1 rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             />
             <select
               value={editVisibility}
               onChange={(e) => setEditVisibility(e.target.value as BoardVisibility)}
-              className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+              className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             >
               <option value="PERSONAL">Personal</option>
               <option value="DEPARTMENT">Department</option>
@@ -532,7 +532,7 @@ export default function BoardPage({
               <select
                 value={editDepartmentId}
                 onChange={(e) => setEditDepartmentId(e.target.value)}
-                className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               >
                 <option value="">Select a department…</option>
                 {departments.map((d) => (
@@ -545,7 +545,7 @@ export default function BoardPage({
             <button
               type="submit"
               disabled={savingBoard}
-              className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+              className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {savingBoard && <Spinner size={12} />}
               Save
@@ -554,7 +554,7 @@ export default function BoardPage({
               type="button"
               onClick={() => setEditingBoard(false)}
               disabled={savingBoard}
-              className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="glass-field rounded-md px-2.5 py-1 text-xs text-zinc-600 dark:text-zinc-300"
             >
               Cancel
             </button>
@@ -630,7 +630,7 @@ export default function BoardPage({
           return (
           <div
             key={column.id}
-            className={`flex w-[85vw] max-w-72 shrink-0 flex-col rounded-lg bg-zinc-100/60 dark:bg-zinc-900/50 sm:w-72 ${columnPending ? "opacity-50" : ""}`}
+            className={`glass flex w-[85vw] max-w-72 shrink-0 flex-col rounded-xl sm:w-72 ${columnPending ? "opacity-50" : ""}`}
           >
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-1.5">
@@ -646,7 +646,7 @@ export default function BoardPage({
               <button
                 onClick={() => requestDeleteColumn(column)}
                 disabled={columnPending}
-                className="rounded p-1 text-zinc-400 hover:bg-zinc-200 hover:text-red-500 dark:hover:bg-zinc-800"
+                className="rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-900/10 hover:text-red-500 dark:hover:bg-white/10"
                 aria-label="Delete column"
               >
                 <X size={13} />
@@ -667,7 +667,7 @@ export default function BoardPage({
               {column.tasks.map((task, index) => (
                 <div key={task.id}>
                   {dragOver?.columnId === column.id && dragOver.index === index && draggingId && (
-                    <div className="mb-1.5 h-0.5 rounded-full bg-accent" />
+                    <div className="mb-1.5 h-0.5 rounded-full bg-accent shadow-glow" />
                   )}
                   <TaskCard
                     task={task}
@@ -695,7 +695,7 @@ export default function BoardPage({
                 </div>
               ))}
               {dragOver?.columnId === column.id && dragOver.index === column.tasks.length && draggingId && (
-                <div className="h-0.5 rounded-full bg-accent" />
+                <div className="h-0.5 rounded-full bg-accent shadow-glow" />
               )}
             </div>
 
@@ -728,20 +728,20 @@ export default function BoardPage({
         {addingColumn ? (
           <form
             onSubmit={addColumn}
-            className="flex w-[85vw] max-w-72 shrink-0 flex-col gap-2 rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700 sm:w-72"
+            className="glass flex w-[85vw] max-w-72 shrink-0 flex-col gap-2 rounded-xl p-3 sm:w-72"
           >
             <input
               autoFocus
               value={newColumnName}
               onChange={(e) => setNewColumnName(e.target.value)}
               placeholder="Column name"
-              className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+              className="glass-field rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             />
             <div className="flex gap-1.5">
               <button
                 type="submit"
                 disabled={submittingColumn}
-                className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+                className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submittingColumn && <Spinner size={11} />}
                 Add column
@@ -750,7 +750,7 @@ export default function BoardPage({
                 type="button"
                 onClick={() => setAddingColumn(false)}
                 disabled={submittingColumn}
-                className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+                className="glass-field rounded px-2 py-1 text-xs text-zinc-600 dark:text-zinc-300"
               >
                 Cancel
               </button>
@@ -760,7 +760,7 @@ export default function BoardPage({
           <button
             onClick={() => setAddingColumn(true)}
             disabled={submittingColumn}
-            className="flex h-9 w-[85vw] max-w-56 shrink-0 items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 text-xs font-medium text-zinc-400 hover:border-zinc-400 hover:text-zinc-600 disabled:cursor-wait disabled:opacity-70 dark:border-zinc-700 dark:hover:text-zinc-300 sm:w-56"
+            className="flex h-9 w-[85vw] max-w-56 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-zinc-300 px-3 text-xs font-medium text-zinc-400 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:text-zinc-600 disabled:cursor-wait disabled:opacity-70 dark:border-zinc-700 dark:hover:text-zinc-300 sm:w-56"
           >
             {submittingColumn ? <Spinner size={13} /> : <Plus size={13} />}
             Add column
@@ -858,8 +858,8 @@ function TaskCard({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onClick={pending ? undefined : onClick}
-      className={`group rounded-md border border-zinc-200 bg-surface p-2.5 text-sm shadow-sm transition dark:border-zinc-800 ${
-        pending ? "opacity-50" : "cursor-pointer hover:border-accent/30 hover:shadow-md dark:hover:border-accent/30"
+      className={`glass group rounded-lg p-2.5 text-sm transition-all duration-300 ${
+        pending ? "opacity-50" : "cursor-pointer hover:-translate-y-1 hover:border-accent/35 hover:shadow-glow"
       } ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">

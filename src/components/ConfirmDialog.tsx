@@ -41,12 +41,12 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/20 p-4 backdrop-blur-sm"
       onClick={() => !pending && onCancel()}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+        className="glass-strong w-full max-w-sm rounded-lg p-4"
       >
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{title}</h2>
         {description && <div className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">{description}</div>}

@@ -117,14 +117,14 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   };
 
   const linkClass = (channelId: string) =>
-    `flex items-center gap-2 truncate rounded-md px-2 py-1 text-sm ${
+    `flex items-center gap-2 truncate rounded-md px-2 py-1 text-sm transition-all duration-300 ${
       pathname === `/chat/${channelId}`
-        ? "bg-accent/10 font-medium text-accent dark:bg-accent/20"
-        : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+        ? "bg-accent/10 font-medium text-accent shadow-glow dark:bg-accent/20"
+        : "text-zinc-600 hover:-translate-y-0.5 hover:bg-zinc-900/5 dark:text-zinc-400 dark:hover:bg-white/5"
     }`;
 
   return (
-    <aside className="flex h-full w-full flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950">
+    <aside className="glass flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none border-y-0 border-l-0 p-3">
       <div>
         <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -155,12 +155,12 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
               value={newChannelName}
               onChange={(e) => setNewChannelName(e.target.value)}
               placeholder="channel-name"
-              className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-1 focus:ring-accent/50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+              className="glass-field min-w-0 flex-1 rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             />
             <button
               type="submit"
               disabled={creatingChannel}
-              className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+              className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {creatingChannel && <Spinner size={11} />}
               Add
@@ -169,7 +169,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         )}
 
         {showBrowse && (
-          <div className="mb-2 flex flex-col gap-1 rounded border border-dashed border-zinc-300 p-2 dark:border-zinc-700">
+          <div className="glass-field mb-2 flex flex-col gap-1 rounded p-2">
             {joinable.length === 0 && (
               <p className="text-xs text-zinc-400">No more channels to join.</p>
             )}
@@ -212,7 +212,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         </div>
 
         {showNewDm && (
-          <div className="mb-2 flex flex-col gap-1 rounded border border-dashed border-zinc-300 p-2 dark:border-zinc-700">
+          <div className="glass-field mb-2 flex flex-col gap-1 rounded p-2">
             {users.length === 0 && (
               <p className="text-xs text-zinc-400">No other users yet.</p>
             )}
