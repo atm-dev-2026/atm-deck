@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Calendar, Check, Download, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { Calendar, Check, Copy, Download, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
 import { LabelPicker } from "@/components/LabelPicker";
 import { LabelChip } from "@/components/LabelChip";
@@ -17,6 +17,7 @@ export type TaskAttachmentT = { id: string; fileName: string; fileType: string; 
 export type TaskUserT = { id: string; name: string | null; email: string | null; image: string | null };
 export type TaskT = {
   id: string;
+  number: number;
   title: string;
   description: string | null;
   assignee: TaskUserT | null;
@@ -80,7 +81,18 @@ export function TaskPanel({
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
+  const [numberCopied, setNumberCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const copyTaskNumber = async () => {
+    try {
+      await navigator.clipboard.writeText(String(task.number));
+      setNumberCopied(true);
+      setTimeout(() => setNumberCopied(false), 1500);
+    } catch {
+      // clipboard access denied or unavailable — nothing to recover from
+    }
+  };
 
   const commit = async (field: string, patch: TaskPatch, revertLocal?: () => void) => {
     setSavingFields((prev) => new Set(prev).add(field));
@@ -102,9 +114,22 @@ export function TaskPanel({
         className="glass-strong flex h-full w-full max-w-md flex-col rounded-none border-y-0 border-r-0"
       >
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{t("eyebrow")}</span>
-            <span className="font-mono text-[10px] text-zinc-300 dark:text-zinc-600">{task.id}</span>
+            <span className="font-mono text-xs text-zinc-400 dark:text-zinc-500">#{task.number}</span>
+            <button
+              type="button"
+              onClick={copyTaskNumber}
+              className="rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-900/10 hover:text-zinc-700 dark:hover:bg-white/10 dark:hover:text-zinc-200"
+              aria-label={t("copyNumberAria")}
+              title={t("copyNumberAria")}
+            >
+              {numberCopied ? (
+                <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
+              ) : (
+                <Copy size={12} strokeWidth={2} />
+              )}
+            </button>
           </div>
           <div className="flex items-center gap-1">
             <button

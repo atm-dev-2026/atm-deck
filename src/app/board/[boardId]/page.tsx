@@ -224,6 +224,7 @@ export default function BoardPage({
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
     const tempTask: TaskT = {
       id: tempId,
+      number: 0,
       title,
       description: null,
       assignee: null,

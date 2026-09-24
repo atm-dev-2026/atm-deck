@@ -127,6 +127,7 @@
     },
     "task": {
       "eyebrow": "งาน",
+      "copyNumberAria": "คัดลอกหมายเลขงาน",
       "deleteAria": "ลบงาน",
       "closeAria": "ปิด",
       "description": "รายละเอียด",

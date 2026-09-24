@@ -127,6 +127,7 @@
     },
     "task": {
       "eyebrow": "Task",
+      "copyNumberAria": "Copy task number",
       "deleteAria": "Delete task",
       "closeAria": "Close",
       "description": "Description",

@@ -106,6 +106,7 @@ enum Priority {
 
 model Task {
   id          String    @id @default(cuid())
+  number      Int       @unique @default(autoincrement())
   title       String
   description String?   @db.Text
   order       Int
