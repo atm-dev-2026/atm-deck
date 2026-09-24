@@ -116,11 +116,26 @@ model Task {
   updatedAt   DateTime  @updatedAt
   columnId    String
 
-  column    Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  labels    Label[]
-  checklist ChecklistItem[]
+  column      Column           @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  labels      Label[]
+  checklist   ChecklistItem[]
+  attachments TaskAttachment[]
 
   @@index([columnId])
+}
+
+model TaskAttachment {
+  id        String   @id @default(cuid())
+  taskId    String
+  key       String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 
 model Label {

@@ -49,7 +49,11 @@ export async function PATCH(
           labels: { set: (data.labelIds as string[]).map((id) => ({ id })) },
         }),
       },
-      include: { labels: true, checklist: { orderBy: { order: "asc" } } },
+      include: {
+        labels: true,
+        checklist: { orderBy: { order: "asc" } },
+        attachments: { orderBy: { createdAt: "asc" } },
+      },
     });
 
     await broadcast(`board:${boardId}`, "task-updated", task);

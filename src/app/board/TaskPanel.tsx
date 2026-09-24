@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Check, Plus, Trash2, User, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Calendar, Check, Download, Paperclip, Plus, Trash2, User, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
 import { LabelPicker } from "@/components/LabelPicker";
 import { LabelChip } from "@/components/LabelChip";
@@ -11,6 +11,7 @@ import type { Priority } from "@/components/priority";
 
 export type ChecklistItemT = { id: string; text: string; done: boolean; order: number };
 export type LabelT = { id: string; name: string; color: string };
+export type TaskAttachmentT = { id: string; fileName: string; fileType: string; fileSize: number };
 export type TaskT = {
   id: string;
   title: string;
@@ -22,7 +23,14 @@ export type TaskT = {
   priority: Priority;
   labels: LabelT[];
   checklist: ChecklistItemT[];
+  attachments: TaskAttachmentT[];
 };
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 type TaskPatch = Partial<{
   title: string;
@@ -44,6 +52,8 @@ export function TaskPanel({
   onAddChecklistItem,
   onToggleChecklistItem,
   onDeleteChecklistItem,
+  onAddAttachments,
+  onDeleteAttachment,
 }: {
   task: TaskT;
   boardLabels: LabelT[];
@@ -55,6 +65,8 @@ export function TaskPanel({
   onAddChecklistItem: (text: string) => void;
   onToggleChecklistItem: (itemId: string, done: boolean) => void;
   onDeleteChecklistItem: (itemId: string) => void;
+  onAddAttachments: (files: FileList | File[]) => void;
+  onDeleteAttachment: (attachmentId: string) => void;
 }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
@@ -62,6 +74,7 @@ export function TaskPanel({
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const commit = async (field: string, patch: TaskPatch, revertLocal?: () => void) => {
     setSavingFields((prev) => new Set(prev).add(field));
@@ -281,6 +294,92 @@ export function TaskPanel({
                 className="flex-1 bg-transparent py-1 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none disabled:cursor-wait dark:text-zinc-300"
               />
             </form>
+          </div>
+
+          <div className="mt-5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-zinc-500">Attachments</label>
+              {task.attachments.length > 0 && (
+                <span className="text-xs text-zinc-400">{task.attachments.length}</span>
+              )}
+            </div>
+
+            <div className="mt-2 flex flex-col gap-1.5">
+              {task.attachments.map((attachment) => {
+                const pending = attachment.id.startsWith("temp-");
+                const url = `/api/task-attachments/${attachment.id}`;
+                const isImage = attachment.fileType.startsWith("image/");
+                return (
+                  <div
+                    key={attachment.id}
+                    className={`group flex items-center gap-2 rounded-md border border-zinc-200 px-2.5 py-2 text-sm dark:border-zinc-800 ${pending ? "opacity-60" : ""}`}
+                  >
+                    {pending ? (
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center text-zinc-400">
+                        <Spinner size={13} />
+                      </span>
+                    ) : isImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={url} alt={attachment.fileName} className="h-8 w-8 shrink-0 rounded object-cover" />
+                    ) : (
+                      <Paperclip size={14} className="shrink-0 text-zinc-400" />
+                    )}
+                    {pending ? (
+                      <span className="min-w-0 flex-1 truncate text-zinc-500">{attachment.fileName}</span>
+                    ) : (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 flex-1 truncate text-zinc-700 hover:underline dark:text-zinc-300"
+                      >
+                        {attachment.fileName}
+                      </a>
+                    )}
+                    <span className="shrink-0 text-xs text-zinc-400">{formatFileSize(attachment.fileSize)}</span>
+                    {!pending && (
+                      <>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 rounded p-0.5 text-zinc-300 opacity-0 hover:text-zinc-600 group-hover:opacity-100 dark:hover:text-zinc-300"
+                          aria-label={`Download ${attachment.fileName}`}
+                        >
+                          <Download size={13} />
+                        </a>
+                        <button
+                          onClick={() => onDeleteAttachment(attachment.id)}
+                          className="shrink-0 rounded p-0.5 text-zinc-300 opacity-0 hover:text-red-500 group-hover:opacity-100"
+                          aria-label={`Remove ${attachment.fileName}`}
+                        >
+                          <X size={13} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.length) onAddAttachments(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-1.5 flex items-center gap-2 rounded px-1 py-1 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+            >
+              <Plus size={13} className="shrink-0" />
+              Attach a file
+            </button>
           </div>
         </div>
       </aside>

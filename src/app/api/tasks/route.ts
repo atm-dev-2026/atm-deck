@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         dueDate: dueDate ? new Date(dueDate) : undefined,
         order: lastTask ? lastTask.order + 1 : 0,
       },
-      include: { labels: true, checklist: true },
+      include: { labels: true, checklist: true, attachments: true },
     });
 
     await broadcast(`board:${boardId}`, "task-created", task);

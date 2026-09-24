@@ -195,6 +195,14 @@ export async function getBoardIdForChecklistItem(itemId: string): Promise<string
   return item?.task.column.boardId ?? null;
 }
 
+export async function getBoardIdForTaskAttachment(attachmentId: string): Promise<string | null> {
+  const attachment = await prisma.taskAttachment.findUnique({
+    where: { id: attachmentId },
+    select: { task: { select: { column: { select: { boardId: true } } } } },
+  });
+  return attachment?.task.column.boardId ?? null;
+}
+
 export async function getBoardIdForLabel(labelId: string): Promise<string | null> {
   const label = await prisma.label.findUnique({
     where: { id: labelId },

@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Calendar, ChevronLeft, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Calendar, ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
 import { Spinner } from "@/components/Spinner";
@@ -14,6 +14,8 @@ import { useToast } from "@/components/Toast";
 import type { LabelColor } from "@/components/labelColors";
 import { supabase } from "@/lib/supabase";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
+
+const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 
 type Column = {
   id: string;
@@ -220,6 +222,7 @@ export default function BoardPage({
       priority: "NONE",
       labels: [],
       checklist: [],
+      attachments: [],
     };
     updateColumns((cols) =>
       cols.map((c) => (c.id === columnId ? { ...c, tasks: [...c.tasks, tempTask] } : c)),
@@ -494,6 +497,104 @@ export default function BoardPage({
         })),
       );
       toast.error("Couldn't delete the checklist item.");
+    }
+  };
+
+  const addTaskAttachments = async (taskId: string, files: FileList | File[]) => {
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        toast.error(`${file.name} is over ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB`);
+        continue;
+      }
+      const fileType = file.type || "application/octet-stream";
+      const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+      const tempAttachment = { id: tempId, fileName: file.name, fileType, fileSize: file.size };
+      updateColumns((cols) =>
+        cols.map((c) => ({
+          ...c,
+          tasks: c.tasks.map((t) =>
+            t.id === taskId ? { ...t, attachments: [...t.attachments, tempAttachment] } : t,
+          ),
+        })),
+      );
+
+      const removeTemp = () =>
+        updateColumns((cols) =>
+          cols.map((c) => ({
+            ...c,
+            tasks: c.tasks.map((t) =>
+              t.id === taskId ? { ...t, attachments: t.attachments.filter((a) => a.id !== tempId) } : t,
+            ),
+          })),
+        );
+
+      try {
+        const presignRes = await fetch(`/api/tasks/${taskId}/attachments/upload-url`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, fileType, fileSize: file.size }),
+        });
+        if (!presignRes.ok) throw new Error((await presignRes.json().catch(() => null))?.error ?? "Failed to prepare upload");
+        const { key, uploadUrl } = await presignRes.json();
+
+        const putRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": fileType },
+          body: file,
+        });
+        if (!putRes.ok) throw new Error("Failed to upload file");
+
+        const createRes = await fetch(`/api/tasks/${taskId}/attachments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, fileName: file.name, fileType, fileSize: file.size }),
+        });
+        if (!createRes.ok) throw new Error((await createRes.json().catch(() => null))?.error ?? "Failed to save attachment");
+        const attachment = await createRes.json();
+
+        updateColumns((cols) =>
+          cols.map((c) => ({
+            ...c,
+            tasks: c.tasks.map((t) =>
+              t.id === taskId
+                ? { ...t, attachments: t.attachments.map((a) => (a.id === tempId ? attachment : a)) }
+                : t,
+            ),
+          })),
+        );
+      } catch (err) {
+        removeTemp();
+        toast.error(err instanceof Error ? err.message : "Couldn't upload the file.");
+      }
+    }
+  };
+
+  const deleteTaskAttachment = async (taskId: string, attachmentId: string) => {
+    const task = board?.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
+    const removedIndex = task?.attachments.findIndex((a) => a.id === attachmentId) ?? -1;
+    const removedAttachment = removedIndex >= 0 ? task!.attachments[removedIndex] : undefined;
+    updateColumns((cols) =>
+      cols.map((c) => ({
+        ...c,
+        tasks: c.tasks.map((t) =>
+          t.id === taskId ? { ...t, attachments: t.attachments.filter((a) => a.id !== attachmentId) } : t,
+        ),
+      })),
+    );
+    const res = await fetch(`/api/task-attachments/${attachmentId}`, { method: "DELETE" });
+    if (!res.ok && removedAttachment) {
+      updateColumns((cols) =>
+        cols.map((c) => ({
+          ...c,
+          tasks: c.tasks.map((t) => {
+            if (t.id !== taskId) return t;
+            const attachments = [...t.attachments];
+            attachments.splice(removedIndex, 0, removedAttachment);
+            return { ...t, attachments };
+          }),
+        })),
+      );
+      toast.error("Couldn't delete the attachment.");
     }
   };
 
@@ -850,6 +951,8 @@ export default function BoardPage({
           onAddChecklistItem={(text) => addChecklistItem(editingTask.id, text)}
           onToggleChecklistItem={(itemId, done) => toggleChecklistItem(editingTask.id, itemId, done)}
           onDeleteChecklistItem={(itemId) => deleteChecklistItem(editingTask.id, itemId)}
+          onAddAttachments={(files) => addTaskAttachments(editingTask.id, files)}
+          onDeleteAttachment={(attachmentId) => deleteTaskAttachment(editingTask.id, attachmentId)}
         />
       )}
 
@@ -962,7 +1065,7 @@ function TaskCard({
         </div>
       )}
 
-      {(task.assignee || task.dueDate || task.checklist.length > 0) && (
+      {(task.assignee || task.dueDate || task.checklist.length > 0 || task.attachments.length > 0) && (
         <div className="mt-2 flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 dark:text-zinc-400">
           {task.assignee && <span className="truncate">{task.assignee}</span>}
           {task.dueDate && (
@@ -975,6 +1078,12 @@ function TaskCard({
             <span className="flex items-center gap-1">
               <ListChecks size={11} />
               {doneCount}/{task.checklist.length}
+            </span>
+          )}
+          {task.attachments.length > 0 && (
+            <span className="flex items-center gap-1">
+              <Paperclip size={11} />
+              {task.attachments.length}
             </span>
           )}
         </div>

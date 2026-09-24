@@ -100,6 +100,21 @@ export async function createChecklistItem(
   });
 }
 
+export async function createTaskAttachment(
+  taskId: string,
+  overrides: { key?: string; fileName?: string; fileType?: string; fileSize?: number } = {},
+) {
+  return prisma.taskAttachment.create({
+    data: {
+      taskId,
+      key: overrides.key ?? `tasks/${taskId}/${randomUUID()}-test.txt`,
+      fileName: overrides.fileName ?? "test.txt",
+      fileType: overrides.fileType ?? "text/plain",
+      fileSize: overrides.fileSize ?? 1024,
+    },
+  });
+}
+
 // NextAuth's `auth` export is an overloaded function (plain call, middleware
 // use, handler-wrapping use) that vi.mocked() can't cleanly infer a single
 // signature for — cast to a plain async fn for mocking purposes only.

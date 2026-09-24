@@ -27,6 +27,7 @@ export async function GET(
             include: {
               labels: true,
               checklist: { orderBy: { order: "asc" } },
+              attachments: { orderBy: { createdAt: "asc" } },
             },
           },
         },
