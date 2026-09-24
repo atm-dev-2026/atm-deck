@@ -10,7 +10,7 @@ export async function DELETE(
 
   const boardId = await getBoardIdForLabel(labelId);
   if (!boardId) {
-    return NextResponse.json({ error: "Label not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบป้ายกำกับนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;

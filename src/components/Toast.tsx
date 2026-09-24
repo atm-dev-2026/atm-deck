@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type ToastVariant = "success" | "error" | "info";
 type ToastItem = { id: string; variant: ToastVariant; message: string };
@@ -21,11 +22,12 @@ const variantConfig: Record<ToastVariant, { icon: typeof CheckCircle2; className
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("Common");
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const dismiss = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
     const timeout = timeouts.current.get(id);
     if (timeout) {
       clearTimeout(timeout);
@@ -55,19 +57,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-        {toasts.map((t) => {
-          const { icon: Icon, className } = variantConfig[t.variant];
+        {toasts.map((toast) => {
+          const { icon: Icon, className } = variantConfig[toast.variant];
           return (
             <div
-              key={t.id}
+              key={toast.id}
               className="glass-strong pointer-events-auto flex max-w-sm items-start gap-2 rounded-lg px-3 py-2.5 text-sm text-zinc-800 dark:text-zinc-200"
             >
               <Icon size={15} className={`mt-0.5 shrink-0 ${className}`} />
-              <p className="min-w-0 flex-1">{t.message}</p>
+              <p className="min-w-0 flex-1">{toast.message}</p>
               <button
-                onClick={() => dismiss(t.id)}
+                onClick={() => dismiss(toast.id)}
                 className="shrink-0 rounded p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-                aria-label="Dismiss"
+                aria-label={t("dismiss")}
               >
                 <X size={13} />
               </button>

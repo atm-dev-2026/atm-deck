@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
 
@@ -20,14 +20,14 @@ export async function GET(
     include: messageInclude,
   });
   if (!parent) {
-    return NextResponse.json({ error: "Message not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบข้อความนี้" }, { status: 404 });
   }
 
   const membership = await prisma.channelMember.findUnique({
     where: { channelId_userId: { channelId: parent.channelId, userId } },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
   }
 
   const replies = await prisma.message.findMany({

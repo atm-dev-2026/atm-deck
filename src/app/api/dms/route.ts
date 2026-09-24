@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
 
@@ -29,17 +29,17 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const { userId } = await request.json();
   if (!userId || typeof userId !== "string" || userId === session.user.id) {
-    return NextResponse.json({ error: "Valid userId is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุผู้ใช้ให้ถูกต้อง" }, { status: 400 });
   }
 
   const target = await prisma.user.findUnique({ where: { id: userId } });
   if (!target) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบผู้ใช้นี้" }, { status: 404 });
   }
 
   const existing = await prisma.channel.findFirst({

@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Calendar, ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
@@ -55,6 +56,9 @@ export default function BoardPage({
   const { boardId } = use(params);
   const router = useRouter();
   const toast = useToast();
+  const t = useTranslations("Boards.board");
+  const tf = useTranslations("Boards.form");
+  const tl = useTranslations("Boards.list");
   const [board, setBoard] = useState<Board | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState<Record<string, string>>({});
   const [newColumnName, setNewColumnName] = useState("");
@@ -153,7 +157,7 @@ export default function BoardPage({
     e.preventDefault();
     if (!board || !editName.trim() || savingBoard) return;
     if (editVisibility === "DEPARTMENT" && !editDepartmentId) {
-      setBoardEditError("Pick a department for a department board.");
+      setBoardEditError(tf("pickDepartment"));
       return;
     }
     setSavingBoard(true);
@@ -173,7 +177,7 @@ export default function BoardPage({
         setBoard((prev) => (prev ? { ...prev, ...data } : prev));
         setEditingBoard(false);
       } else {
-        setBoardEditError(data?.error ?? "Couldn't save changes.");
+        setBoardEditError(data?.error ?? t("saveFailed"));
       }
     } finally {
       setSavingBoard(false);
@@ -187,7 +191,7 @@ export default function BoardPage({
       const res = await fetch(`/api/boards/${boardId}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setBoardDeleteError(data?.error ?? "Couldn't delete the board.");
+        setBoardDeleteError(data?.error ?? tl("deleteFailed"));
         return;
       }
       router.push("/");
@@ -247,7 +251,7 @@ export default function BoardPage({
         updateColumns((cols) =>
           cols.map((c) => (c.id === columnId ? { ...c, tasks: c.tasks.filter((t) => t.id !== tempId) } : c)),
         );
-        toast.error(data?.error ?? "Couldn't create the task.");
+        toast.error(data?.error ?? t("createTaskFailed"));
       }
     } finally {
       setAddingTaskFor((prev) => {
@@ -286,7 +290,7 @@ export default function BoardPage({
       } else {
         const data = await res.json().catch(() => null);
         setBoard((prev) => (prev ? { ...prev, columns: prev.columns.filter((c) => c.id !== tempId) } : prev));
-        toast.error(data?.error ?? "Couldn't create the column.");
+        toast.error(data?.error ?? t("createColumnFailed"));
       }
     } finally {
       setSubmittingColumn(false);
@@ -326,7 +330,7 @@ export default function BoardPage({
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setBoard((prev) => (prev ? { ...prev, columns: previousColumns } : prev));
-          setDeleteItemError(data?.error ?? "Couldn't delete the task.");
+          setDeleteItemError(data?.error ?? t("deleteTaskFailed"));
           return;
         }
       } else {
@@ -337,7 +341,7 @@ export default function BoardPage({
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setBoard((prev) => (prev ? { ...prev, columns: previousColumns } : prev));
-          setDeleteItemError(data?.error ?? "Couldn't delete the column.");
+          setDeleteItemError(data?.error ?? t("deleteColumnFailed"));
           return;
         }
       }
@@ -366,7 +370,7 @@ export default function BoardPage({
     }
     const data = await res.json().catch(() => null);
     if (previousTask) mergeTask(taskId, previousTask);
-    toast.error(data?.error ?? "Couldn't save changes.");
+    toast.error(data?.error ?? t("saveFailed"));
     return false;
   };
 
@@ -378,7 +382,7 @@ export default function BoardPage({
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
-      toast.error(data?.error ?? "Couldn't create the label.");
+      toast.error(data?.error ?? t("createLabelFailed"));
       return;
     }
     const label: LabelT = await res.json();
@@ -415,7 +419,7 @@ export default function BoardPage({
             ),
           })),
         );
-        toast.error(data?.error ?? "Couldn't add the item.");
+        toast.error(data?.error ?? t("addItemFailed"));
         return;
       }
       const item = await res.json();
@@ -467,7 +471,7 @@ export default function BoardPage({
           ),
         })),
       );
-      toast.error("Couldn't update the checklist item.");
+      toast.error(t("updateChecklistFailed"));
     }
   };
 
@@ -496,14 +500,14 @@ export default function BoardPage({
           }),
         })),
       );
-      toast.error("Couldn't delete the checklist item.");
+      toast.error(t("deleteChecklistFailed"));
     }
   };
 
   const addTaskAttachments = async (taskId: string, files: FileList | File[]) => {
     for (const file of Array.from(files)) {
       if (file.size > MAX_ATTACHMENT_SIZE) {
-        toast.error(`${file.name} is over ${MAX_ATTACHMENT_SIZE / (1024 * 1024)}MB`);
+        toast.error(t("fileTooBig", { fileName: file.name, maxMb: MAX_ATTACHMENT_SIZE / (1024 * 1024) }));
         continue;
       }
       const fileType = file.type || "application/octet-stream";
@@ -534,7 +538,7 @@ export default function BoardPage({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileName: file.name, fileType, fileSize: file.size }),
         });
-        if (!presignRes.ok) throw new Error((await presignRes.json().catch(() => null))?.error ?? "Failed to prepare upload");
+        if (!presignRes.ok) throw new Error((await presignRes.json().catch(() => null))?.error ?? t("prepareUploadFailed"));
         const { key, uploadUrl } = await presignRes.json();
 
         const putRes = await fetch(uploadUrl, {
@@ -542,14 +546,14 @@ export default function BoardPage({
           headers: { "Content-Type": fileType },
           body: file,
         });
-        if (!putRes.ok) throw new Error("Failed to upload file");
+        if (!putRes.ok) throw new Error(t("uploadFileFailed"));
 
         const createRes = await fetch(`/api/tasks/${taskId}/attachments`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key, fileName: file.name, fileType, fileSize: file.size }),
         });
-        if (!createRes.ok) throw new Error((await createRes.json().catch(() => null))?.error ?? "Failed to save attachment");
+        if (!createRes.ok) throw new Error((await createRes.json().catch(() => null))?.error ?? t("saveAttachmentFailed"));
         const attachment = await createRes.json();
 
         updateColumns((cols) =>
@@ -564,7 +568,7 @@ export default function BoardPage({
         );
       } catch (err) {
         removeTemp();
-        toast.error(err instanceof Error ? err.message : "Couldn't upload the file.");
+        toast.error(err instanceof Error ? err.message : t("uploadFailed"));
       }
     }
   };
@@ -594,7 +598,7 @@ export default function BoardPage({
           }),
         })),
       );
-      toast.error("Couldn't delete the attachment.");
+      toast.error(t("deleteAttachmentFailed"));
     }
   };
 
@@ -649,18 +653,18 @@ export default function BoardPage({
       );
       if (responses.some((r) => !r.ok)) {
         setBoard((prev) => (prev ? { ...prev, columns: previousColumns } : prev));
-        toast.error("Couldn't save the new task order.");
+        toast.error(t("reorderFailed"));
       }
     } catch {
       setBoard((prev) => (prev ? { ...prev, columns: previousColumns } : prev));
-      toast.error("Couldn't save the new task order.");
+      toast.error(t("reorderFailed"));
     }
   };
 
   if (!board) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-zinc-500">Loading…</p>
+        <p className="text-sm text-zinc-500">{t("loading")}</p>
       </div>
     );
   }
@@ -697,9 +701,9 @@ export default function BoardPage({
               onChange={(e) => setEditVisibility(e.target.value as BoardVisibility)}
               className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             >
-              <option value="PERSONAL">Personal</option>
-              <option value="DEPARTMENT">Department</option>
-              <option value="GLOBAL">Global</option>
+              <option value="PERSONAL">{tf("visibilityPersonal")}</option>
+              <option value="DEPARTMENT">{tf("visibilityDepartment")}</option>
+              <option value="GLOBAL">{tf("visibilityGlobal")}</option>
             </select>
             {editVisibility === "DEPARTMENT" && (
               <select
@@ -708,7 +712,7 @@ export default function BoardPage({
                 disabled={departmentsLoading}
                 className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
               >
-                <option value="">{departmentsLoading ? "Loading departments…" : "Select a department…"}</option>
+                <option value="">{departmentsLoading ? tf("loadingDepartments") : tf("selectDepartment")}</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -722,7 +726,7 @@ export default function BoardPage({
               className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {savingBoard && <Spinner size={12} />}
-              Save
+              {t("save")}
             </button>
             <button
               type="button"
@@ -730,7 +734,7 @@ export default function BoardPage({
               disabled={savingBoard}
               className="glass-field rounded-md px-2.5 py-1 text-xs text-zinc-600 dark:text-zinc-300"
             >
-              Cancel
+              {tf("cancel")}
             </button>
             {boardEditError && <p className="w-full text-xs text-red-500">{boardEditError}</p>}
           </form>
@@ -744,7 +748,7 @@ export default function BoardPage({
               <button
                 onClick={openEditBoard}
                 className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                aria-label="Edit board"
+                aria-label={t("editAria")}
               >
                 <Pencil size={13} />
               </button>
@@ -788,7 +792,7 @@ export default function BoardPage({
                     setConfirmingBoardDelete(true);
                   }}
                   className="rounded p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
-                  aria-label="Delete board"
+                  aria-label={tl("deleteBoardAria")}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -821,7 +825,7 @@ export default function BoardPage({
                 onClick={() => requestDeleteColumn(column)}
                 disabled={columnPending}
                 className="rounded p-1 text-zinc-400 transition-colors hover:bg-zinc-900/10 hover:text-red-500 dark:hover:bg-white/10"
-                aria-label="Delete column"
+                aria-label={t("deleteColumnAria")}
               >
                 <X size={13} />
               </button>
@@ -891,7 +895,7 @@ export default function BoardPage({
               <input
                 value={newTaskTitle[column.id] ?? ""}
                 onChange={(e) => setNewTaskTitle((prev) => ({ ...prev, [column.id]: e.target.value }))}
-                placeholder="Add a task"
+                placeholder={t("addTaskPlaceholder")}
                 disabled={columnPending || addingTaskFor.has(column.id)}
                 className="min-w-0 flex-1 bg-transparent py-1 text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none disabled:cursor-wait dark:text-zinc-300"
               />
@@ -909,7 +913,7 @@ export default function BoardPage({
               autoFocus
               value={newColumnName}
               onChange={(e) => setNewColumnName(e.target.value)}
-              placeholder="Column name"
+              placeholder={t("columnNamePlaceholder")}
               className="glass-field rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
             />
             <div className="flex gap-1.5">
@@ -919,7 +923,7 @@ export default function BoardPage({
                 className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submittingColumn && <Spinner size={11} />}
-                Add column
+                {t("addColumn")}
               </button>
               <button
                 type="button"
@@ -927,7 +931,7 @@ export default function BoardPage({
                 disabled={submittingColumn}
                 className="glass-field rounded px-2 py-1 text-xs text-zinc-600 dark:text-zinc-300"
               >
-                Cancel
+                {tf("cancel")}
               </button>
             </div>
           </form>
@@ -938,7 +942,7 @@ export default function BoardPage({
             className="flex h-9 w-[85vw] max-w-56 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-zinc-300 px-3 text-xs font-medium text-zinc-400 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:text-zinc-600 disabled:cursor-wait disabled:opacity-70 dark:border-zinc-700 dark:hover:text-zinc-300 sm:w-56"
           >
             {submittingColumn ? <Spinner size={13} /> : <Plus size={13} />}
-            Add column
+            {t("addColumn")}
           </button>
         )}
       </div>
@@ -968,16 +972,14 @@ export default function BoardPage({
         title={
           pendingDelete
             ? pendingDelete.type === "column"
-              ? `Delete "${pendingDelete.column.name}"?`
-              : `Delete "${pendingDelete.task.title}"?`
+              ? t("deleteColumnTitle", { name: pendingDelete.column.name })
+              : t("deleteTaskTitle", { name: pendingDelete.task.title })
             : ""
         }
         description={
           pendingDelete?.type === "column"
-            ? `This removes ${pendingDelete.column.tasks.length} ${
-                pendingDelete.column.tasks.length === 1 ? "task" : "tasks"
-              }. This can't be undone.`
-            : "This can't be undone."
+            ? t("deleteColumnDesc", { n: pendingDelete.column.tasks.length })
+            : t("deleteTaskDesc")
         }
         pending={deletingItem}
         error={deleteItemError}
@@ -989,10 +991,8 @@ export default function BoardPage({
 
       <ConfirmDialog
         open={confirmingBoardDelete}
-        title={`Delete "${board.name}"?`}
-        description={`This permanently removes ${board.columns.length} ${
-          board.columns.length === 1 ? "column" : "columns"
-        } and all its tasks. This can't be undone.`}
+        title={t("deleteBoardTitle", { name: board.name })}
+        description={t("deleteBoardDesc", { n: board.columns.length })}
         pending={deletingBoard}
         error={boardDeleteError}
         onConfirm={confirmDeleteBoard}
@@ -1025,6 +1025,7 @@ function TaskCard({
   onClick: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations("Boards.board");
   const priority = priorityConfig(task.priority);
   const PriorityIcon = priority.icon;
   const doneCount = task.checklist.filter((c) => c.done).length;
@@ -1060,7 +1061,7 @@ function TaskCard({
             onDelete();
           }}
           className="shrink-0 rounded p-0.5 text-zinc-300 opacity-0 hover:text-red-500 group-hover:opacity-100"
-          aria-label="Delete task"
+          aria-label={t("deleteTaskAria")}
         >
           <Trash2 size={12} />
         </button>

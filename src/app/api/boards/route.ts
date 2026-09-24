@@ -10,7 +10,7 @@ const VISIBILITY_TYPES: BoardVisibility[] = ["GLOBAL", "DEPARTMENT", "PERSONAL"]
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const boards = await prisma.board.findMany({
@@ -36,15 +36,15 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const { name, visibilityType = "PERSONAL", departmentId } = await request.json();
   if (!name || typeof name !== "string") {
-    return NextResponse.json({ error: "name is required" }, { status: 400 });
+    return NextResponse.json({ error: "กรุณาระบุชื่อบอร์ด" }, { status: 400 });
   }
   if (!VISIBILITY_TYPES.includes(visibilityType)) {
-    return NextResponse.json({ error: "invalid visibilityType" }, { status: 400 });
+    return NextResponse.json({ error: "ประเภทการมองเห็นไม่ถูกต้อง" }, { status: 400 });
   }
 
   const visibility = validateBoardVisibility(user, visibilityType, departmentId);

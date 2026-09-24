@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const { boardId, name } = await request.json();
   if (!boardId || !name) {
     return NextResponse.json(
-      { error: "boardId and name are required" },
+      { error: "ต้องระบุบอร์ดและชื่อคอลัมน์" },
       { status: 400 },
     );
   }

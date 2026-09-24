@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, UserX } from "lucide-react";
 import { Avatar } from "./Avatar";
 
@@ -15,6 +16,7 @@ export function AssigneePicker({
   value: string | null;
   onChange: (userId: string | null) => void;
 }) {
+  const t = useTranslations("Boards.assignee");
   const [open, setOpen] = useState(false);
   const current = members.find((m) => m.id === value) ?? null;
 
@@ -33,7 +35,7 @@ export function AssigneePicker({
         ) : (
           <>
             <UserX size={13} className="text-zinc-400" />
-            Unassigned
+            {t("unassigned")}
           </>
         )}
       </button>
@@ -56,7 +58,7 @@ export function AssigneePicker({
                 }`}
               >
                 <UserX size={13} className="shrink-0 text-zinc-400" />
-                <span className="flex-1 truncate">Unassigned</span>
+                <span className="flex-1 truncate">{t("unassigned")}</span>
                 {value === null && <Check size={13} className="text-accent" />}
               </button>
               {members.map((member) => {

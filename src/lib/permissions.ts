@@ -89,14 +89,14 @@ export function validateBoardVisibility(
   }
 
   if (!departmentId || typeof departmentId !== "string") {
-    return { ok: false, status: 400, error: "departmentId is required for DEPARTMENT boards" };
+    return { ok: false, status: 400, error: "บอร์ดประเภทแผนกต้องระบุแผนก" };
   }
   const isMember = user.departmentMemberships.some((d) => d.departmentId === departmentId);
   if (user.globalRole !== "ADMIN" && !isMember) {
     return {
       ok: false,
       status: 403,
-      error: "You must be a member of this department to create a board for it",
+      error: "ต้องเป็นสมาชิกของแผนกนี้ก่อนถึงจะสร้างบอร์ดให้แผนกนี้ได้",
     };
   }
   return { ok: true, departmentId };
@@ -132,7 +132,7 @@ export async function requireBoardAccess(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return { error: jsonError(401, "Unauthorized") } as const;
+    return { error: jsonError(401, "ต้องเข้าสู่ระบบก่อน") } as const;
   }
 
   const board = await prisma.board.findUnique({
@@ -140,21 +140,21 @@ export async function requireBoardAccess(
     include: { members: { where: { userId: user.id } } },
   });
   if (!board) {
-    return { error: jsonError(404, "Board not found") } as const;
+    return { error: jsonError(404, "ไม่พบบอร์ดนี้") } as const;
   }
 
   const access = resolveBoardAccess(user, board);
   if (!access) {
-    return { error: jsonError(403, "Forbidden") } as const;
+    return { error: jsonError(403, "ไม่มีสิทธิ์เข้าถึง") } as const;
   }
   if (opts.minEdit && !access.canEdit) {
-    return { error: jsonError(403, "Forbidden") } as const;
+    return { error: jsonError(403, "ไม่มีสิทธิ์ทำรายการนี้") } as const;
   }
   if (opts.minDelete && !access.canDelete) {
-    return { error: jsonError(403, "Forbidden") } as const;
+    return { error: jsonError(403, "ไม่มีสิทธิ์ทำรายการนี้") } as const;
   }
   if (opts.minManageMembers && !access.canManageMembers) {
-    return { error: jsonError(403, "Forbidden") } as const;
+    return { error: jsonError(403, "ไม่มีสิทธิ์ทำรายการนี้") } as const;
   }
 
   return { user, board, access };
@@ -163,10 +163,10 @@ export async function requireBoardAccess(
 export async function requireGlobalAdmin() {
   const user = await getCurrentUser();
   if (!user) {
-    return { error: jsonError(401, "Unauthorized") } as const;
+    return { error: jsonError(401, "ต้องเข้าสู่ระบบก่อน") } as const;
   }
   if (user.globalRole !== "ADMIN") {
-    return { error: jsonError(403, "Forbidden") } as const;
+    return { error: jsonError(403, "ไม่มีสิทธิ์เข้าถึง") } as const;
   }
   return { user };
 }

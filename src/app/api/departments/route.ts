@@ -6,7 +6,7 @@ import { requireGlobalAdmin } from "@/lib/permissions";
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const departments = await prisma.department.findMany({
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const { name } = await request.json();
   if (!name || typeof name !== "string") {
-    return NextResponse.json({ error: "name is required" }, { status: 400 });
+    return NextResponse.json({ error: "กรุณาระบุชื่อแผนก" }, { status: 400 });
   }
 
   const department = await prisma.department.create({ data: { name } });

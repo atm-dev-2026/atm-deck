@@ -1,0 +1,245 @@
+{
+  "Common": {
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "deleting": "กำลังลบ…",
+    "add": "เพิ่ม",
+    "create": "สร้าง",
+    "edit": "แก้ไข",
+    "close": "ปิด",
+    "dismiss": "ปิด",
+    "download": "ดาวน์โหลด",
+    "remove": "นำออก",
+    "removing": "กำลังนำออก…",
+    "loading": "กำลังโหลด…",
+    "cantUndo": "ย้อนกลับไม่ได้",
+    "somethingWentWrong": "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง"
+  },
+  "Shell": {
+    "nav": {
+      "boards": "บอร์ด",
+      "chat": "แชท",
+      "admin": "แอดมิน"
+    },
+    "appDescription": "บอร์ดงานภายในของ ATM Holding",
+    "userMenu": {
+      "me": "ฉัน",
+      "signedIn": "เข้าสู่ระบบแล้ว",
+      "settings": "ตั้งค่า",
+      "signOut": "ออกจากระบบ",
+      "signingOut": "กำลังออกจากระบบ…"
+    },
+    "theme": {
+      "light": "สว่าง",
+      "dark": "มืด",
+      "system": "ตามระบบ"
+    }
+  },
+  "Login": {
+    "heading": "เข้าสู่ระบบ ATM Deck",
+    "subheading": "บอร์ดงานและแชททีมสำหรับ ATM Holding",
+    "continueWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "continueWithLine": "เข้าสู่ระบบด้วย LINE",
+    "redirectingGoogle": "กำลังนำไปยัง Google…",
+    "redirectingLine": "กำลังนำไปยัง LINE…"
+  },
+  "Settings": {
+    "title": "ตั้งค่า",
+    "appearance": "ธีม",
+    "appearanceHint": "เลือกรูปแบบการแสดงผลของ ATM Deck บนอุปกรณ์นี้",
+    "language": "ภาษา",
+    "languageHint": "เลือกภาษาที่ใช้แสดงผล",
+    "account": "บัญชี",
+    "accountHint": "ชื่อ อีเมล และรูปโปรไฟล์ถูกจัดการผ่านบัญชี Google หรือ LINE",
+    "signOut": "ออกจากระบบ",
+    "signingOut": "กำลังออกจากระบบ…"
+  },
+  "Admin": {
+    "roleManagement": "จัดการสิทธิ์",
+    "roleManagementHint": "ให้หรือเพิกถอนสิทธิ์แอดมิน แอดมินจัดการบอร์ดและแผนกทั้งหมดได้โดยไม่ขึ้นกับการเป็นสมาชิก",
+    "roleUpdated": "อัปเดตบทบาทแล้ว",
+    "roleUpdateFailed": "อัปเดตบทบาทไม่สำเร็จ",
+    "you": "คุณ",
+    "adminYou": "แอดมิน (คุณ)",
+    "roleUser": "ผู้ใช้",
+    "roleAdmin": "แอดมิน",
+    "noUsers": "ไม่พบผู้ใช้"
+  },
+  "Boards": {
+    "list": {
+      "heading": "บอร์ด",
+      "newBoard": "สร้างบอร์ดใหม่",
+      "filterPlaceholder": "ค้นหาบอร์ด…",
+      "loading": "กำลังโหลดบอร์ด…",
+      "emptyDefault": "ยังไม่มีบอร์ด เริ่มสร้างบอร์ดแรกได้เลย",
+      "emptyFiltered": "ไม่พบบอร์ดที่ตรงกับคำค้นหา",
+      "columnsAndTasks": "{columns} คอลัมน์ · {tasks} งาน",
+      "deleteBoardAria": "ลบบอร์ด",
+      "deleteBoardTitle": "ลบ \"{name}\"?",
+      "deleteBoardDesc": "ลบถาวรทั้งคอลัมน์ {columns} รายการและงาน {tasks} รายการ ย้อนกลับไม่ได้",
+      "createFailed": "สร้างบอร์ดไม่สำเร็จ",
+      "deleteFailed": "ลบบอร์ดไม่สำเร็จ"
+    },
+    "form": {
+      "namePlaceholder": "ชื่อบอร์ด",
+      "visibilityPersonal": "ส่วนตัว",
+      "visibilityDepartment": "แผนก",
+      "visibilityGlobal": "ทั้งองค์กร",
+      "loadingDepartments": "กำลังโหลดแผนก…",
+      "selectDepartment": "เลือกแผนก…",
+      "pickDepartment": "เลือกแผนกสำหรับบอร์ดนี้ก่อน",
+      "create": "สร้าง",
+      "cancel": "ยกเลิก"
+    },
+    "board": {
+      "save": "บันทึก",
+      "saveFailed": "บันทึกการเปลี่ยนแปลงไม่สำเร็จ",
+      "loading": "กำลังโหลด…",
+      "editAria": "แก้ไขบอร์ด",
+      "columnNamePlaceholder": "ชื่อคอลัมน์",
+      "addColumn": "เพิ่มคอลัมน์",
+      "addTaskPlaceholder": "เพิ่มงาน",
+      "deleteColumnAria": "ลบคอลัมน์",
+      "deleteTaskAria": "ลบงาน",
+      "createTaskFailed": "สร้างงานไม่สำเร็จ",
+      "createColumnFailed": "สร้างคอลัมน์ไม่สำเร็จ",
+      "deleteTaskFailed": "ลบงานไม่สำเร็จ",
+      "deleteColumnFailed": "ลบคอลัมน์ไม่สำเร็จ",
+      "createLabelFailed": "สร้างป้ายกำกับไม่สำเร็จ",
+      "addItemFailed": "เพิ่มรายการไม่สำเร็จ",
+      "updateChecklistFailed": "อัปเดตรายการเช็กลิสต์ไม่สำเร็จ",
+      "deleteChecklistFailed": "ลบรายการเช็กลิสต์ไม่สำเร็จ",
+      "fileTooBig": "{fileName} มีขนาดเกิน {maxMb}MB",
+      "prepareUploadFailed": "เตรียมอัปโหลดไม่สำเร็จ",
+      "uploadFileFailed": "อัปโหลดไฟล์ไม่สำเร็จ",
+      "saveAttachmentFailed": "บันทึกไฟล์แนบไม่สำเร็จ",
+      "uploadFailed": "อัปโหลดไฟล์ไม่สำเร็จ",
+      "deleteAttachmentFailed": "ลบไฟล์แนบไม่สำเร็จ",
+      "reorderFailed": "บันทึกลำดับงานใหม่ไม่สำเร็จ",
+      "deleteColumnTitle": "ลบ \"{name}\"?",
+      "deleteColumnDesc": "ลบงาน {n} รายการ ย้อนกลับไม่ได้",
+      "deleteTaskTitle": "ลบ \"{name}\"?",
+      "deleteTaskDesc": "ย้อนกลับไม่ได้",
+      "deleteBoardTitle": "ลบ \"{name}\"?",
+      "deleteBoardDesc": "ลบถาวรทั้งคอลัมน์ {n} รายการและงานทั้งหมดในบอร์ด ย้อนกลับไม่ได้"
+    },
+    "task": {
+      "eyebrow": "งาน",
+      "deleteAria": "ลบงาน",
+      "closeAria": "ปิด",
+      "description": "รายละเอียด",
+      "descriptionPlaceholder": "เพิ่มรายละเอียด…",
+      "checklist": "เช็กลิสต์",
+      "addItemPlaceholder": "เพิ่มรายการ",
+      "attachments": "ไฟล์แนบ",
+      "downloadAria": "ดาวน์โหลด {fileName}",
+      "removeAttachmentAria": "ลบ {fileName}",
+      "attachFile": "แนบไฟล์"
+    },
+    "priority": {
+      "urgent": "ด่วนมาก",
+      "high": "สูง",
+      "medium": "ปานกลาง",
+      "low": "ต่ำ",
+      "none": "ไม่ระบุความสำคัญ"
+    },
+    "assignee": {
+      "unassigned": "ยังไม่มอบหมาย"
+    },
+    "label": {
+      "labels": "ป้ายกำกับ",
+      "empty": "ยังไม่มีป้ายกำกับ",
+      "namePlaceholder": "ชื่อป้ายกำกับ",
+      "add": "เพิ่ม",
+      "create": "สร้างป้ายกำกับ"
+    },
+    "visibility": {
+      "global": "ทั้งองค์กร",
+      "department": "แผนก",
+      "personal": "ส่วนตัว"
+    },
+    "members": {
+      "roleUpdated": "อัปเดตสิทธิ์แล้ว",
+      "roleUpdateFailed": "อัปเดตสิทธิ์ไม่สำเร็จ",
+      "removeFailed": "นำสมาชิกออกไม่สำเร็จ",
+      "inviteSent": "ส่งคำเชิญแล้ว",
+      "inviteFailed": "ส่งคำเชิญไม่สำเร็จ",
+      "heading": "สมาชิก",
+      "owner": "เจ้าของ",
+      "readOnly": "ดูอย่างเดียว",
+      "canEdit": "แก้ไขได้",
+      "empty": "ยังไม่มีสมาชิก",
+      "loadingPeople": "กำลังโหลดรายชื่อ…",
+      "invitePlaceholder": "เชิญสมาชิก…",
+      "noOneLeft": "ไม่มีคนให้เชิญเพิ่มแล้ว",
+      "invite": "เชิญ",
+      "removeTitle": "นำ {name} ออกจากบอร์ด?",
+      "removeDesc": "จะไม่สามารถเข้าถึงบอร์ดนี้ได้ทันที",
+      "remove": "นำออก",
+      "removing": "กำลังนำออก…"
+    }
+  },
+  "Chat": {
+    "sidebar": {
+      "channels": "แชนแนล",
+      "browseChannels": "ดูแชนแนลทั้งหมด",
+      "createChannel": "สร้างแชนแนล",
+      "channelNamePlaceholder": "channel-name",
+      "add": "เพิ่ม",
+      "noMoreChannels": "ไม่มีแชนแนลให้เข้าร่วมแล้ว",
+      "join": "เข้าร่วม",
+      "loadingChannels": "กำลังโหลดแชนแนล…",
+      "directMessages": "ข้อความส่วนตัว",
+      "newMessage": "ข้อความใหม่",
+      "noOtherUsers": "ยังไม่มีผู้ใช้คนอื่น",
+      "loadingMessages": "กำลังโหลดข้อความ…",
+      "unknown": "ไม่ทราบชื่อ",
+      "createChannelFailed": "สร้างแชนแนลไม่สำเร็จ ลองใหม่อีกครั้ง"
+    },
+    "message": {
+      "edited": "(แก้ไขแล้ว)",
+      "save": "บันทึก",
+      "cancel": "ยกเลิก",
+      "reactAria": "ตอบด้วย {emoji}",
+      "replyCount": "{n} การตอบกลับ",
+      "replyInThread": "ตอบในเธรด",
+      "edit": "แก้ไข",
+      "delete": "ลบ",
+      "saveFailed": "บันทึกข้อความไม่สำเร็จ",
+      "deleteFailed": "ลบข้อความไม่สำเร็จ ลองใหม่อีกครั้ง",
+      "sendFailed": "ส่งข้อความไม่สำเร็จ",
+      "sendReplyFailed": "ส่งข้อความตอบกลับไม่สำเร็จ"
+    },
+    "thread": {
+      "heading": "เธรด",
+      "closeAria": "ปิดเธรด",
+      "attachFileAria": "แนบไฟล์",
+      "replyPlaceholder": "ตอบกลับ…",
+      "deleteMessageTitle": "ลบข้อความนี้?",
+      "deleteMessageDesc": "ย้อนกลับไม่ได้"
+    },
+    "channel": {
+      "notFound": "ไม่พบแชนแนลนี้ หรือคุณไม่มีสิทธิ์เข้าถึง",
+      "loading": "กำลังโหลด…",
+      "directMessageFallback": "ข้อความส่วนตัว",
+      "typing": "{names} กำลังพิมพ์…",
+      "someone": "บางคน",
+      "toggleListAria": "สลับรายการแชนแนล",
+      "emptyMessages": "ยังไม่มีข้อความ ทักทายกันหน่อยสิ",
+      "attachFileAria": "แนบไฟล์",
+      "messagePlaceholder": "ส่งข้อความถึง {title}",
+      "messagePlaceholderChannel": "ส่งข้อความใน #{name}"
+    },
+    "landing": {
+      "empty": "เลือกแชนแนลหรือข้อความส่วนตัว หรือสร้างแชนแนลใหม่เพื่อเริ่มต้น"
+    },
+    "upload": {
+      "tooBig": "{fileName} มีขนาดเกิน {maxMb}MB",
+      "prepareFailed": "เตรียมอัปโหลดไม่สำเร็จ",
+      "uploadFailed": "อัปโหลดไฟล์ไม่สำเร็จ",
+      "genericFailed": "อัปโหลดไม่สำเร็จ",
+      "removeAria": "เอา {fileName} ออก"
+    }
+  }
+}

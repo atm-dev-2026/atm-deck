@@ -16,12 +16,12 @@ export async function PATCH(
   if ("error" in gate) return gate.error;
 
   if (userId === gate.board.ownerId) {
-    return NextResponse.json({ error: "The board owner already has full access" }, { status: 400 });
+    return NextResponse.json({ error: "เจ้าของบอร์ดมีสิทธิ์เข้าถึงเต็มรูปแบบอยู่แล้ว" }, { status: 400 });
   }
 
   const { role } = await request.json();
   if (!BOARD_ROLES.includes(role)) {
-    return NextResponse.json({ error: "role must be READ_ONLY or CAN_EDIT" }, { status: 400 });
+    return NextResponse.json({ error: "สิทธิ์ไม่ถูกต้อง" }, { status: 400 });
   }
 
   try {
@@ -32,7 +32,7 @@ export async function PATCH(
     return NextResponse.json(member);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบสมาชิกนี้" }, { status: 404 });
     }
     return handleRouteError(error);
   }
@@ -48,7 +48,7 @@ export async function DELETE(
   if ("error" in gate) return gate.error;
 
   if (userId === gate.board.ownerId) {
-    return NextResponse.json({ error: "The board owner can't be removed" }, { status: 400 });
+    return NextResponse.json({ error: "นำเจ้าของบอร์ดออกไม่ได้" }, { status: 400 });
   }
 
   try {
@@ -56,7 +56,7 @@ export async function DELETE(
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบสมาชิกนี้" }, { status: 404 });
     }
     return handleRouteError(error);
   }

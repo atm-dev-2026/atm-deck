@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Calendar, Check, Download, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
 import { LabelPicker } from "@/components/LabelPicker";
@@ -73,6 +74,7 @@ export function TaskPanel({
   onAddAttachments: (files: FileList | File[]) => void;
   onDeleteAttachment: (attachmentId: string) => void;
 }) {
+  const t = useTranslations("Boards.task");
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
@@ -100,19 +102,19 @@ export function TaskPanel({
         className="glass-strong flex h-full w-full max-w-md flex-col rounded-none border-y-0 border-r-0"
       >
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">Task</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{t("eyebrow")}</span>
           <div className="flex items-center gap-1">
             <button
               onClick={onDelete}
               className="rounded p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
-              aria-label="Delete task"
+              aria-label={t("deleteAria")}
             >
               <Trash2 size={14} />
             </button>
             <button
               onClick={onClose}
               className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-              aria-label="Close"
+              aria-label={t("closeAria")}
             >
               <X size={16} />
             </button>
@@ -193,7 +195,7 @@ export function TaskPanel({
           </div>
 
           <div className="mt-5 flex items-center gap-2">
-            <label className="block text-xs font-medium text-zinc-500">Description</label>
+            <label className="block text-xs font-medium text-zinc-500">{t("description")}</label>
             {savingFields.has("description") && <Spinner size={11} />}
           </div>
           <textarea
@@ -204,13 +206,13 @@ export function TaskPanel({
               commit("description", { description }, () => setDescription(task.description ?? ""))
             }
             rows={4}
-            placeholder="Add more detail…"
+            placeholder={t("descriptionPlaceholder")}
             className="glass-field mt-1 w-full rounded-md px-2.5 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-200"
           />
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-500">Checklist</label>
+              <label className="text-xs font-medium text-zinc-500">{t("checklist")}</label>
               {task.checklist.length > 0 && (
                 <span className="text-xs text-zinc-400">
                   {doneCount}/{task.checklist.length}
@@ -287,7 +289,7 @@ export function TaskPanel({
               <input
                 value={newChecklistText}
                 onChange={(e) => setNewChecklistText(e.target.value)}
-                placeholder="Add item"
+                placeholder={t("addItemPlaceholder")}
                 disabled={addingChecklistItem}
                 className="flex-1 bg-transparent py-1 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none disabled:cursor-wait dark:text-zinc-300"
               />
@@ -296,7 +298,7 @@ export function TaskPanel({
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-500">Attachments</label>
+              <label className="text-xs font-medium text-zinc-500">{t("attachments")}</label>
               {task.attachments.length > 0 && (
                 <span className="text-xs text-zinc-400">{task.attachments.length}</span>
               )}
@@ -342,14 +344,14 @@ export function TaskPanel({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="shrink-0 rounded p-0.5 text-zinc-300 opacity-0 hover:text-zinc-600 group-hover:opacity-100 dark:hover:text-zinc-300"
-                          aria-label={`Download ${attachment.fileName}`}
+                          aria-label={t("downloadAria", { fileName: attachment.fileName })}
                         >
                           <Download size={13} />
                         </a>
                         <button
                           onClick={() => onDeleteAttachment(attachment.id)}
                           className="shrink-0 rounded p-0.5 text-zinc-300 opacity-0 hover:text-red-500 group-hover:opacity-100"
-                          aria-label={`Remove ${attachment.fileName}`}
+                          aria-label={t("removeAttachmentAria", { fileName: attachment.fileName })}
                         >
                           <X size={13} />
                         </button>
@@ -376,7 +378,7 @@ export function TaskPanel({
               className="mt-1.5 flex items-center gap-2 rounded px-1 py-1 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
             >
               <Plus size={13} className="shrink-0" />
-              Attach a file
+              {t("attachFile")}
             </button>
           </div>
         </div>

@@ -8,7 +8,7 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const { channelId } = await params;
@@ -17,7 +17,7 @@ export async function POST(
     where: { channelId_userId: { channelId, userId: session.user.id } },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์ทำรายการนี้" }, { status: 403 });
   }
 
   await prisma.typingIndicator.upsert({

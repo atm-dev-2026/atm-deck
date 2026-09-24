@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Spinner } from "./Spinner";
 
 export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Delete",
-  cancelLabel = "Cancel",
-  pendingLabel = "Deleting…",
+  confirmLabel,
+  cancelLabel,
+  pendingLabel,
   destructive = true,
   pending = false,
   error = null,
@@ -28,6 +29,11 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations("Common");
+  const resolvedConfirmLabel = confirmLabel ?? t("delete");
+  const resolvedCancelLabel = cancelLabel ?? t("cancel");
+  const resolvedPendingLabel = pendingLabel ?? t("deleting");
+
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -58,7 +64,7 @@ export function ConfirmDialog({
             disabled={pending}
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button
             type="button"
@@ -71,7 +77,7 @@ export function ConfirmDialog({
             }`}
           >
             {pending && <Spinner size={12} />}
-            {pending ? pendingLabel : confirmLabel}
+            {pending ? resolvedPendingLabel : resolvedConfirmLabel}
           </button>
         </div>
       </div>

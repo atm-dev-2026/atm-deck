@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { LogOut, Settings } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { SubmitButton } from "./SubmitButton";
@@ -19,6 +20,7 @@ export function UserMenu({
   signOutAction: () => Promise<void>;
   placement?: "right" | "top";
 }) {
+  const t = useTranslations("Shell.userMenu");
   const [open, setOpen] = useState(false);
   const label = name ?? email ?? "?";
 
@@ -35,7 +37,7 @@ export function UserMenu({
         title={label}
       >
         <Avatar label={label} image={image} size={placement === "right" ? "sm" : "xs"} />
-        {placement === "top" && "Me"}
+        {placement === "top" && t("me")}
       </button>
 
       {open && (
@@ -49,7 +51,7 @@ export function UserMenu({
             }
           >
             <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
-              <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{name ?? "Signed in"}</p>
+              <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{name ?? t("signedIn")}</p>
               {email && <p className="truncate text-xs text-zinc-500">{email}</p>}
             </div>
             <Link
@@ -58,15 +60,15 @@ export function UserMenu({
               className="mt-1 flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
             >
               <Settings size={14} />
-              Settings
+              {t("settings")}
             </Link>
             <form action={signOutAction}>
               <SubmitButton
-                pendingLabel="Signing out…"
+                pendingLabel={t("signingOut")}
                 className="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 <LogOut size={14} />
-                Sign out
+                {t("signOut")}
               </SubmitButton>
             </form>
           </div>

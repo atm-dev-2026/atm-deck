@@ -1,0 +1,245 @@
+{
+  "Common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "add": "Add",
+    "create": "Create",
+    "edit": "Edit",
+    "close": "Close",
+    "dismiss": "Dismiss",
+    "download": "Download",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "loading": "Loading…",
+    "cantUndo": "This can't be undone.",
+    "somethingWentWrong": "Something went wrong. Please try again."
+  },
+  "Shell": {
+    "nav": {
+      "boards": "Boards",
+      "chat": "Chat",
+      "admin": "Admin"
+    },
+    "appDescription": "Internal taskboard for ATM Holding",
+    "userMenu": {
+      "me": "Me",
+      "signedIn": "Signed in",
+      "settings": "Settings",
+      "signOut": "Sign out",
+      "signingOut": "Signing out…"
+    },
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "Login": {
+    "heading": "Sign in to ATM Deck",
+    "subheading": "Boards and team chat for ATM Holding.",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithLine": "Continue with LINE",
+    "redirectingGoogle": "Redirecting to Google…",
+    "redirectingLine": "Redirecting to LINE…"
+  },
+  "Settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceHint": "Choose how ATM Deck looks on this device.",
+    "language": "Language",
+    "languageHint": "Choose the display language.",
+    "account": "Account",
+    "accountHint": "Your name, email, and photo are managed by your Google or LINE account.",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…"
+  },
+  "Admin": {
+    "roleManagement": "Role Management",
+    "roleManagementHint": "Grant or revoke admin access. Admins can manage every board and department regardless of membership.",
+    "roleUpdated": "Role updated.",
+    "roleUpdateFailed": "Couldn't update the role.",
+    "you": "You",
+    "adminYou": "Admin (you)",
+    "roleUser": "User",
+    "roleAdmin": "Admin",
+    "noUsers": "No users found."
+  },
+  "Boards": {
+    "list": {
+      "heading": "Boards",
+      "newBoard": "New board",
+      "filterPlaceholder": "Filter boards…",
+      "loading": "Loading boards…",
+      "emptyDefault": "No boards yet — create one to get started.",
+      "emptyFiltered": "No boards match your filter.",
+      "columnsAndTasks": "{columns, plural, one {# column} other {# columns}} · {tasks, plural, one {# task} other {# tasks}}",
+      "deleteBoardAria": "Delete board",
+      "deleteBoardTitle": "Delete \"{name}\"?",
+      "deleteBoardDesc": "This permanently removes {columns, plural, one {# column} other {# columns}} and {tasks, plural, one {# task} other {# tasks}}. This can't be undone.",
+      "createFailed": "Couldn't create the board.",
+      "deleteFailed": "Couldn't delete the board."
+    },
+    "form": {
+      "namePlaceholder": "Board name",
+      "visibilityPersonal": "Personal",
+      "visibilityDepartment": "Department",
+      "visibilityGlobal": "Global",
+      "loadingDepartments": "Loading departments…",
+      "selectDepartment": "Select a department…",
+      "pickDepartment": "Pick a department for a department board.",
+      "create": "Create",
+      "cancel": "Cancel"
+    },
+    "board": {
+      "save": "Save",
+      "saveFailed": "Couldn't save changes.",
+      "loading": "Loading…",
+      "editAria": "Edit board",
+      "columnNamePlaceholder": "Column name",
+      "addColumn": "Add column",
+      "addTaskPlaceholder": "Add a task",
+      "deleteColumnAria": "Delete column",
+      "deleteTaskAria": "Delete task",
+      "createTaskFailed": "Couldn't create the task.",
+      "createColumnFailed": "Couldn't create the column.",
+      "deleteTaskFailed": "Couldn't delete the task.",
+      "deleteColumnFailed": "Couldn't delete the column.",
+      "createLabelFailed": "Couldn't create the label.",
+      "addItemFailed": "Couldn't add the item.",
+      "updateChecklistFailed": "Couldn't update the checklist item.",
+      "deleteChecklistFailed": "Couldn't delete the checklist item.",
+      "fileTooBig": "{fileName} is over {maxMb}MB",
+      "prepareUploadFailed": "Failed to prepare upload",
+      "uploadFileFailed": "Failed to upload file",
+      "saveAttachmentFailed": "Failed to save attachment",
+      "uploadFailed": "Couldn't upload the file.",
+      "deleteAttachmentFailed": "Couldn't delete the attachment.",
+      "reorderFailed": "Couldn't save the new task order.",
+      "deleteColumnTitle": "Delete \"{name}\"?",
+      "deleteColumnDesc": "This removes {n, plural, one {# task} other {# tasks}}. This can't be undone.",
+      "deleteTaskTitle": "Delete \"{name}\"?",
+      "deleteTaskDesc": "This can't be undone.",
+      "deleteBoardTitle": "Delete \"{name}\"?",
+      "deleteBoardDesc": "This permanently removes {n, plural, one {# column} other {# columns}} and all its tasks. This can't be undone."
+    },
+    "task": {
+      "eyebrow": "Task",
+      "deleteAria": "Delete task",
+      "closeAria": "Close",
+      "description": "Description",
+      "descriptionPlaceholder": "Add more detail…",
+      "checklist": "Checklist",
+      "addItemPlaceholder": "Add item",
+      "attachments": "Attachments",
+      "downloadAria": "Download {fileName}",
+      "removeAttachmentAria": "Remove {fileName}",
+      "attachFile": "Attach a file"
+    },
+    "priority": {
+      "urgent": "Urgent",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "none": "No priority"
+    },
+    "assignee": {
+      "unassigned": "Unassigned"
+    },
+    "label": {
+      "labels": "Labels",
+      "empty": "No labels yet.",
+      "namePlaceholder": "Label name",
+      "add": "Add",
+      "create": "Create label"
+    },
+    "visibility": {
+      "global": "Global",
+      "department": "Department",
+      "personal": "Personal"
+    },
+    "members": {
+      "roleUpdated": "Role updated.",
+      "roleUpdateFailed": "Couldn't update the role.",
+      "removeFailed": "Couldn't remove this member.",
+      "inviteSent": "Invite sent.",
+      "inviteFailed": "Couldn't send the invite.",
+      "heading": "Members",
+      "owner": "Owner",
+      "readOnly": "Read only",
+      "canEdit": "Can edit",
+      "empty": "No members yet.",
+      "loadingPeople": "Loading people…",
+      "invitePlaceholder": "Invite someone…",
+      "noOneLeft": "No one left to invite.",
+      "invite": "Invite",
+      "removeTitle": "Remove {name}?",
+      "removeDesc": "They'll lose access to this board immediately.",
+      "remove": "Remove",
+      "removing": "Removing…"
+    }
+  },
+  "Chat": {
+    "sidebar": {
+      "channels": "Channels",
+      "browseChannels": "Browse channels",
+      "createChannel": "Create channel",
+      "channelNamePlaceholder": "channel-name",
+      "add": "Add",
+      "noMoreChannels": "No more channels to join.",
+      "join": "join",
+      "loadingChannels": "Loading channels…",
+      "directMessages": "Direct Messages",
+      "newMessage": "New message",
+      "noOtherUsers": "No other users yet.",
+      "loadingMessages": "Loading messages…",
+      "unknown": "Unknown",
+      "createChannelFailed": "Couldn't create the channel."
+    },
+    "message": {
+      "edited": "(edited)",
+      "save": "Save",
+      "cancel": "Cancel",
+      "reactAria": "React {emoji}",
+      "replyCount": "{n, plural, one {# reply} other {# replies}}",
+      "replyInThread": "Reply in thread",
+      "edit": "Edit",
+      "delete": "Delete",
+      "saveFailed": "Couldn't save the message.",
+      "deleteFailed": "Couldn't delete the message.",
+      "sendFailed": "Couldn't send the message.",
+      "sendReplyFailed": "Couldn't send the reply."
+    },
+    "thread": {
+      "heading": "Thread",
+      "closeAria": "Close thread",
+      "attachFileAria": "Attach file",
+      "replyPlaceholder": "Reply…",
+      "deleteMessageTitle": "Delete this message?",
+      "deleteMessageDesc": "This can't be undone."
+    },
+    "channel": {
+      "notFound": "Channel not found, or you don't have access.",
+      "loading": "Loading…",
+      "directMessageFallback": "Direct message",
+      "typing": "{names} {count, plural, one {is} other {are}} typing…",
+      "someone": "Someone",
+      "toggleListAria": "Toggle channel list",
+      "emptyMessages": "No messages yet — say hello.",
+      "attachFileAria": "Attach file",
+      "messagePlaceholder": "Message {title}",
+      "messagePlaceholderChannel": "Message #{name}"
+    },
+    "landing": {
+      "empty": "Pick a channel or direct message, or create a new channel to get started."
+    },
+    "upload": {
+      "tooBig": "{fileName} is over {maxMb}MB",
+      "prepareFailed": "Failed to prepare upload",
+      "uploadFailed": "Failed to upload file",
+      "genericFailed": "Upload failed",
+      "removeAria": "Remove {fileName}"
+    }
+  }
+}

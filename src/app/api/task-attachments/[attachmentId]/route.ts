@@ -14,14 +14,14 @@ export async function GET(
 
   const boardId = await getBoardIdForTaskAttachment(attachmentId);
   if (!boardId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId);
   if ("error" in gate) return gate.error;
 
   const attachment = await prisma.taskAttachment.findUnique({ where: { id: attachmentId } });
   if (!attachment) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
   }
 
   const url = await getSignedUrl(
@@ -46,7 +46,7 @@ export async function DELETE(
 
   const boardId = await getBoardIdForTaskAttachment(attachmentId);
   if (!boardId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;

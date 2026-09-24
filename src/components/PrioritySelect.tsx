@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { PRIORITIES, priorityConfig, type Priority } from "./priority";
 
 export function PrioritySelect({
@@ -10,6 +11,7 @@ export function PrioritySelect({
   value: Priority;
   onChange: (value: Priority) => void;
 }) {
+  const t = useTranslations("Boards.priority");
   const [open, setOpen] = useState(false);
   const current = priorityConfig(value);
   const Icon = current.icon;
@@ -22,7 +24,7 @@ export function PrioritySelect({
         className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-zinc-700 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
       >
         <Icon size={13} className={current.className} strokeWidth={2.5} />
-        {current.label}
+        {t(current.labelKey)}
       </button>
 
       {open && (
@@ -46,7 +48,7 @@ export function PrioritySelect({
                   }`}
                 >
                   <PIcon size={13} className={p.className} strokeWidth={2.5} />
-                  {p.label}
+                  {t(p.labelKey)}
                 </button>
               );
             })}

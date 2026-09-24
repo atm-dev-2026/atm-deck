@@ -12,7 +12,7 @@ export async function PATCH(
 
   const boardId = await getBoardIdForTask(taskId);
   if (!boardId) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบงานนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
@@ -26,7 +26,7 @@ export async function PATCH(
     });
     if (!destinationColumn || destinationColumn.boardId !== boardId) {
       return NextResponse.json(
-        { error: "Cannot move a task to a column outside its board" },
+        { error: "ย้ายงานไปยังคอลัมน์นอกบอร์ดนี้ไม่ได้" },
         { status: 400 },
       );
     }
@@ -34,7 +34,7 @@ export async function PATCH(
 
   if (data.assigneeId && !(await isBoardParticipant(boardId, data.assigneeId))) {
     return NextResponse.json(
-      { error: "assigneeId must be a member of this board" },
+      { error: "ผู้รับผิดชอบต้องเป็นสมาชิกของบอร์ดนี้" },
       { status: 400 },
     );
   }
@@ -81,7 +81,7 @@ export async function DELETE(
 
   const boardId = await getBoardIdForTask(taskId);
   if (!boardId) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบงานนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;

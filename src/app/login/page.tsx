@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { signIn } from "../../../auth";
 import { SubmitButton } from "@/components/SubmitButton";
 
@@ -7,6 +8,7 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { callbackUrl } = await searchParams;
+  const t = await getTranslations("Login");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -15,10 +17,10 @@ export default async function LoginPage({
           AD
         </div>
         <h1 className="mt-5 font-serif text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          Sign in to ATM Deck
+          {t("heading")}
         </h1>
         <p className="mt-1.5 text-sm text-zinc-500">
-          Boards and team chat for ATM Holding.
+          {t("subheading")}
         </p>
 
         <div className="mt-6 flex flex-col gap-2.5">
@@ -29,11 +31,11 @@ export default async function LoginPage({
             }}
           >
             <SubmitButton
-              pendingLabel="Redirecting to Google…"
+              pendingLabel={t("redirectingGoogle")}
               className="glass-field flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-zinc-950 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-50"
             >
               <GoogleMark />
-              Continue with Google
+              {t("continueWithGoogle")}
             </SubmitButton>
           </form>
 
@@ -44,11 +46,11 @@ export default async function LoginPage({
             }}
           >
             <SubmitButton
-              pendingLabel="Redirecting to LINE…"
+              pendingLabel={t("redirectingLine")}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-[#06C755] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-[#06C755]/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#05b34c]"
             >
               <LineMark />
-              Continue with LINE
+              {t("continueWithLine")}
             </SubmitButton>
           </form>
         </div>

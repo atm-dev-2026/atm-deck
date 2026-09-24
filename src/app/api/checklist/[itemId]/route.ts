@@ -11,7 +11,7 @@ export async function PATCH(
 
   const boardId = await getBoardIdForChecklistItem(itemId);
   if (!boardId) {
-    return NextResponse.json({ error: "Checklist item not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบรายการเช็กลิสต์นี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
@@ -41,7 +41,7 @@ export async function DELETE(
 
   const boardId = await getBoardIdForChecklistItem(itemId);
   if (!boardId) {
-    return NextResponse.json({ error: "Checklist item not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบรายการเช็กลิสต์นี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;

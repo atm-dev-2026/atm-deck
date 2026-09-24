@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Compass, Plus } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
@@ -27,6 +28,7 @@ type Dm = {
 };
 
 export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
+  const t = useTranslations("Chat.sidebar");
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
@@ -82,7 +84,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         router.push(`/chat/${channel.id}`);
       } else {
         const data = await res.json().catch(() => null);
-        toast.error(data?.error ?? "Couldn't create the channel.");
+        toast.error(data?.error ?? t("createChannelFailed"));
       }
     } finally {
       setCreatingChannel(false);
@@ -135,20 +137,20 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
       <div>
         <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Channels
+            {t("channels")}
           </h2>
           <div className="flex gap-0.5">
             <button
               onClick={() => setShowBrowse((v) => !v)}
               className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-              title="Browse channels"
+              title={t("browseChannels")}
             >
               <Compass size={13} />
             </button>
             <button
               onClick={() => setShowCreate((v) => !v)}
               className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-              title="Create channel"
+              title={t("createChannel")}
             >
               <Plus size={13} />
             </button>
@@ -170,7 +172,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
               className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {creatingChannel && <Spinner size={11} />}
-              Add
+              {t("add")}
             </button>
           </form>
         )}
@@ -178,7 +180,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         {showBrowse && (
           <div className="glass-field mb-2 flex flex-col gap-1 rounded p-2">
             {joinable.length === 0 && (
-              <p className="text-xs text-zinc-400">No more channels to join.</p>
+              <p className="text-xs text-zinc-400">{t("noMoreChannels")}</p>
             )}
             {joinable.map((c) => (
               <button
@@ -188,7 +190,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
                 className="flex items-center justify-between rounded px-1 py-0.5 text-left text-xs text-zinc-600 hover:bg-zinc-100 disabled:cursor-wait dark:text-zinc-400 dark:hover:bg-zinc-900"
               >
                 <span className="truncate">#{c.name}</span>
-                {pendingId === c.id ? <Spinner size={11} /> : <span className="text-zinc-400">join</span>}
+                {pendingId === c.id ? <Spinner size={11} /> : <span className="text-zinc-400">{t("join")}</span>}
               </button>
             ))}
           </div>
@@ -196,7 +198,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
 
         {loading ? (
           <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
-            <Spinner size={11} /> Loading channels…
+            <Spinner size={11} /> {t("loadingChannels")}
           </p>
         ) : (
           <nav className="flex flex-col gap-0.5">
@@ -213,12 +215,12 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
       <div>
         <div className="mb-1 flex items-center justify-between px-1">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Direct Messages
+            {t("directMessages")}
           </h2>
           <button
             onClick={openNewDm}
             className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-            title="New message"
+            title={t("newMessage")}
           >
             <Plus size={13} />
           </button>
@@ -227,7 +229,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         {showNewDm && (
           <div className="glass-field mb-2 flex flex-col gap-1 rounded p-2">
             {users.length === 0 && (
-              <p className="text-xs text-zinc-400">No other users yet.</p>
+              <p className="text-xs text-zinc-400">{t("noOtherUsers")}</p>
             )}
             {users.map((u) => (
               <button
@@ -245,12 +247,12 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
 
         {loading ? (
           <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
-            <Spinner size={11} /> Loading messages…
+            <Spinner size={11} /> {t("loadingMessages")}
           </p>
         ) : (
           <nav className="flex flex-col gap-0.5">
             {dms.map((dm) => {
-              const label = dm.other?.name ?? dm.other?.email ?? "Unknown";
+              const label = dm.other?.name ?? dm.other?.email ?? t("unknown");
               return (
                 <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)} onClick={onNavigate}>
                   <Avatar label={label} image={dm.other?.image} size="xs" />

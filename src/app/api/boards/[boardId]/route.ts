@@ -43,7 +43,7 @@ export async function GET(
   });
 
   if (!board) {
-    return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบบอร์ดนี้" }, { status: 404 });
   }
 
   return NextResponse.json({ ...board, access: gate.access });
@@ -64,14 +64,14 @@ export async function PATCH(
 
   if (name !== undefined) {
     if (typeof name !== "string" || !name.trim()) {
-      return NextResponse.json({ error: "name cannot be empty" }, { status: 400 });
+      return NextResponse.json({ error: "ชื่อบอร์ดต้องไม่ว่างเปล่า" }, { status: 400 });
     }
     data.name = name.trim();
   }
 
   if (visibilityType !== undefined) {
     if (!VISIBILITY_TYPES.includes(visibilityType)) {
-      return NextResponse.json({ error: "invalid visibilityType" }, { status: 400 });
+      return NextResponse.json({ error: "ประเภทการมองเห็นไม่ถูกต้อง" }, { status: 400 });
     }
     const visibility = validateBoardVisibility(gate.user, visibilityType, departmentId);
     if (!visibility.ok) {

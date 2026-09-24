@@ -15,7 +15,7 @@ export async function PATCH(
   const { departmentId, userId } = await params;
   const { role } = await request.json();
   if (!DEPARTMENT_ROLES.includes(role)) {
-    return NextResponse.json({ error: "role must be MANAGER or MEMBER" }, { status: 400 });
+    return NextResponse.json({ error: "บทบาทต้องเป็นหัวหน้าแผนกหรือสมาชิก" }, { status: 400 });
   }
 
   const member = await prisma.departmentMember.update({

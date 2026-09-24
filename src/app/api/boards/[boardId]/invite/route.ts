@@ -17,14 +17,14 @@ export async function POST(
 
   const { userId, role } = await request.json();
   if (!userId || typeof userId !== "string") {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    return NextResponse.json({ error: "กรุณาระบุผู้ใช้" }, { status: 400 });
   }
   if (!BOARD_ROLES.includes(role)) {
-    return NextResponse.json({ error: "role must be READ_ONLY or CAN_EDIT" }, { status: 400 });
+    return NextResponse.json({ error: "สิทธิ์ไม่ถูกต้อง" }, { status: 400 });
   }
   if (userId === gate.board.ownerId) {
     return NextResponse.json(
-      { error: "The board owner already has full access" },
+      { error: "เจ้าของบอร์ดมีสิทธิ์เข้าถึงเต็มรูปแบบอยู่แล้ว" },
       { status: 400 },
     );
   }
@@ -34,7 +34,7 @@ export async function POST(
     select: { id: true, name: true, email: true, image: true },
   });
   if (!targetUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบผู้ใช้นี้" }, { status: 404 });
   }
 
   try {

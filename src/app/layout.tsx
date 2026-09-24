@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/AppShell";
 import { ThemeSync } from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
@@ -22,15 +24,20 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
 });
 
-export const metadata: Metadata = {
-  title: "ATM Deck",
-  description: "Internal taskboard for ATM Holding",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Shell");
+  return {
+    title: "ATM Deck",
+    description: t("appDescription"),
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       data-theme="light"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
@@ -39,10 +46,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <ThemeSync />
-        <ToastProvider>
-          <AppShell>{children}</AppShell>
-        </ToastProvider>
+        <NextIntlClientProvider>
+          <ThemeSync />
+          <ToastProvider>
+            <AppShell>{children}</AppShell>
+          </ToastProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Paperclip, Send, X } from "lucide-react";
 import { ChatMessage } from "../types";
 import { MessageItem } from "../MessageItem";
@@ -20,6 +21,8 @@ export function ThreadPanel({
   onClose: () => void;
 }) {
   const toast = useToast();
+  const t = useTranslations("Chat.thread");
+  const tm = useTranslations("Chat.message");
   const [parent, setParent] = useState<ChatMessage | null>(null);
   const [replies, setReplies] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -63,7 +66,7 @@ export function ThreadPanel({
       body: JSON.stringify({ body }),
     });
     if (!res.ok) {
-      toast.error("Couldn't save the message.");
+      toast.error(tm("saveFailed"));
       return false;
     }
     await load();
@@ -84,7 +87,7 @@ export function ThreadPanel({
       const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setDeleteMessageError(data?.error ?? "Couldn't delete the message.");
+        setDeleteMessageError(data?.error ?? tm("deleteFailed"));
         return;
       }
       await load();
@@ -118,7 +121,7 @@ export function ThreadPanel({
         setDraft("");
         await load();
       } else {
-        toast.error("Couldn't send the reply.");
+        toast.error(tm("sendReplyFailed"));
       }
     } finally {
       setSending(false);
@@ -135,11 +138,11 @@ export function ThreadPanel({
         className="glass-strong flex h-full w-full max-w-sm shrink-0 flex-col rounded-none border-y-0 border-r-0 md:w-96 md:max-w-none"
       >
       <div className="flex items-center justify-between border-b border-zinc-200/60 px-4 py-3 dark:border-zinc-800/60">
-        <h2 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Thread</h2>
+        <h2 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">{t("heading")}</h2>
         <button
           onClick={onClose}
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-          aria-label="Close thread"
+          aria-label={t("closeAria")}
         >
           <X size={14} />
         </button>
@@ -200,14 +203,14 @@ export function ThreadPanel({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className="shrink-0 rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-          aria-label="Attach file"
+          aria-label={t("attachFileAria")}
         >
           <Paperclip size={14} />
         </button>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Reply…"
+          placeholder={t("replyPlaceholder")}
           className="glass-field min-w-0 flex-1 rounded-md px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
         />
         <button
@@ -221,8 +224,8 @@ export function ThreadPanel({
 
       <ConfirmDialog
         open={pendingDeleteId !== null}
-        title="Delete this message?"
-        description="This can't be undone."
+        title={t("deleteMessageTitle")}
+        description={t("deleteMessageDesc")}
         pending={deletingMessage}
         error={deleteMessageError}
         onConfirm={confirmDeleteMessage}

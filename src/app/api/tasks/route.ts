@@ -10,21 +10,21 @@ export async function POST(request: Request) {
 
   if (!columnId || !title) {
     return NextResponse.json(
-      { error: "columnId and title are required" },
+      { error: "ต้องระบุคอลัมน์และชื่องาน" },
       { status: 400 },
     );
   }
 
   const boardId = await getBoardIdForColumn(columnId);
   if (!boardId) {
-    return NextResponse.json({ error: "Column not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบคอลัมน์นี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
   if (assigneeId && !(await isBoardParticipant(boardId, assigneeId))) {
     return NextResponse.json(
-      { error: "assigneeId must be a member of this board" },
+      { error: "ผู้รับผิดชอบต้องเป็นสมาชิกของบอร์ดนี้" },
       { status: 400 },
     );
   }

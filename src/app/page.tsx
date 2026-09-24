@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
@@ -22,6 +23,8 @@ type Board = {
 type Department = { id: string; name: string };
 
 export default function Home() {
+  const t = useTranslations("Boards.list");
+  const tf = useTranslations("Boards.form");
   const [boards, setBoards] = useState<Board[]>([]);
   const [query, setQuery] = useState("");
   const [name, setName] = useState("");
@@ -73,7 +76,7 @@ export default function Home() {
     e.preventDefault();
     if (!name.trim() || submitting) return;
     if (visibility === "DEPARTMENT" && !departmentId) {
-      setCreateError("Pick a department for a department board.");
+      setCreateError(tf("pickDepartment"));
       return;
     }
     setSubmitting(true);
@@ -96,7 +99,7 @@ export default function Home() {
         await loadBoards();
       } else {
         const data = await res.json().catch(() => null);
-        setCreateError(data?.error ?? "Couldn't create the board.");
+        setCreateError(data?.error ?? t("createFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -126,7 +129,7 @@ export default function Home() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setBoards(previous);
-        setDeleteError(data?.error ?? "Couldn't delete the board.");
+        setDeleteError(data?.error ?? t("deleteFailed"));
         return;
       }
       setDeleteTarget(null);
@@ -145,7 +148,7 @@ export default function Home() {
       <div className="glass relative z-10 flex flex-wrap items-center justify-between gap-2 rounded-none border-x-0 border-t-0 px-4 py-3 sm:px-5">
         <div className="flex items-center gap-2">
           <LayoutGrid size={16} className="text-zinc-400" />
-          <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">Boards</h1>
+          <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">{t("heading")}</h1>
           <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
             {boards.length}
           </span>
@@ -155,7 +158,7 @@ export default function Home() {
           className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
         >
           <Plus size={13} strokeWidth={2.5} />
-          New board
+          {t("newBoard")}
         </button>
       </div>
 
@@ -170,7 +173,7 @@ export default function Home() {
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Board name"
+                placeholder={tf("namePlaceholder")}
                 className="glass-field min-w-0 flex-1 rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               />
               <select
@@ -178,9 +181,9 @@ export default function Home() {
                 onChange={(e) => setVisibility(e.target.value as BoardVisibility)}
                 className="glass-field rounded-md px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
               >
-                <option value="PERSONAL">Personal</option>
-                <option value="DEPARTMENT">Department</option>
-                <option value="GLOBAL">Global</option>
+                <option value="PERSONAL">{tf("visibilityPersonal")}</option>
+                <option value="DEPARTMENT">{tf("visibilityDepartment")}</option>
+                <option value="GLOBAL">{tf("visibilityGlobal")}</option>
               </select>
             </div>
 
@@ -191,7 +194,7 @@ export default function Home() {
                 disabled={departmentsLoading}
                 className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
               >
-                <option value="">{departmentsLoading ? "Loading departments…" : "Select a department…"}</option>
+                <option value="">{departmentsLoading ? tf("loadingDepartments") : tf("selectDepartment")}</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -209,7 +212,7 @@ export default function Home() {
                 className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {submitting && <Spinner size={13} />}
-                Create
+                {tf("create")}
               </button>
               <button
                 type="button"
@@ -217,7 +220,7 @@ export default function Home() {
                 disabled={submitting}
                 className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-300"
               >
-                Cancel
+                {tf("cancel")}
               </button>
             </div>
           </form>
@@ -228,18 +231,18 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter boards…"
+            placeholder={t("filterPlaceholder")}
             className="glass-field w-full rounded-md py-1.5 pl-8 pr-3 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
           />
         </div>
 
-        {loading && <p className="px-1 text-sm text-zinc-500">Loading boards…</p>}
+        {loading && <p className="px-1 text-sm text-zinc-500">{t("loading")}</p>}
 
         {!loading && filtered.length === 0 && (
           <div className="glass flex flex-col items-center justify-center gap-2 rounded-lg py-16 text-center">
             <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
             <p className="text-sm text-zinc-500">
-              {boards.length === 0 ? "No boards yet — create one to get started." : "No boards match your filter."}
+              {boards.length === 0 ? t("emptyDefault") : t("emptyFiltered")}
             </p>
           </div>
         )}
@@ -261,8 +264,7 @@ export default function Home() {
                     <VisibilityBadge visibilityType={board.visibilityType} />
                   </div>
                   <p className="text-xs text-zinc-500">
-                    {board.columnCount} {board.columnCount === 1 ? "column" : "columns"} · {board.taskCount}{" "}
-                    {board.taskCount === 1 ? "task" : "tasks"}
+                    {t("columnsAndTasks", { columns: board.columnCount, tasks: board.taskCount })}
                   </p>
                 </div>
               </div>
@@ -270,7 +272,7 @@ export default function Home() {
                 <button
                   onClick={(e) => requestDeleteBoard(e, board)}
                   className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
-                  aria-label="Delete board"
+                  aria-label={t("deleteBoardAria")}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -282,14 +284,10 @@ export default function Home() {
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title={deleteTarget ? `Delete "${deleteTarget.name}"?` : ""}
+        title={deleteTarget ? t("deleteBoardTitle", { name: deleteTarget.name }) : ""}
         description={
           deleteTarget
-            ? `This permanently removes ${deleteTarget.columnCount} ${
-                deleteTarget.columnCount === 1 ? "column" : "columns"
-              } and ${deleteTarget.taskCount} ${
-                deleteTarget.taskCount === 1 ? "task" : "tasks"
-              }. This can't be undone.`
+            ? t("deleteBoardDesc", { columns: deleteTarget.columnCount, tasks: deleteTarget.taskCount })
             : undefined
         }
         pending={deleting}

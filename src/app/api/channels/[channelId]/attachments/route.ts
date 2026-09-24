@@ -12,7 +12,7 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
   const { channelId } = await params;
@@ -21,16 +21,16 @@ export async function POST(
     where: { channelId_userId: { channelId, userId } },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์ทำรายการนี้" }, { status: 403 });
   }
 
   const { fileName, fileType, fileSize } = await request.json();
 
   if (!fileName || typeof fileName !== "string") {
-    return NextResponse.json({ error: "fileName is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุชื่อไฟล์" }, { status: 400 });
   }
   if (!fileType || typeof fileType !== "string") {
-    return NextResponse.json({ error: "fileType is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุประเภทไฟล์" }, { status: 400 });
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_ATTACHMENT_SIZE) {
     return NextResponse.json(

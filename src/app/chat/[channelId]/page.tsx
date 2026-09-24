@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, use } from "react";
+import { useTranslations } from "next-intl";
 import { Hash, Menu, Paperclip, Send } from "lucide-react";
 import { useChatUserId } from "../ChatUserContext";
 import { useChatSidebar } from "../ChatSidebarContext";
@@ -40,6 +41,9 @@ function ChannelView({ channelId }: { channelId: string }) {
   const currentUserId = useChatUserId();
   const { toggleSidebar } = useChatSidebar();
   const toast = useToast();
+  const t = useTranslations("Chat.channel");
+  const tm = useTranslations("Chat.message");
+  const tThread = useTranslations("Chat.thread");
 
   const [channel, setChannel] = useState<Channel | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -158,7 +162,7 @@ function ChannelView({ channelId }: { channelId: string }) {
         setMessages((prev) => [...prev.filter((m) => m.id !== message.id), message]);
       } else {
         setDraft(body);
-        toast.error("Couldn't send the message.");
+        toast.error(tm("sendFailed"));
       }
     } finally {
       setSending(false);
@@ -188,7 +192,7 @@ function ChannelView({ channelId }: { channelId: string }) {
       setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)));
       return true;
     }
-    toast.error("Couldn't save the message.");
+    toast.error(tm("saveFailed"));
     return false;
   };
 
@@ -206,7 +210,7 @@ function ChannelView({ channelId }: { channelId: string }) {
       const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setDeleteMessageError(data?.error ?? "Couldn't delete the message.");
+        setDeleteMessageError(data?.error ?? tm("deleteFailed"));
         return;
       }
       setMessages((prev) => prev.filter((m) => m.id !== id));
@@ -221,7 +225,7 @@ function ChannelView({ channelId }: { channelId: string }) {
       <div className="flex min-h-0 flex-1 flex-col">
         <MobileChatHeader onMenuClick={toggleSidebar} />
         <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-          Channel not found, or you don&apos;t have access.
+          {t("notFound")}
         </div>
       </div>
     );
@@ -232,7 +236,7 @@ function ChannelView({ channelId }: { channelId: string }) {
       <div className="flex min-h-0 flex-1 flex-col">
         <MobileChatHeader onMenuClick={toggleSidebar} />
         <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-          Loading…
+          {t("loading")}
         </div>
       </div>
     );
@@ -241,14 +245,11 @@ function ChannelView({ channelId }: { channelId: string }) {
   const other = channel.isDirect
     ? channel.members.find((m) => m.userId !== currentUserId)?.user
     : null;
-  const title = channel.isDirect ? other?.name ?? other?.email ?? "Direct message" : channel.name;
+  const title = channel.isDirect ? other?.name ?? other?.email ?? t("directMessageFallback") : channel.name;
 
+  const typingNames = typingUsers.map((u) => u.name ?? t("someone")).join(", ");
   const typingLabel =
-    typingUsers.length > 0
-      ? `${typingUsers.map((t) => t.name ?? "Someone").join(", ")} ${
-          typingUsers.length === 1 ? "is" : "are"
-        } typing…`
-      : "";
+    typingUsers.length > 0 ? t("typing", { names: typingNames, count: typingUsers.length }) : "";
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -257,7 +258,7 @@ function ChannelView({ channelId }: { channelId: string }) {
           <button
             onClick={toggleSidebar}
             className="mr-1 shrink-0 rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 md:hidden"
-            aria-label="Toggle channel list"
+            aria-label={t("toggleListAria")}
           >
             <Menu size={16} />
           </button>
@@ -287,7 +288,7 @@ function ChannelView({ channelId }: { channelId: string }) {
             ))}
             {messages.length === 0 && (
               <p className="px-2 py-8 text-center text-sm text-zinc-400">
-                No messages yet — say hello.
+                {t("emptyMessages")}
               </p>
             )}
           </div>
@@ -323,7 +324,7 @@ function ChannelView({ channelId }: { channelId: string }) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="shrink-0 rounded-md p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-            aria-label="Attach file"
+            aria-label={t("attachFileAria")}
           >
             <Paperclip size={16} />
           </button>
@@ -333,7 +334,11 @@ function ChannelView({ channelId }: { channelId: string }) {
               setDraft(e.target.value);
               sendTyping();
             }}
-            placeholder={channel.isDirect ? `Message ${title}` : `Message #${channel.name}`}
+            placeholder={
+              channel.isDirect
+                ? t("messagePlaceholder", { title: title ?? "" })
+                : t("messagePlaceholderChannel", { name: channel.name ?? "" })
+            }
             className="glass-field min-w-0 flex-1 rounded-md px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
           />
           <button
@@ -356,8 +361,8 @@ function ChannelView({ channelId }: { channelId: string }) {
 
       <ConfirmDialog
         open={pendingDeleteId !== null}
-        title="Delete this message?"
-        description="This can't be undone."
+        title={tThread("deleteMessageTitle")}
+        description={tThread("deleteMessageDesc")}
         pending={deletingMessage}
         error={deleteMessageError}
         onConfirm={confirmDeleteMessage}
@@ -370,12 +375,13 @@ function ChannelView({ channelId }: { channelId: string }) {
 }
 
 function MobileChatHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  const t = useTranslations("Chat.channel");
   return (
     <div className="glass relative z-10 flex items-center gap-1.5 rounded-none border-x-0 border-t-0 px-2 py-3 md:hidden">
       <button
         onClick={onMenuClick}
         className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-        aria-label="Toggle channel list"
+        aria-label={t("toggleListAria")}
       >
         <Menu size={16} />
       </button>

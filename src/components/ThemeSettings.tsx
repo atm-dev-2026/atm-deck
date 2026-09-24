@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { getStoredTheme, setStoredTheme, type Theme } from "@/lib/theme";
 
-const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const OPTION_DEFS: { value: Theme; key: "light" | "dark" | "system"; icon: typeof Sun }[] = [
+  { value: "light", key: "light", icon: Sun },
+  { value: "dark", key: "dark", icon: Moon },
+  { value: "system", key: "system", icon: Monitor },
 ];
 
 export function ThemeSettings() {
+  const t = useTranslations("Shell.theme");
   // localStorage isn't available during SSR, so this starts unresolved
   // and fills in on mount rather than risking a hydration mismatch.
   const [theme, setTheme] = useState<Theme | null>(null);
@@ -27,7 +29,7 @@ export function ThemeSettings() {
 
   return (
     <div className="grid grid-cols-3 gap-2">
-      {OPTIONS.map(({ value, label, icon: Icon }) => (
+      {OPTION_DEFS.map(({ value, key, icon: Icon }) => (
         <button
           key={value}
           type="button"
@@ -41,7 +43,7 @@ export function ThemeSettings() {
           }`}
         >
           <Icon size={18} className={theme === null ? "opacity-0" : undefined} />
-          {label}
+          {t(key)}
         </button>
       ))}
     </div>

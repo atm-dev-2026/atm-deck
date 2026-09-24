@@ -13,7 +13,7 @@ export async function POST(
 
   const boardId = await getBoardIdForTask(taskId);
   if (!boardId) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบงานนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
@@ -21,10 +21,10 @@ export async function POST(
   const { fileName, fileType, fileSize } = await request.json();
 
   if (!fileName || typeof fileName !== "string") {
-    return NextResponse.json({ error: "fileName is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุชื่อไฟล์" }, { status: 400 });
   }
   if (!fileType || typeof fileType !== "string") {
-    return NextResponse.json({ error: "fileType is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุประเภทไฟล์" }, { status: 400 });
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_ATTACHMENT_SIZE) {
     return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Trash2, Users } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { Spinner } from "./Spinner";
@@ -30,6 +31,7 @@ export function InviteMembersPanel({
   onRoleChanged: (userId: string, role: BoardMemberRole) => void;
 }) {
   const toast = useToast();
+  const t = useTranslations("Boards.members");
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState<UserSummary[] | null>(null);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -53,9 +55,9 @@ export function InviteMembersPanel({
       const data = await res.json().catch(() => null);
       if (res.ok) {
         onRoleChanged(userId, role);
-        toast.success("Role updated.");
+        toast.success(t("roleUpdated"));
       } else {
-        toast.error(data?.error ?? "Couldn't update the role.");
+        toast.error(data?.error ?? t("roleUpdateFailed"));
       }
     } finally {
       setPendingRoleUserId(null);
@@ -75,7 +77,7 @@ export function InviteMembersPanel({
         setRemoveTarget(null);
       } else {
         const data = await res.json().catch(() => null);
-        setRemoveError(data?.error ?? "Couldn't remove this member.");
+        setRemoveError(data?.error ?? t("removeFailed"));
       }
     } finally {
       setRemoving(false);
@@ -113,9 +115,9 @@ export function InviteMembersPanel({
         onInvited(data);
         setSelectedUserId("");
         setSelectedRole("READ_ONLY");
-        toast.success("Invite sent.");
+        toast.success(t("inviteSent"));
       } else {
-        setError(data?.error ?? "Couldn't send the invite.");
+        setError(data?.error ?? t("inviteFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -130,7 +132,7 @@ export function InviteMembersPanel({
         className="glass-field flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
       >
         <Users size={13} />
-        Members
+        {t("heading")}
         <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
           {members.length + (owner ? 1 : 0)}
         </span>
@@ -148,7 +150,7 @@ export function InviteMembersPanel({
                     {owner.name ?? owner.email}
                   </p>
                   <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent dark:bg-accent/20">
-                    Owner
+                    {t("owner")}
                   </span>
                 </div>
               )}
@@ -166,8 +168,8 @@ export function InviteMembersPanel({
                         onChange={(e) => changeRole(m.user.id, e.target.value as BoardMemberRole)}
                         className="shrink-0 rounded border border-zinc-200 bg-transparent px-1 py-0.5 text-[10px] font-medium text-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent/50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-400"
                       >
-                        <option value="READ_ONLY">Read only</option>
-                        <option value="CAN_EDIT">Can edit</option>
+                        <option value="READ_ONLY">{t("readOnly")}</option>
+                        <option value="CAN_EDIT">{t("canEdit")}</option>
                       </select>
                       {pendingRoleUserId === m.user.id && <Spinner size={11} />}
                       <button
@@ -177,20 +179,20 @@ export function InviteMembersPanel({
                           setRemoveTarget(m);
                         }}
                         className="shrink-0 rounded p-1 text-zinc-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
-                        aria-label={`Remove ${m.user.name ?? m.user.email}`}
+                        aria-label={t("remove")}
                       >
                         <Trash2 size={12} />
                       </button>
                     </>
                   ) : (
                     <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                      {m.role === "CAN_EDIT" ? "Can edit" : "Read only"}
+                      {m.role === "CAN_EDIT" ? t("canEdit") : t("readOnly")}
                     </span>
                   )}
                 </div>
               ))}
               {members.length === 0 && !owner && (
-                <p className="px-2 py-2 text-xs text-zinc-400">No members yet.</p>
+                <p className="px-2 py-2 text-xs text-zinc-400">{t("empty")}</p>
               )}
             </div>
 
@@ -214,7 +216,7 @@ export function InviteMembersPanel({
                         </>
                       ) : (
                         <span className="flex-1 truncate text-zinc-400">
-                          {users === null ? "Loading people…" : "Invite someone…"}
+                          {users === null ? t("loadingPeople") : t("invitePlaceholder")}
                         </span>
                       )}
                     </button>
@@ -224,7 +226,7 @@ export function InviteMembersPanel({
                         <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
                         <div className="glass-strong absolute left-0 z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md p-1">
                           {invitable.length === 0 && (
-                            <p className="px-2 py-2 text-xs text-zinc-400">No one left to invite.</p>
+                            <p className="px-2 py-2 text-xs text-zinc-400">{t("noOneLeft")}</p>
                           )}
                           {invitable.map((u) => (
                             <button
@@ -254,8 +256,8 @@ export function InviteMembersPanel({
                       onChange={(e) => setSelectedRole(e.target.value as BoardMemberRole)}
                       className="glass-field flex-1 rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
                     >
-                      <option value="READ_ONLY">Read only</option>
-                      <option value="CAN_EDIT">Can edit</option>
+                      <option value="READ_ONLY">{t("readOnly")}</option>
+                      <option value="CAN_EDIT">{t("canEdit")}</option>
                     </select>
                     <button
                       type="submit"
@@ -263,7 +265,7 @@ export function InviteMembersPanel({
                       className="flex items-center gap-1 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {submitting && <Spinner size={11} />}
-                      Invite
+                      {t("invite")}
                     </button>
                   </div>
                   {error && <p className="text-[11px] text-red-500">{error}</p>}
@@ -276,10 +278,10 @@ export function InviteMembersPanel({
 
       <ConfirmDialog
         open={removeTarget !== null}
-        title={`Remove ${removeTarget?.user.name ?? removeTarget?.user.email ?? "this member"}?`}
-        description="They'll lose access to this board immediately."
-        confirmLabel="Remove"
-        pendingLabel="Removing…"
+        title={t("removeTitle", { name: removeTarget?.user.name ?? removeTarget?.user.email ?? "" })}
+        description={t("removeDesc")}
+        confirmLabel={t("remove")}
+        pendingLabel={t("removing")}
         pending={removing}
         error={removeError}
         onConfirm={confirmRemove}

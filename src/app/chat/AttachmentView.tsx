@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Download, Paperclip, X } from "lucide-react";
 import { ChatAttachment } from "./types";
 import { PendingAttachment } from "./useAttachmentUpload";
@@ -49,6 +50,7 @@ export function PendingAttachmentList({
   pending: PendingAttachment[];
   onRemove: (tempId: string) => void;
 }) {
+  const t = useTranslations("Chat.upload");
   if (pending.length === 0) return null;
 
   return (
@@ -65,7 +67,7 @@ export function PendingAttachmentList({
             type="button"
             onClick={() => onRemove(tempId)}
             className="shrink-0 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100"
-            aria-label={`Remove ${file.name}`}
+            aria-label={t("removeAria", { fileName: file.name })}
           >
             <X size={11} />
           </button>

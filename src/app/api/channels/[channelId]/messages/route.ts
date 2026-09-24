@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
 
@@ -20,7 +20,7 @@ export async function GET(
     where: { channelId_userId: { channelId, userId } },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
   }
 
   const messages = await prisma.message.findMany({
@@ -38,7 +38,7 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
 
@@ -50,7 +50,7 @@ export async function POST(
 
   if (!text && attachmentInputs.length === 0) {
     return NextResponse.json(
-      { error: "body or attachments is required" },
+      { error: "ต้องมีข้อความหรือไฟล์แนบอย่างน้อยหนึ่งอย่าง" },
       { status: 400 },
     );
   }
@@ -64,7 +64,7 @@ export async function POST(
       typeof a.fileSize !== "number" ||
       !a.key.startsWith(`chat/${channelId}/`)
     ) {
-      return NextResponse.json({ error: "Invalid attachment" }, { status: 400 });
+      return NextResponse.json({ error: "ไฟล์แนบไม่ถูกต้อง" }, { status: 400 });
     }
   }
 
@@ -72,13 +72,13 @@ export async function POST(
     where: { channelId_userId: { channelId, userId } },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์ทำรายการนี้" }, { status: 403 });
   }
 
   if (parentId) {
     const parent = await prisma.message.findUnique({ where: { id: parentId } });
     if (!parent || parent.channelId !== channelId) {
-      return NextResponse.json({ error: "Invalid parentId" }, { status: 400 });
+      return NextResponse.json({ error: "รหัสข้อความต้นเรื่องไม่ถูกต้อง" }, { status: 400 });
     }
   }
 

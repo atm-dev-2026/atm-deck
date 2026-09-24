@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const { departmentId } = await params;
@@ -39,10 +39,10 @@ export async function POST(
   const { departmentId } = await params;
   const { userId, role = "MEMBER" } = await request.json();
   if (!userId || typeof userId !== "string") {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุผู้ใช้" }, { status: 400 });
   }
   if (!DEPARTMENT_ROLES.includes(role)) {
-    return NextResponse.json({ error: "role must be MANAGER or MEMBER" }, { status: 400 });
+    return NextResponse.json({ error: "บทบาทต้องเป็นหัวหน้าแผนกหรือสมาชิก" }, { status: 400 });
   }
 
   try {
@@ -52,7 +52,7 @@ export async function POST(
     return NextResponse.json(member, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return NextResponse.json({ error: "User is already a member of this department" }, { status: 409 });
+      return NextResponse.json({ error: "ผู้ใช้นี้เป็นสมาชิกแผนกนี้อยู่แล้ว" }, { status: 409 });
     }
     throw error;
   }

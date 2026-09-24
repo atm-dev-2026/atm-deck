@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ShieldCheck } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { Spinner } from "./Spinner";
@@ -22,6 +23,7 @@ export function RoleManagementPanel({
   users: UserRow[];
   currentUserId: string;
 }) {
+  const t = useTranslations("Admin");
   const toast = useToast();
   const [rows, setRows] = useState(users);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
@@ -37,9 +39,9 @@ export function RoleManagementPanel({
       const data = await res.json().catch(() => null);
       if (res.ok) {
         setRows((prev) => prev.map((u) => (u.id === userId ? { ...u, globalRole } : u)));
-        toast.success("Role updated.");
+        toast.success(t("roleUpdated"));
       } else {
-        toast.error(data?.error ?? "Couldn't update the role.");
+        toast.error(data?.error ?? t("roleUpdateFailed"));
       }
     } finally {
       setPendingUserId(null);
@@ -62,7 +64,7 @@ export function RoleManagementPanel({
             {isSelf ? (
               <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/10 px-2 py-1 text-[10px] font-medium text-accent dark:bg-accent/20">
                 <ShieldCheck size={11} />
-                {u.globalRole === "ADMIN" ? "Admin (you)" : "You"}
+                {u.globalRole === "ADMIN" ? t("adminYou") : t("you")}
               </span>
             ) : (
               <>
@@ -72,8 +74,8 @@ export function RoleManagementPanel({
                   onChange={(e) => changeRole(u.id, e.target.value as GlobalRole)}
                   className="glass-field shrink-0 rounded px-2 py-1 text-xs font-medium text-zinc-600 focus:outline-none focus:ring-1 focus:ring-accent/50 disabled:opacity-50 dark:text-zinc-300"
                 >
-                  <option value="USER">User</option>
-                  <option value="ADMIN">Admin</option>
+                  <option value="USER">{t("roleUser")}</option>
+                  <option value="ADMIN">{t("roleAdmin")}</option>
                 </select>
                 {pendingUserId === u.id && <Spinner size={12} />}
               </>
@@ -81,7 +83,7 @@ export function RoleManagementPanel({
           </div>
         );
       })}
-      {rows.length === 0 && <p className="px-3 py-3 text-xs text-zinc-400">No users found.</p>}
+      {rows.length === 0 && <p className="px-3 py-3 text-xs text-zinc-400">{t("noUsers")}</p>}
     </div>
   );
 }

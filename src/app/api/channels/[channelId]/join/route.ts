@@ -8,14 +8,14 @@ export async function POST(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const { channelId } = await params;
 
   const channel = await prisma.channel.findUnique({ where: { id: channelId } });
   if (!channel || channel.isDirect) {
-    return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบแชนแนลนี้" }, { status: 404 });
   }
 
   await prisma.channelMember.upsert({

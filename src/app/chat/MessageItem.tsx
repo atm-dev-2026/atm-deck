@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
 import { AttachmentView } from "./AttachmentView";
@@ -23,6 +24,7 @@ export function MessageItem({
   onOpenThread?: () => void;
   showReplyLink?: boolean;
 }) {
+  const t = useTranslations("Chat.message");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.body);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -50,7 +52,7 @@ export function MessageItem({
             {new Date(message.createdAt).toLocaleString()}
           </span>
           {message.editedAt && (
-            <span className="text-xs text-zinc-400">(edited)</span>
+            <span className="text-xs text-zinc-400">{t("edited")}</span>
           )}
         </div>
 
@@ -69,7 +71,7 @@ export function MessageItem({
               className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
               {savingEdit && <Spinner size={11} />}
-              Save
+              {t("save")}
             </button>
             <button
               type="button"
@@ -80,7 +82,7 @@ export function MessageItem({
               disabled={savingEdit}
               className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
-              Cancel
+              {t("cancel")}
             </button>
           </form>
         ) : (
@@ -117,7 +119,7 @@ export function MessageItem({
                 key={emoji}
                 onClick={() => onReact(emoji)}
                 className="rounded px-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                title={`React ${emoji}`}
+                title={t("reactAria", { emoji })}
               >
                 {emoji}
               </button>
@@ -129,9 +131,7 @@ export function MessageItem({
               onClick={onOpenThread}
               className="ml-1 text-xs text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
             >
-              {message.replyCount > 0
-                ? `${message.replyCount} ${message.replyCount === 1 ? "reply" : "replies"}`
-                : "Reply in thread"}
+              {message.replyCount > 0 ? t("replyCount", { n: message.replyCount }) : t("replyInThread")}
             </button>
           )}
 
@@ -141,10 +141,10 @@ export function MessageItem({
                 onClick={() => setEditing(true)}
                 className="hover:text-zinc-800 dark:hover:text-zinc-200"
               >
-                Edit
+                {t("edit")}
               </button>
               <button onClick={onDelete} className="hover:text-red-500">
-                Delete
+                {t("delete")}
               </button>
             </span>
           )}

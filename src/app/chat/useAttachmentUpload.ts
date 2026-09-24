@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type PendingAttachment = {
   tempId: string;
@@ -17,6 +18,7 @@ export type AttachmentPayload = {
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 export function useAttachmentUpload(channelId: string) {
+  const t = useTranslations("Chat.upload");
   const [pending, setPending] = useState<PendingAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function useAttachmentUpload(channelId: string) {
     const accepted: PendingAttachment[] = [];
     for (const file of Array.from(files)) {
       if (file.size > MAX_FILE_SIZE) {
-        setError(`${file.name} is over ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+        setError(t("tooBig", { fileName: file.name, maxMb: MAX_FILE_SIZE / (1024 * 1024) }));
         continue;
       }
       accepted.push({ tempId: crypto.randomUUID(), file });
@@ -52,7 +54,7 @@ export function useAttachmentUpload(channelId: string) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileName: file.name, fileType, fileSize: file.size }),
         });
-        if (!presignRes.ok) throw new Error("Failed to prepare upload");
+        if (!presignRes.ok) throw new Error(t("prepareFailed"));
         const { key, uploadUrl } = await presignRes.json();
 
         const putRes = await fetch(uploadUrl, {
@@ -60,14 +62,14 @@ export function useAttachmentUpload(channelId: string) {
           headers: { "Content-Type": fileType },
           body: file,
         });
-        if (!putRes.ok) throw new Error("Failed to upload file");
+        if (!putRes.ok) throw new Error(t("uploadFailed"));
 
         results.push({ key, fileName: file.name, fileType, fileSize: file.size });
       }
       setPending([]);
       return results;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : t("genericFailed"));
       throw err;
     } finally {
       setUploading(false);

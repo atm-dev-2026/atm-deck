@@ -11,7 +11,7 @@ export async function POST(
 
   const boardId = await getBoardIdForTask(taskId);
   if (!boardId) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบงานนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
@@ -25,7 +25,7 @@ export async function POST(
     typeof fileSize !== "number" ||
     !key.startsWith(`tasks/${taskId}/`)
   ) {
-    return NextResponse.json({ error: "Invalid attachment" }, { status: 400 });
+    return NextResponse.json({ error: "ไฟล์แนบไม่ถูกต้อง" }, { status: 400 });
   }
 
   try {

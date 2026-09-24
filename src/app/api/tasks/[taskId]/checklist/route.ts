@@ -11,14 +11,14 @@ export async function POST(
 
   const boardId = await getBoardIdForTask(taskId);
   if (!boardId) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบงานนี้" }, { status: 404 });
   }
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
   const { text } = await request.json();
   if (!text) {
-    return NextResponse.json({ error: "text is required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุข้อความรายการ" }, { status: 400 });
   }
 
   try {

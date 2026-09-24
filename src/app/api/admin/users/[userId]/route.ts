@@ -15,12 +15,12 @@ export async function PATCH(
 
   const { userId } = await params;
   if (userId === gate.user.id) {
-    return NextResponse.json({ error: "You can't change your own role" }, { status: 400 });
+    return NextResponse.json({ error: "เปลี่ยนบทบาทของตัวเองไม่ได้" }, { status: 400 });
   }
 
   const { globalRole } = await request.json();
   if (!GLOBAL_ROLES.includes(globalRole)) {
-    return NextResponse.json({ error: "globalRole must be ADMIN or USER" }, { status: 400 });
+    return NextResponse.json({ error: "บทบาทต้องเป็นแอดมินหรือผู้ใช้" }, { status: 400 });
   }
 
   try {
@@ -32,7 +32,7 @@ export async function PATCH(
     return NextResponse.json(user);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบผู้ใช้นี้" }, { status: 404 });
     }
     return handleRouteError(error);
   }

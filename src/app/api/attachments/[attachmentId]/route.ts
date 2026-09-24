@@ -11,7 +11,7 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
   const userId = session.user.id;
   const { attachmentId } = await params;
@@ -21,7 +21,7 @@ export async function GET(
     include: { message: { select: { channelId: true } } },
   });
   if (!attachment) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
   }
 
   const membership = await prisma.channelMember.findUnique({
@@ -30,7 +30,7 @@ export async function GET(
     },
   });
   if (!membership) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
   }
 
   const url = await getSignedUrl(

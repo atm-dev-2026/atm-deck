@@ -13,7 +13,7 @@ export async function POST(
 
   const { name, color } = await request.json();
   if (!name || !color) {
-    return NextResponse.json({ error: "name and color are required" }, { status: 400 });
+    return NextResponse.json({ error: "ต้องระบุชื่อและสีของป้ายกำกับ" }, { status: 400 });
   }
 
   const label = await prisma.label.create({
