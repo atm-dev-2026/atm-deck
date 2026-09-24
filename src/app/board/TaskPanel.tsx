@@ -102,7 +102,10 @@ export function TaskPanel({
         className="glass-strong flex h-full w-full max-w-md flex-col rounded-none border-y-0 border-r-0"
       >
         <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{t("eyebrow")}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{t("eyebrow")}</span>
+            <span className="font-mono text-[10px] text-zinc-300 dark:text-zinc-600">{task.id}</span>
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={onDelete}
