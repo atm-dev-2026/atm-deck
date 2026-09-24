@@ -19,7 +19,7 @@
   "Shell": {
     "nav": {
       "boards": "Boards",
-      "myTasks": "My tasks",
+      "myTasks": "Tasks",
       "chat": "Chat",
       "admin": "Admin"
     },
