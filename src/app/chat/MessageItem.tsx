@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { Spinner } from "@/components/Spinner";
 import { AttachmentView } from "./AttachmentView";
 import { ChatMessage, QUICK_REACTIONS } from "./types";
 
@@ -17,20 +18,23 @@ export function MessageItem({
   message: ChatMessage;
   currentUserId: string;
   onReact: (emoji: string) => void;
-  onSave: (body: string) => void;
+  onSave: (body: string) => Promise<boolean>;
   onDelete: () => void;
   onOpenThread?: () => void;
   showReplyLink?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.body);
+  const [savingEdit, setSavingEdit] = useState(false);
   const isMine = message.user.id === currentUserId;
 
-  const submitEdit = (e: React.FormEvent) => {
+  const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!draft.trim()) return;
-    onSave(draft.trim());
-    setEditing(false);
+    if (!draft.trim() || savingEdit) return;
+    setSavingEdit(true);
+    const ok = await onSave(draft.trim());
+    setSavingEdit(false);
+    if (ok) setEditing(false);
   };
 
   return (
@@ -56,12 +60,15 @@ export function MessageItem({
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="glass-field min-w-0 flex-1 rounded px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+              disabled={savingEdit}
+              className="glass-field min-w-0 flex-1 rounded px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
             />
             <button
               type="submit"
-              className="rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover"
+              disabled={savingEdit}
+              className="flex items-center gap-1.5 rounded bg-accent px-2 py-1 text-xs font-medium text-accent-foreground hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
             >
+              {savingEdit && <Spinner size={11} />}
               Save
             </button>
             <button
@@ -70,7 +77,8 @@ export function MessageItem({
                 setEditing(false);
                 setDraft(message.body);
               }}
-              className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              disabled={savingEdit}
+              className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               Cancel
             </button>

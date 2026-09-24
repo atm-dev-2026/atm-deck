@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Compass, Plus } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
+import { useToast } from "@/components/Toast";
 
 type Channel = {
   id: string;
@@ -28,6 +29,7 @@ type Dm = {
 export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname();
   const router = useRouter();
+  const toast = useToast();
 
   const [joined, setJoined] = useState<Channel[]>([]);
   const [joinable, setJoinable] = useState<Channel[]>([]);
@@ -39,6 +41,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const [users, setUsers] = useState<ChatUser[]>([]);
   const [creatingChannel, setCreatingChannel] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadChannels = async () => {
     const res = await fetch("/api/channels");
@@ -57,6 +60,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   useEffect(() => {
     (async () => {
       await Promise.all([loadChannels(), loadDms()]);
+      setLoading(false);
     })();
   }, []);
 
@@ -70,12 +74,15 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newChannelName.trim() }),
       });
-      setNewChannelName("");
-      setShowCreate(false);
-      await loadChannels();
       if (res.ok) {
         const channel = await res.json();
+        setNewChannelName("");
+        setShowCreate(false);
+        await loadChannels();
         router.push(`/chat/${channel.id}`);
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error ?? "Couldn't create the channel.");
       }
     } finally {
       setCreatingChannel(false);
@@ -187,14 +194,20 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
           </div>
         )}
 
-        <nav className="flex flex-col gap-0.5">
-          {joined.map((c) => (
-            <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)} onClick={onNavigate}>
-              <span className="text-zinc-400">#</span>
-              <span className="truncate">{c.name}</span>
-            </Link>
-          ))}
-        </nav>
+        {loading ? (
+          <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
+            <Spinner size={11} /> Loading channels…
+          </p>
+        ) : (
+          <nav className="flex flex-col gap-0.5">
+            {joined.map((c) => (
+              <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)} onClick={onNavigate}>
+                <span className="text-zinc-400">#</span>
+                <span className="truncate">{c.name}</span>
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
 
       <div>
@@ -230,17 +243,23 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
           </div>
         )}
 
-        <nav className="flex flex-col gap-0.5">
-          {dms.map((dm) => {
-            const label = dm.other?.name ?? dm.other?.email ?? "Unknown";
-            return (
-              <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)} onClick={onNavigate}>
-                <Avatar label={label} image={dm.other?.image} size="xs" />
-                <span className="truncate">{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        {loading ? (
+          <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
+            <Spinner size={11} /> Loading messages…
+          </p>
+        ) : (
+          <nav className="flex flex-col gap-0.5">
+            {dms.map((dm) => {
+              const label = dm.other?.name ?? dm.other?.email ?? "Unknown";
+              return (
+                <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)} onClick={onNavigate}>
+                  <Avatar label={label} image={dm.other?.image} size="xs" />
+                  <span className="truncate">{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        )}
       </div>
     </aside>
   );

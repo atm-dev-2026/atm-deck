@@ -28,6 +28,7 @@ export default function Home() {
   const [visibility, setVisibility] = useState<BoardVisibility>("PERSONAL");
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,10 +60,12 @@ export default function Home() {
     setCreating((v) => !v);
     setCreateError(null);
     if (departments.length === 0) {
+      setDepartmentsLoading(true);
       fetch("/api/departments")
         .then((res) => res.json())
         .then((data) => setDepartments(Array.isArray(data) ? data : []))
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setDepartmentsLoading(false));
     }
   };
 
@@ -185,9 +188,10 @@ export default function Home() {
               <select
                 value={departmentId}
                 onChange={(e) => setDepartmentId(e.target.value)}
-                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+                disabled={departmentsLoading}
+                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
               >
-                <option value="">Select a department…</option>
+                <option value="">{departmentsLoading ? "Loading departments…" : "Select a department…"}</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}

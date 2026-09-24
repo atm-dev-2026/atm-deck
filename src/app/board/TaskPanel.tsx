@@ -40,6 +40,7 @@ export function TaskPanel({
   onUpdate,
   onDelete,
   onCreateLabel,
+  addingChecklistItem = false,
   onAddChecklistItem,
   onToggleChecklistItem,
   onDeleteChecklistItem,
@@ -50,6 +51,7 @@ export function TaskPanel({
   onUpdate: (patch: TaskPatch) => Promise<boolean>;
   onDelete: () => void;
   onCreateLabel: (name: string, color: LabelColor) => Promise<void>;
+  addingChecklistItem?: boolean;
   onAddChecklistItem: (text: string) => void;
   onToggleChecklistItem: (itemId: string, done: boolean) => void;
   onDeleteChecklistItem: (itemId: string) => void;
@@ -215,48 +217,68 @@ export function TaskPanel({
             )}
 
             <div className="mt-2 flex flex-col gap-0.5">
-              {task.checklist.map((item) => (
-                <div key={item.id} className="group flex items-center gap-2 rounded px-1 py-1 transition-colors hover:bg-zinc-900/5 dark:hover:bg-white/5">
-                  <button
-                    onClick={() => onToggleChecklistItem(item.id, !item.done)}
-                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                      item.done
-                        ? "border-accent bg-accent text-accent-foreground"
-                        : "border-zinc-300 dark:border-zinc-600"
-                    }`}
+              {task.checklist.map((item) => {
+                const itemPending = item.id.startsWith("temp-");
+                return (
+                  <div
+                    key={item.id}
+                    className={`group flex items-center gap-2 rounded px-1 py-1 transition-colors hover:bg-zinc-900/5 dark:hover:bg-white/5 ${itemPending ? "opacity-60" : ""}`}
                   >
-                    {item.done && <Check size={11} strokeWidth={3} />}
-                  </button>
-                  <span
-                    className={`flex-1 text-sm ${item.done ? "text-zinc-400 line-through" : "text-zinc-700 dark:text-zinc-300"}`}
-                  >
-                    {item.text}
-                  </span>
-                  <button
-                    onClick={() => onDeleteChecklistItem(item.id)}
-                    className="rounded p-0.5 text-zinc-300 opacity-0 hover:text-red-500 group-hover:opacity-100"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              ))}
+                    {itemPending ? (
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center text-zinc-400">
+                        <Spinner size={11} />
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => onToggleChecklistItem(item.id, !item.done)}
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                          item.done
+                            ? "border-accent bg-accent text-accent-foreground"
+                            : "border-zinc-300 dark:border-zinc-600"
+                        }`}
+                      >
+                        {item.done && <Check size={11} strokeWidth={3} />}
+                      </button>
+                    )}
+                    <span
+                      className={`flex-1 text-sm ${item.done ? "text-zinc-400 line-through" : "text-zinc-700 dark:text-zinc-300"}`}
+                    >
+                      {item.text}
+                    </span>
+                    <button
+                      onClick={() => onDeleteChecklistItem(item.id)}
+                      disabled={itemPending}
+                      className="rounded p-0.5 text-zinc-300 opacity-0 hover:text-red-500 group-hover:opacity-100 disabled:cursor-wait"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!newChecklistText.trim()) return;
+                if (!newChecklistText.trim() || addingChecklistItem) return;
                 onAddChecklistItem(newChecklistText.trim());
                 setNewChecklistText("");
               }}
               className="mt-1 flex items-center gap-2 px-1"
             >
-              <Plus size={13} className="shrink-0 text-zinc-400" />
+              {addingChecklistItem ? (
+                <span className="shrink-0 text-zinc-400">
+                  <Spinner size={13} />
+                </span>
+              ) : (
+                <Plus size={13} className="shrink-0 text-zinc-400" />
+              )}
               <input
                 value={newChecklistText}
                 onChange={(e) => setNewChecklistText(e.target.value)}
                 placeholder="Add item"
-                className="flex-1 bg-transparent py-1 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-300"
+                disabled={addingChecklistItem}
+                className="flex-1 bg-transparent py-1 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none disabled:cursor-wait dark:text-zinc-300"
               />
             </form>
           </div>

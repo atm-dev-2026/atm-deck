@@ -57,6 +57,7 @@ export default function BoardPage({
   const [addingColumn, setAddingColumn] = useState(false);
   const [submittingColumn, setSubmittingColumn] = useState(false);
   const [addingTaskFor, setAddingTaskFor] = useState<Set<string>>(new Set());
+  const [addingChecklistFor, setAddingChecklistFor] = useState<Set<string>>(new Set());
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<DragOver | null>(null);
@@ -66,6 +67,7 @@ export default function BoardPage({
   const [editVisibility, setEditVisibility] = useState<BoardVisibility>("PERSONAL");
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
   const [savingBoard, setSavingBoard] = useState(false);
   const [boardEditError, setBoardEditError] = useState<string | null>(null);
 
@@ -102,10 +104,12 @@ export default function BoardPage({
     setBoardEditError(null);
     setEditingBoard(true);
     if (departments.length === 0) {
+      setDepartmentsLoading(true);
       fetch("/api/departments")
         .then((res) => res.json())
         .then((data) => setDepartments(Array.isArray(data) ? data : []))
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setDepartmentsLoading(false));
     }
   };
 
@@ -347,23 +351,53 @@ export default function BoardPage({
   };
 
   const addChecklistItem = async (taskId: string, text: string) => {
-    const res = await fetch(`/api/tasks/${taskId}/checklist`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      toast.error(data?.error ?? "Couldn't add the item.");
-      return;
-    }
-    const item = await res.json();
+    if (addingChecklistFor.has(taskId)) return;
+    setAddingChecklistFor((prev) => new Set(prev).add(taskId));
+
+    const tempId = `temp-${Math.random().toString(36).slice(2)}`;
+    const tempItem = { id: tempId, text, done: false, order: 0 };
     updateColumns((cols) =>
       cols.map((c) => ({
         ...c,
-        tasks: c.tasks.map((t) => (t.id === taskId ? { ...t, checklist: [...t.checklist, item] } : t)),
+        tasks: c.tasks.map((t) => (t.id === taskId ? { ...t, checklist: [...t.checklist, tempItem] } : t)),
       })),
     );
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/checklist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        updateColumns((cols) =>
+          cols.map((c) => ({
+            ...c,
+            tasks: c.tasks.map((t) =>
+              t.id === taskId ? { ...t, checklist: t.checklist.filter((ci) => ci.id !== tempId) } : t,
+            ),
+          })),
+        );
+        toast.error(data?.error ?? "Couldn't add the item.");
+        return;
+      }
+      const item = await res.json();
+      updateColumns((cols) =>
+        cols.map((c) => ({
+          ...c,
+          tasks: c.tasks.map((t) =>
+            t.id === taskId ? { ...t, checklist: t.checklist.map((ci) => (ci.id === tempId ? item : ci)) } : t,
+          ),
+        })),
+      );
+    } finally {
+      setAddingChecklistFor((prev) => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+    }
   };
 
   const toggleChecklistItem = async (taskId: string, itemId: string, done: boolean) => {
@@ -532,9 +566,10 @@ export default function BoardPage({
               <select
                 value={editDepartmentId}
                 onChange={(e) => setEditDepartmentId(e.target.value)}
-                className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+                disabled={departmentsLoading}
+                className="glass-field rounded-md px-2 py-1 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
               >
-                <option value="">Select a department…</option>
+                <option value="">{departmentsLoading ? "Loading departments…" : "Select a department…"}</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
@@ -778,6 +813,7 @@ export default function BoardPage({
           onCreateLabel={(name, color) =>
             createLabel(editingTask.id, editingTask.labels.map((l) => l.id), name, color)
           }
+          addingChecklistItem={addingChecklistFor.has(editingTask.id)}
           onAddChecklistItem={(text) => addChecklistItem(editingTask.id, text)}
           onToggleChecklistItem={(itemId, done) => toggleChecklistItem(editingTask.id, itemId, done)}
           onDeleteChecklistItem={(itemId) => deleteChecklistItem(editingTask.id, itemId)}

@@ -9,6 +9,9 @@ import { PendingAttachmentList } from "../AttachmentView";
 import { useAttachmentUpload } from "../useAttachmentUpload";
 import { ThreadPanel } from "./ThreadPanel";
 import { ChatMessage, ChatUser } from "../types";
+import { Spinner } from "@/components/Spinner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useToast } from "@/components/Toast";
 
 type Channel = {
   id: string;
@@ -35,13 +38,18 @@ export default function ChannelPage({
 function ChannelView({ channelId }: { channelId: string }) {
   const currentUserId = useChatUserId();
   const { toggleSidebar } = useChatSidebar();
+  const toast = useToast();
 
   const [channel, setChannel] = useState<Channel | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState(false);
+  const [deleteMessageError, setDeleteMessageError] = useState<string | null>(null);
 
   const listRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +113,7 @@ function ChannelView({ channelId }: { channelId: string }) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const body = draft.trim();
-    if (!body && attachmentUpload.pending.length === 0) return;
+    if ((!body && attachmentUpload.pending.length === 0) || sending) return;
 
     let attachments;
     try {
@@ -115,14 +123,22 @@ function ChannelView({ channelId }: { channelId: string }) {
     }
 
     setDraft("");
-    const res = await fetch(`/api/channels/${channelId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body, attachments }),
-    });
-    if (res.ok) {
-      const message: ChatMessage = await res.json();
-      setMessages((prev) => [...prev.filter((m) => m.id !== message.id), message]);
+    setSending(true);
+    try {
+      const res = await fetch(`/api/channels/${channelId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, attachments }),
+      });
+      if (res.ok) {
+        const message: ChatMessage = await res.json();
+        setMessages((prev) => [...prev.filter((m) => m.id !== message.id), message]);
+      } else {
+        setDraft(body);
+        toast.error("Couldn't send the message.");
+      }
+    } finally {
+      setSending(false);
     }
   };
 
@@ -138,7 +154,7 @@ function ChannelView({ channelId }: { channelId: string }) {
     }
   };
 
-  const saveEdit = async (id: string, body: string) => {
+  const saveEdit = async (id: string, body: string): Promise<boolean> => {
     const res = await fetch(`/api/messages/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -147,12 +163,34 @@ function ChannelView({ channelId }: { channelId: string }) {
     if (res.ok) {
       const updated: ChatMessage = await res.json();
       setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)));
+      return true;
     }
+    toast.error("Couldn't save the message.");
+    return false;
   };
 
-  const remove = async (id: string) => {
-    await fetch(`/api/messages/${id}`, { method: "DELETE" });
-    setMessages((prev) => prev.filter((m) => m.id !== id));
+  const requestDeleteMessage = (id: string) => {
+    setDeleteMessageError(null);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteMessage = async () => {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setDeletingMessage(true);
+    setDeleteMessageError(null);
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setDeleteMessageError(data?.error ?? "Couldn't delete the message.");
+        return;
+      }
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      setPendingDeleteId(null);
+    } finally {
+      setDeletingMessage(false);
+    }
   };
 
   if (notFound) {
@@ -220,7 +258,7 @@ function ChannelView({ channelId }: { channelId: string }) {
                 currentUserId={currentUserId}
                 onReact={(emoji) => react(message.id, emoji)}
                 onSave={(body) => saveEdit(message.id, body)}
-                onDelete={() => remove(message.id)}
+                onDelete={() => requestDeleteMessage(message.id)}
                 onOpenThread={() => setOpenThreadId(message.id)}
               />
             ))}
@@ -277,10 +315,10 @@ function ChannelView({ channelId }: { channelId: string }) {
           />
           <button
             type="submit"
-            disabled={attachmentUpload.uploading}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50"
+            disabled={attachmentUpload.uploading || sending}
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-50"
           >
-            <Send size={14} />
+            {sending ? <Spinner size={14} /> : <Send size={14} />}
           </button>
         </form>
       </div>
@@ -292,6 +330,18 @@ function ChannelView({ channelId }: { channelId: string }) {
           onClose={() => setOpenThreadId(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Delete this message?"
+        description="This can't be undone."
+        pending={deletingMessage}
+        error={deleteMessageError}
+        onConfirm={confirmDeleteMessage}
+        onCancel={() => {
+          if (!deletingMessage) setPendingDeleteId(null);
+        }}
+      />
     </div>
   );
 }

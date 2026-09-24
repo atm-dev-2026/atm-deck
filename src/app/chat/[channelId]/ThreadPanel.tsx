@@ -6,6 +6,9 @@ import { ChatMessage } from "../types";
 import { MessageItem } from "../MessageItem";
 import { PendingAttachmentList } from "../AttachmentView";
 import { useAttachmentUpload } from "../useAttachmentUpload";
+import { Spinner } from "@/components/Spinner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useToast } from "@/components/Toast";
 
 export function ThreadPanel({
   messageId,
@@ -16,9 +19,14 @@ export function ThreadPanel({
   currentUserId: string;
   onClose: () => void;
 }) {
+  const toast = useToast();
   const [parent, setParent] = useState<ChatMessage | null>(null);
   const [replies, setReplies] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState(false);
+  const [deleteMessageError, setDeleteMessageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachmentUpload = useAttachmentUpload(parent?.channelId ?? "");
 
@@ -48,23 +56,47 @@ export function ThreadPanel({
     load();
   };
 
-  const saveEdit = async (id: string, body: string) => {
-    await fetch(`/api/messages/${id}`, {
+  const saveEdit = async (id: string, body: string): Promise<boolean> => {
+    const res = await fetch(`/api/messages/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body }),
     });
-    load();
+    if (!res.ok) {
+      toast.error("Couldn't save the message.");
+      return false;
+    }
+    await load();
+    return true;
   };
 
-  const remove = async (id: string) => {
-    await fetch(`/api/messages/${id}`, { method: "DELETE" });
-    load();
+  const requestDeleteMessage = (id: string) => {
+    setDeleteMessageError(null);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteMessage = async () => {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setDeletingMessage(true);
+    setDeleteMessageError(null);
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setDeleteMessageError(data?.error ?? "Couldn't delete the message.");
+        return;
+      }
+      await load();
+      setPendingDeleteId(null);
+    } finally {
+      setDeletingMessage(false);
+    }
   };
 
   const sendReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!parent) return;
+    if (!parent || sending) return;
     const body = draft.trim();
     if (!body && attachmentUpload.pending.length === 0) return;
 
@@ -75,13 +107,22 @@ export function ThreadPanel({
       return;
     }
 
-    await fetch(`/api/channels/${parent.channelId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body, parentId: parent.id, attachments }),
-    });
-    setDraft("");
-    load();
+    setSending(true);
+    try {
+      const res = await fetch(`/api/channels/${parent.channelId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, parentId: parent.id, attachments }),
+      });
+      if (res.ok) {
+        setDraft("");
+        await load();
+      } else {
+        toast.error("Couldn't send the reply.");
+      }
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -112,7 +153,7 @@ export function ThreadPanel({
               currentUserId={currentUserId}
               onReact={(emoji) => react(parent.id, emoji)}
               onSave={(body) => saveEdit(parent.id, body)}
-              onDelete={() => remove(parent.id)}
+              onDelete={() => requestDeleteMessage(parent.id)}
               showReplyLink={false}
             />
             <div className="my-2 border-t border-zinc-100 dark:border-zinc-900" />
@@ -126,7 +167,7 @@ export function ThreadPanel({
               currentUserId={currentUserId}
               onReact={(emoji) => react(reply.id, emoji)}
               onSave={(body) => saveEdit(reply.id, body)}
-              onDelete={() => remove(reply.id)}
+              onDelete={() => requestDeleteMessage(reply.id)}
               showReplyLink={false}
             />
           ))}
@@ -171,12 +212,24 @@ export function ThreadPanel({
         />
         <button
           type="submit"
-          disabled={attachmentUpload.uploading}
-          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50"
+          disabled={attachmentUpload.uploading || sending}
+          className="flex items-center rounded-md bg-accent px-2.5 py-1.5 text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-50"
         >
-          <Send size={13} />
+          {sending ? <Spinner size={13} /> : <Send size={13} />}
         </button>
       </form>
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Delete this message?"
+        description="This can't be undone."
+        pending={deletingMessage}
+        error={deleteMessageError}
+        onConfirm={confirmDeleteMessage}
+        onCancel={() => {
+          if (!deletingMessage) setPendingDeleteId(null);
+        }}
+      />
       </aside>
     </div>
   );
