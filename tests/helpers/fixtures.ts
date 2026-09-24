@@ -58,6 +58,48 @@ export function inviteToBoard(boardId: string, userId: string, role: BoardRole) 
   return prisma.boardMember.create({ data: { boardId, userId, role } });
 }
 
+// Columns/tasks/checklist items cascade-delete with their board (see
+// prisma/schema.prisma), so they don't need their own cleanup tracking.
+export async function createColumn(
+  boardId: string,
+  overrides: { name?: string; order?: number } = {},
+) {
+  return prisma.column.create({
+    data: {
+      boardId,
+      name: overrides.name ?? "RBAC Test Column",
+      order: overrides.order ?? 0,
+    },
+  });
+}
+
+export async function createTask(
+  columnId: string,
+  overrides: { title?: string; order?: number } = {},
+) {
+  return prisma.task.create({
+    data: {
+      columnId,
+      title: overrides.title ?? "RBAC Test Task",
+      order: overrides.order ?? 0,
+    },
+  });
+}
+
+export async function createChecklistItem(
+  taskId: string,
+  overrides: { text?: string; done?: boolean; order?: number } = {},
+) {
+  return prisma.checklistItem.create({
+    data: {
+      taskId,
+      text: overrides.text ?? "RBAC Test Item",
+      done: overrides.done ?? false,
+      order: overrides.order ?? 0,
+    },
+  });
+}
+
 // NextAuth's `auth` export is an overloaded function (plain call, middleware
 // use, handler-wrapping use) that vi.mocked() can't cleanly infer a single
 // signature for — cast to a plain async fn for mocking purposes only.
