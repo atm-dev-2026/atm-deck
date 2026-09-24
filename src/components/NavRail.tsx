@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LayoutGrid, MessageSquare, ShieldCheck } from "lucide-react";
+import { LayoutGrid, ListTodo, MessageSquare, ShieldCheck } from "lucide-react";
 
 const ITEM_DEFS = [
   { href: "/", key: "boards" as const, icon: LayoutGrid, match: (p: string) => p === "/" || p.startsWith("/board") },
+  { href: "/my-tasks", key: "myTasks" as const, icon: ListTodo, match: (p: string) => p.startsWith("/my-tasks") },
   { href: "/chat", key: "chat" as const, icon: MessageSquare, match: (p: string) => p.startsWith("/chat") },
 ];
 

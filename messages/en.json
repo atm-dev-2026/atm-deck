@@ -19,6 +19,7 @@
   "Shell": {
     "nav": {
       "boards": "Boards",
+      "myTasks": "My tasks",
       "chat": "Chat",
       "admin": "Admin"
     },
@@ -179,6 +180,11 @@
       "remove": "Remove",
       "removing": "Removing…"
     }
+  },
+  "MyTasks": {
+    "heading": "My tasks",
+    "loading": "Loading your tasks…",
+    "empty": "You don't have any tasks assigned to you."
   },
   "Chat": {
     "sidebar": {

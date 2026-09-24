@@ -92,8 +92,14 @@ export default function BoardPage({
     (async () => {
       const res = await fetch(`/api/boards/${boardId}`);
       if (!res.ok) return;
-      const data = await res.json();
-      if (!ignore) setBoard(data);
+      const data: Board = await res.json();
+      if (ignore) return;
+      setBoard(data);
+
+      const taskId = new URLSearchParams(window.location.search).get("task");
+      if (taskId && data.columns.some((c) => c.tasks.some((t) => t.id === taskId))) {
+        setEditingTaskId(taskId);
+      }
     })();
     return () => {
       ignore = true;

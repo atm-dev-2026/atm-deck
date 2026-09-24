@@ -75,13 +75,16 @@ export async function createColumn(
 
 export async function createTask(
   columnId: string,
-  overrides: { title?: string; order?: number } = {},
+  overrides: { title?: string; order?: number; assigneeId?: string; dueDate?: Date; priority?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "URGENT" } = {},
 ) {
   return prisma.task.create({
     data: {
       columnId,
       title: overrides.title ?? "RBAC Test Task",
       order: overrides.order ?? 0,
+      assigneeId: overrides.assigneeId,
+      dueDate: overrides.dueDate,
+      priority: overrides.priority,
     },
   });
 }
