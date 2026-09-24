@@ -171,6 +171,16 @@ export async function requireGlobalAdmin() {
   return { user };
 }
 
+/** Whether a user is the board's owner or has a direct BoardMember invite — used to validate assignee picks. */
+export async function isBoardParticipant(boardId: string, userId: string): Promise<boolean> {
+  const board = await prisma.board.findUnique({
+    where: { id: boardId },
+    select: { ownerId: true, members: { where: { userId }, select: { userId: true } } },
+  });
+  if (!board) return false;
+  return board.ownerId === userId || board.members.length > 0;
+}
+
 export async function getBoardIdForColumn(columnId: string): Promise<string | null> {
   const column = await prisma.column.findUnique({
     where: { id: columnId },

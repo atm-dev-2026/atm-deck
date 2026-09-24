@@ -110,18 +110,23 @@ model Task {
   description String?   @db.Text
   order       Int
   priority    Priority  @default(NONE)
-  assignee    String?
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   columnId    String
+  createdById String?
+  assigneeId  String?
 
   column      Column           @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdBy   User?            @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignee    User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   labels      Label[]
   checklist   ChecklistItem[]
   attachments TaskAttachment[]
 
   @@index([columnId])
+  @@index([createdById])
+  @@index([assigneeId])
 }
 
 model TaskAttachment {
@@ -189,6 +194,8 @@ model User {
   ownedBoards           Board[]
   boardMemberships      BoardMember[]
   departmentMemberships DepartmentMember[]
+  createdTasks          Task[] @relation("TaskCreatedBy")
+  assignedTasks         Task[] @relation("TaskAssignee")
 }
 
 model Channel {

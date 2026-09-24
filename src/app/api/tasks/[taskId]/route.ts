@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getBoardIdForTask, requireBoardAccess } from "@/lib/permissions";
+import { getBoardIdForTask, isBoardParticipant, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
 import { broadcast } from "@/lib/supabase";
 
@@ -32,13 +32,20 @@ export async function PATCH(
     }
   }
 
+  if (data.assigneeId && !(await isBoardParticipant(boardId, data.assigneeId))) {
+    return NextResponse.json(
+      { error: "assigneeId must be a member of this board" },
+      { status: 400 },
+    );
+  }
+
   try {
     const task = await prisma.task.update({
       where: { id: taskId },
       data: {
         ...(data.title !== undefined && { title: data.title }),
         ...(data.description !== undefined && { description: data.description }),
-        ...(data.assignee !== undefined && { assignee: data.assignee }),
+        ...(data.assigneeId !== undefined && { assigneeId: data.assigneeId }),
         ...(data.columnId !== undefined && { columnId: data.columnId }),
         ...(data.order !== undefined && { order: data.order }),
         ...(data.priority !== undefined && { priority: data.priority }),
@@ -53,6 +60,8 @@ export async function PATCH(
         labels: true,
         checklist: { orderBy: { order: "asc" } },
         attachments: { orderBy: { createdAt: "asc" } },
+        createdBy: { select: { id: true, name: true, email: true, image: true } },
+        assignee: { select: { id: true, name: true, email: true, image: true } },
       },
     });
 

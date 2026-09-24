@@ -7,6 +7,7 @@ import { Calendar, ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X }
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
 import { Spinner } from "@/components/Spinner";
+import { Avatar } from "@/components/Avatar";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMembersPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -349,7 +350,6 @@ export default function BoardPage({
   const patchTask = async (taskId: string, patch: Record<string, unknown>): Promise<boolean> => {
     const body: Record<string, unknown> = { ...patch };
     if ("description" in body) body.description = body.description || null;
-    if ("assignee" in body) body.assignee = body.assignee || null;
     if ("dueDate" in body) body.dueDate = body.dueDate || null;
 
     const previousTask = board?.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
@@ -669,6 +669,11 @@ export default function BoardPage({
   const editingTask = editingTaskId
     ? columns.flatMap((c) => c.tasks).find((t) => t.id === editingTaskId) ?? null
     : null;
+  const memberCount = board.members.length + (board.owner ? 1 : 0);
+  const showCreator = memberCount > 1;
+  const boardMembers = board.owner
+    ? [board.owner, ...board.members.map((m) => m.user)]
+    : board.members.map((m) => m.user);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -840,6 +845,7 @@ export default function BoardPage({
                   )}
                   <TaskCard
                     task={task}
+                    showCreator={showCreator}
                     dragging={draggingId === task.id}
                     onDragStart={() => setDraggingId(task.id)}
                     onDragEnd={() => {
@@ -941,6 +947,7 @@ export default function BoardPage({
         <TaskPanel
           task={editingTask}
           boardLabels={board.labels}
+          boardMembers={boardMembers}
           onClose={() => setEditingTaskId(null)}
           onUpdate={(patch) => patchTask(editingTask.id, patch)}
           onDelete={() => requestDeleteTask(editingTask)}
@@ -999,6 +1006,7 @@ export default function BoardPage({
 
 function TaskCard({
   task,
+  showCreator,
   dragging,
   onDragStart,
   onDragEnd,
@@ -1008,6 +1016,7 @@ function TaskCard({
   onDelete,
 }: {
   task: TaskT;
+  showCreator: boolean;
   dragging: boolean;
   onDragStart: () => void;
   onDragEnd: () => void;
@@ -1065,9 +1074,31 @@ function TaskCard({
         </div>
       )}
 
+      {showCreator && task.createdBy && (
+        <div className="mt-2 flex items-center gap-1.5">
+          <Avatar
+            label={task.createdBy.name ?? task.createdBy.email ?? "?"}
+            image={task.createdBy.image}
+            size="xs"
+          />
+          <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+            {task.createdBy.name ?? task.createdBy.email}
+          </span>
+        </div>
+      )}
+
       {(task.assignee || task.dueDate || task.checklist.length > 0 || task.attachments.length > 0) && (
         <div className="mt-2 flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 dark:text-zinc-400">
-          {task.assignee && <span className="truncate">{task.assignee}</span>}
+          {task.assignee && (
+            <span className="flex items-center gap-1 truncate">
+              <Avatar
+                label={task.assignee.name ?? task.assignee.email ?? "?"}
+                image={task.assignee.image}
+                size="xs"
+              />
+              {task.assignee.name ?? task.assignee.email}
+            </span>
+          )}
           {task.dueDate && (
             <span className={`flex items-center gap-1 ${overdue ? "text-red-500" : ""}`}>
               <Calendar size={11} />

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Calendar, Check, Download, Paperclip, Plus, Trash2, User, X } from "lucide-react";
+import { Calendar, Check, Download, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
 import { LabelPicker } from "@/components/LabelPicker";
 import { LabelChip } from "@/components/LabelChip";
+import { AssigneePicker } from "@/components/AssigneePicker";
 import { Spinner } from "@/components/Spinner";
 import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
@@ -12,11 +13,12 @@ import type { Priority } from "@/components/priority";
 export type ChecklistItemT = { id: string; text: string; done: boolean; order: number };
 export type LabelT = { id: string; name: string; color: string };
 export type TaskAttachmentT = { id: string; fileName: string; fileType: string; fileSize: number };
+export type TaskUserT = { id: string; name: string | null; email: string | null; image: string | null };
 export type TaskT = {
   id: string;
   title: string;
   description: string | null;
-  assignee: string | null;
+  assignee: TaskUserT | null;
   dueDate: string | null;
   order: number;
   columnId: string;
@@ -24,6 +26,7 @@ export type TaskT = {
   labels: LabelT[];
   checklist: ChecklistItemT[];
   attachments: TaskAttachmentT[];
+  createdBy?: TaskUserT | null;
 };
 
 function formatFileSize(bytes: number) {
@@ -35,7 +38,7 @@ function formatFileSize(bytes: number) {
 type TaskPatch = Partial<{
   title: string;
   description: string;
-  assignee: string;
+  assigneeId: string | null;
   dueDate: string;
   priority: Priority;
   labelIds: string[];
@@ -44,6 +47,7 @@ type TaskPatch = Partial<{
 export function TaskPanel({
   task,
   boardLabels,
+  boardMembers,
   onClose,
   onUpdate,
   onDelete,
@@ -57,6 +61,7 @@ export function TaskPanel({
 }: {
   task: TaskT;
   boardLabels: LabelT[];
+  boardMembers: TaskUserT[];
   onClose: () => void;
   onUpdate: (patch: TaskPatch) => Promise<boolean>;
   onDelete: () => void;
@@ -70,7 +75,6 @@ export function TaskPanel({
 }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
-  const [assignee, setAssignee] = useState(task.assignee ?? "");
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
@@ -137,17 +141,11 @@ export function TaskPanel({
               {savingFields.has("priority") && <Spinner size={11} />}
             </div>
 
-            <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
-              <User size={12} className="text-zinc-400" />
-              <input
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
-                onBlur={() =>
-                  assignee !== (task.assignee ?? "") &&
-                  commit("assignee", { assignee }, () => setAssignee(task.assignee ?? ""))
-                }
-                placeholder="Unassigned"
-                className="w-24 bg-transparent focus:outline-none"
+            <div className="flex items-center gap-1.5">
+              <AssigneePicker
+                members={boardMembers}
+                value={task.assignee?.id ?? null}
+                onChange={(assigneeId) => commit("assignee", { assigneeId })}
               />
               {savingFields.has("assignee") && <Spinner size={11} />}
             </div>

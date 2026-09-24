@@ -28,6 +28,8 @@ export async function GET(
               labels: true,
               checklist: { orderBy: { order: "asc" } },
               attachments: { orderBy: { createdAt: "asc" } },
+              createdBy: { select: { id: true, name: true, email: true, image: true } },
+              assignee: { select: { id: true, name: true, email: true, image: true } },
             },
           },
         },
