@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 
 // Local dev/testing convenience only. Creates synthetic departments, users,

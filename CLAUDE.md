@@ -16,11 +16,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - After editing `prisma/schema.prisma`: `npx prisma migrate dev --name <desc>` (local) or `npx prisma migrate deploy` (deploy step)
 
 ### Tests hit a real database
-Vitest is *not* mocking Prisma — `tests/setup.ts` loads `.env.test` (falls back to `.env` with a warning if absent), so create a dedicated `.env.test` pointing at a disposable MySQL/MariaDB database before running `npm test`. Only `@/lib/auth`'s `auth()` is mocked (`vi.mock("@/lib/auth", () => ({ auth: vi.fn() }))` + `mockSessionAs()` from `tests/helpers/fixtures.ts`); permission logic and Prisma queries run for real against that DB. Fixture helpers (`createUser`, `createBoard`, etc.) track what they insert and `cleanupFixtures()` deletes only those rows — the DB is never assumed to start empty, and routes are invoked directly via `callRoute(handler, { method, body, params })` rather than over HTTP.
+Vitest is *not* mocking Prisma — `tests/setup.ts` loads `.env.test` (falls back to `.env` with a warning if absent), so create a dedicated `.env.test` pointing at a disposable Postgres database before running `npm test`. Only `@/lib/auth`'s `auth()` is mocked (`vi.mock("@/lib/auth", () => ({ auth: vi.fn() }))` + `mockSessionAs()` from `tests/helpers/fixtures.ts`); permission logic and Prisma queries run for real against that DB. Fixture helpers (`createUser`, `createBoard`, etc.) track what they insert and `cleanupFixtures()` deletes only those rows — the DB is never assumed to start empty, and routes are invoked directly via `callRoute(handler, { method, body, params })` rather than over HTTP.
 
 ## Architecture
 
-**Stack**: Next.js 16 (App Router) + React 19 + TypeScript, Prisma 7 against MySQL/MariaDB via the `@prisma/adapter-mariadb` driver adapter, Auth.js v5 beta (Google + LINE, database sessions), Tailwind CSS v4. Single app, no monorepo.
+**Stack**: Next.js 16 (App Router) + React 19 + TypeScript, Prisma 7 against Postgres (Prisma Postgres) via the `@prisma/adapter-pg` driver adapter, Auth.js v5 beta (Google + LINE, database sessions), Tailwind CSS v4. Single app, no monorepo.
 
 Two version-specific conventions this repo already follows correctly (see `AGENTS.md` — don't "fix" either back to the old convention):
 - **`middleware.ts` → `proxy.ts`**: `src/proxy.ts` is the route-protection gate (default-exports the auth check, redirects unauthenticated requests to `/login`). A file named `middleware.ts` will not run in this Next.js version.
