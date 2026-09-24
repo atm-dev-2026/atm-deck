@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { broadcast } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   const { columnId, title, description, assignee, dueDate } =
@@ -38,6 +39,8 @@ export async function POST(request: Request) {
       },
       include: { labels: true, checklist: true },
     });
+
+    await broadcast(`board:${boardId}`, "task-created", task);
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {

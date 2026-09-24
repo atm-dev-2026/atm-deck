@@ -12,6 +12,7 @@ import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMember
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import type { LabelColor } from "@/components/labelColors";
+import { supabase } from "@/lib/supabase";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
 
 type Column = {
@@ -95,6 +96,38 @@ export default function BoardPage({
   const updateColumns = (updater: (columns: Column[]) => Column[]) => {
     setBoard((prev) => (prev ? { ...prev, columns: updater(prev.columns) } : prev));
   };
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client) return;
+
+    const applyTaskUpsert = (task: TaskT) => {
+      updateColumns((cols) =>
+        cols.map((c) => {
+          const withoutTask = c.tasks.filter((t) => t.id !== task.id);
+          if (c.id !== task.columnId) return { ...c, tasks: withoutTask };
+          return { ...c, tasks: [...withoutTask, task].sort((a, b) => a.order - b.order) };
+        }),
+      );
+    };
+
+    const applyTaskDelete = (taskId: string) => {
+      updateColumns((cols) => cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) })));
+    };
+
+    const channel = client
+      .channel(`board:${boardId}`)
+      .on("broadcast", { event: "task-created" }, ({ payload }) => applyTaskUpsert(payload as TaskT))
+      .on("broadcast", { event: "task-updated" }, ({ payload }) => applyTaskUpsert(payload as TaskT))
+      .on("broadcast", { event: "task-deleted" }, ({ payload }) =>
+        applyTaskDelete((payload as { id: string }).id),
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, [boardId]);
 
   const openEditBoard = () => {
     if (!board) return;

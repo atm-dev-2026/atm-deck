@@ -12,6 +12,7 @@ import { ChatMessage, ChatUser } from "../types";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
+import { supabase } from "@/lib/supabase";
 
 type Channel = {
   id: string;
@@ -97,6 +98,28 @@ function ChannelView({ channelId }: { channelId: string }) {
     });
 
     return () => source.close();
+  }, [channelId]);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client) return;
+
+    const channel = client
+      .channel(`channel:${channelId}`)
+      .on("broadcast", { event: "message-created" }, ({ payload }) => {
+        const message = payload as ChatMessage;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [...prev, message].sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+        });
+      })
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
   }, [channelId]);
 
   useEffect(() => {

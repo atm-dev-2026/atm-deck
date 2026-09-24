@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForTask, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { broadcast } from "@/lib/supabase";
 
 export async function PATCH(
   request: Request,
@@ -51,6 +52,8 @@ export async function PATCH(
       include: { labels: true, checklist: { orderBy: { order: "asc" } } },
     });
 
+    await broadcast(`board:${boardId}`, "task-updated", task);
+
     return NextResponse.json(task);
   } catch (error) {
     return handleRouteError(error);
@@ -72,6 +75,7 @@ export async function DELETE(
 
   try {
     await prisma.task.delete({ where: { id: taskId } });
+    await broadcast(`board:${boardId}`, "task-deleted", { id: taskId });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);
