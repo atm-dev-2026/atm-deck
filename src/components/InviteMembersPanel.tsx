@@ -36,6 +36,7 @@ export function InviteMembersPanel({
   const [selectedRole, setSelectedRole] = useState<BoardMemberRole>("READ_ONLY");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<BoardMemberT | null>(null);
   const [removing, setRemoving] = useState(false);
@@ -94,6 +95,7 @@ export function InviteMembersPanel({
 
   const memberIds = new Set(members.map((m) => m.user.id));
   const invitable = (users ?? []).filter((u) => u.id !== owner?.id && !memberIds.has(u.id));
+  const selectedUser = invitable.find((u) => u.id === selectedUserId) ?? null;
 
   const submitInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,20 +197,57 @@ export function InviteMembersPanel({
             {canManageMembers && (
               <div className="mt-1 border-t border-zinc-100 p-1.5 dark:border-zinc-800">
                 <form onSubmit={submitInvite} className="flex flex-col gap-1.5">
-                  <select
-                    value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="glass-field w-full rounded px-2 py-1 text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
-                  >
-                    <option value="">
-                      {users === null ? "Loading people…" : "Invite someone…"}
-                    </option>
-                    {invitable.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name ?? u.email}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen((v) => !v)}
+                      className="glass-field flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-xs text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+                    >
+                      {selectedUser ? (
+                        <>
+                          <Avatar
+                            label={selectedUser.name ?? selectedUser.email ?? "?"}
+                            image={selectedUser.image}
+                            size="xs"
+                          />
+                          <span className="flex-1 truncate">{selectedUser.name ?? selectedUser.email}</span>
+                        </>
+                      ) : (
+                        <span className="flex-1 truncate text-zinc-400">
+                          {users === null ? "Loading people…" : "Invite someone…"}
+                        </span>
+                      )}
+                    </button>
+
+                    {pickerOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
+                        <div className="glass-strong absolute left-0 z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md p-1">
+                          {invitable.length === 0 && (
+                            <p className="px-2 py-2 text-xs text-zinc-400">No one left to invite.</p>
+                          )}
+                          {invitable.map((u) => (
+                            <button
+                              key={u.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedUserId(u.id);
+                                setPickerOpen(false);
+                              }}
+                              className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+                                u.id === selectedUserId
+                                  ? "bg-zinc-100 font-medium text-zinc-950 dark:bg-zinc-800 dark:text-zinc-50"
+                                  : "text-zinc-700 dark:text-zinc-300"
+                              }`}
+                            >
+                              <Avatar label={u.name ?? u.email ?? "?"} image={u.image} size="xs" />
+                              <span className="flex-1 truncate">{u.name ?? u.email}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                   <div className="flex gap-1.5">
                     <select
                       value={selectedRole}
