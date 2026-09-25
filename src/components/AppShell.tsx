@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { signOut } from "../../auth";
-import { getCurrentUser } from "@/lib/current-user";
+import { getSessionUser, hasRole } from "@/lib/current-user";
 import { NavRail } from "./NavRail";
+import { SidebarActions } from "./SidebarActions";
 import { UserMenu } from "./UserMenu";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user) return <>{children}</>;
-
-  const isAdmin = user.globalRole === "ADMIN";
+  const user = await getSessionUser();
+  // Role-less users only ever reach /no-access and /invite/* — no navigation for them.
+  if (!user || !hasRole(user)) return <>{children}</>;
 
   const signOutAction = async () => {
     "use server";
@@ -26,9 +26,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           AD
         </Link>
 
-        <NavRail isAdmin={isAdmin} />
+        <NavRail />
 
         <div className="flex-1" />
+
+        <SidebarActions canManageUsers={user.canManageUsers} />
 
         <div className="h-px w-8 bg-zinc-900/10 dark:bg-white/10" />
 
@@ -43,13 +45,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
 
       <div className="glass relative z-20 flex shrink-0 items-stretch py-1 sm:hidden">
-        <NavRail variant="bottom" isAdmin={isAdmin} />
+        <NavRail variant="bottom" />
         <UserMenu
           name={user.name}
           email={user.email}
           image={user.image}
           signOutAction={signOutAction}
           placement="top"
+          canManageUsers={user.canManageUsers}
         />
       </div>
     </div>

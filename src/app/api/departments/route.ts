@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
-import { requireGlobalAdmin } from "@/lib/permissions";
+import { requireUserManager } from "@/lib/permissions";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -23,14 +23,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const gate = await requireGlobalAdmin();
+  const gate = await requireUserManager();
   if ("error" in gate) return gate.error;
 
   const { name } = await request.json();
-  if (!name || typeof name !== "string") {
+  if (!name || typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "กรุณาระบุชื่อแผนก" }, { status: 400 });
   }
 
-  const department = await prisma.department.create({ data: { name } });
+  const department = await prisma.department.create({ data: { name: name.trim() } });
   return NextResponse.json(department, { status: 201 });
 }

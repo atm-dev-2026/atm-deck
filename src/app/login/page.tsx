@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { signIn } from "../../../auth";
-import { getCurrentUser } from "@/lib/current-user";
+import { getSessionUser, hasRole } from "@/lib/current-user";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function LoginPage({
@@ -9,9 +9,13 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
-  if (await getCurrentUser()) redirect("/");
-
   const { callbackUrl } = await searchParams;
+
+  // Pages send both signed-out and role-less users here; only the latter has a
+  // session, and bouncing them back to "/" would loop.
+  const sessionUser = await getSessionUser();
+  if (sessionUser) redirect(hasRole(sessionUser) ? "/" : "/no-access");
+
   const t = await getTranslations("Login");
 
   return (

@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { messageInclude, serializeMessage } from "@/lib/chat";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ messageId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
 
   const { messageId } = await params;
 

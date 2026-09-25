@@ -172,6 +172,18 @@ export async function requireGlobalAdmin() {
   return { user };
 }
 
+/** Gate for /member and user/invite management: global admins and `canManageUsers` roles. */
+export async function requireUserManager() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: jsonError(401, "ต้องเข้าสู่ระบบก่อน") } as const;
+  }
+  if (!user.canManageUsers) {
+    return { error: jsonError(403, "ไม่มีสิทธิ์เข้าถึง") } as const;
+  }
+  return { user };
+}
+
 /** Whether a user is the board's owner or has a direct BoardMember invite — used to validate assignee picks. */
 export async function isBoardParticipant(boardId: string, userId: string): Promise<boolean> {
   const board = await prisma.board.findUnique({

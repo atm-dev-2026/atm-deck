@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { messageInclude, serializeMessage } from "@/lib/chat";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ messageId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
@@ -22,7 +22,7 @@ export async function PATCH(
   if (!existing) {
     return NextResponse.json({ error: "ไม่พบข้อความนี้" }, { status: 404 });
   }
-  if (existing.userId !== session.user.id) {
+  if (existing.userId !== user.id) {
     return NextResponse.json({ error: "ไม่มีสิทธิ์ทำรายการนี้" }, { status: 403 });
   }
 
@@ -32,15 +32,15 @@ export async function PATCH(
     include: messageInclude,
   });
 
-  return NextResponse.json(serializeMessage(message, session.user.id));
+  return NextResponse.json(serializeMessage(message, user.id));
 }
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ messageId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
@@ -50,7 +50,7 @@ export async function DELETE(
   if (!existing) {
     return NextResponse.json({ error: "ไม่พบข้อความนี้" }, { status: 404 });
   }
-  if (existing.userId !== session.user.id) {
+  if (existing.userId !== user.id) {
     return NextResponse.json({ error: "ไม่มีสิทธิ์ทำรายการนี้" }, { status: 403 });
   }
 

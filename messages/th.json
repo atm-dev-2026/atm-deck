@@ -21,7 +21,9 @@
       "boards": "บอร์ด",
       "myTasks": "งาน",
       "chat": "แชท",
-      "admin": "แอดมิน"
+      "members": "ผู้ใช้",
+      "membersTitle": "จัดการผู้ใช้",
+      "settings": "ตั้งค่า"
     },
     "appDescription": "บอร์ดงานภายในของ ATM Holding",
     "userMenu": {
@@ -60,16 +62,62 @@
     "signOut": "ออกจากระบบ",
     "signingOut": "กำลังออกจากระบบ…"
   },
-  "Admin": {
-    "roleManagement": "จัดการสิทธิ์",
-    "roleManagementHint": "ให้หรือเพิกถอนสิทธิ์แอดมิน แอดมินจัดการบอร์ดและแผนกทั้งหมดได้โดยไม่ขึ้นกับการเป็นสมาชิก",
+  "Members": {
+    "title": "จัดการผู้ใช้",
+    "hint": "ทุกคนต้องมีบทบาทจึงจะใช้ ATM Deck ได้ ผู้ใช้ที่ยังไม่มีบทบาทจะถูกบล็อกจนกว่าจะได้รับบทบาทหรือกดรับลิงก์เชิญ",
+    "inviteHeading": "ลิงก์เชิญ",
+    "inviteHint": "เลือกบทบาทก่อนแล้วจึงสร้างลิงก์ ลิงก์ใช้ได้ 10 นาทีและรับได้เพียงคนเดียว",
+    "selectRole": "เลือกบทบาท…",
+    "generateLink": "สร้างลิงก์",
+    "generating": "กำลังสร้าง…",
+    "copy": "คัดลอก",
+    "copied": "คัดลอกลิงก์แล้ว",
+    "copyFailed": "คัดลอกไม่สำเร็จ — เลือกลิงก์แล้วคัดลอกเอง",
+    "expiresIn": "หมดอายุใน {time}",
+    "linkExpired": "ลิงก์นี้หมดอายุแล้ว — สร้างลิงก์ใหม่",
+    "newRolePlaceholder": "ชื่อบทบาทใหม่",
+    "addRole": "เพิ่มบทบาท",
+    "roleCreated": "สร้างบทบาทแล้ว",
+    "membersHeading": "สมาชิก",
+    "noRole": "ไม่มีบทบาท",
+    "assignRole": "กำหนดบทบาท…",
+    "deptManager": "หัวหน้า",
+    "deptMember": "สมาชิก",
+    "globalAdmin": "แอดมิน",
+    "globalUser": "ผู้ใช้",
+    "you": "คุณ",
+    "removeAccess": "เพิกถอนสิทธิ์",
+    "removeAccessTitle": "เพิกถอนสิทธิ์ของ {name}?",
+    "removeAccessDescription": "ผู้ใช้นี้จะเข้า ATM Deck ไม่ได้จนกว่าจะได้รับบทบาทอีกครั้ง",
+    "accessRemoved": "เพิกถอนสิทธิ์แล้ว",
     "roleUpdated": "อัปเดตบทบาทแล้ว",
     "roleUpdateFailed": "อัปเดตบทบาทไม่สำเร็จ",
-    "you": "คุณ",
-    "adminYou": "แอดมิน (คุณ)",
-    "roleUser": "ผู้ใช้",
-    "roleAdmin": "แอดมิน",
-    "noUsers": "ไม่พบผู้ใช้"
+    "noUsers": "ไม่พบผู้ใช้",
+    "historyHeading": "ประวัติลิงก์เชิญ",
+    "historyEmpty": "ยังไม่มีลิงก์เชิญ",
+    "statusActive": "ใช้งานได้",
+    "statusExpired": "หมดอายุ",
+    "statusAccepted": "{name} รับแล้ว",
+    "generatedBy": "สร้างโดย {name}"
+  },
+  "Invite": {
+    "heading": "คุณได้รับเชิญเข้าร่วม ATM Deck",
+    "body": "{inviter} เชิญคุณเข้าร่วมในบทบาท {role}",
+    "expiresAt": "ลิงก์นี้หมดอายุเวลา {time}",
+    "accept": "รับคำเชิญ",
+    "accepting": "กำลังเข้าร่วม…",
+    "notFound": "ลิงก์เชิญนี้ไม่ถูกต้อง",
+    "expired": "ลิงก์เชิญนี้หมดอายุแล้ว ขอลิงก์ใหม่",
+    "used": "ลิงก์เชิญนี้ถูกใช้ไปแล้ว ขอลิงก์ใหม่",
+    "alreadyMember": "บัญชีนี้มีบทบาทอยู่แล้ว จึงใช้ลิงก์เชิญนี้ไม่ได้",
+    "goHome": "ไปที่ ATM Deck",
+    "signedInAs": "เข้าสู่ระบบเป็น {email}"
+  },
+  "NoAccess": {
+    "heading": "รอการอนุมัติสิทธิ์",
+    "body": "บัญชีของคุณ ({email}) ยังไม่มีบทบาท ขอลิงก์เชิญจากฝ่าย HR หรือ IT เพื่อเข้าร่วม ATM Deck",
+    "signOut": "ออกจากระบบ",
+    "signingOut": "กำลังออกจากระบบ…"
   },
   "Boards": {
     "list": {

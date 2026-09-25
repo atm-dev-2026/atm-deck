@@ -13,8 +13,13 @@ import type {
 const createdUserIds: string[] = [];
 const createdBoardIds: string[] = [];
 const createdDepartmentIds: string[] = [];
+// Role-less users are locked out of the app, so fixture users get this
+// (otherwise unused) department as their role unless a test opts out.
+let defaultRoleDepartmentId: string | null = null;
 
-export async function createUser(overrides: { globalRole?: GlobalRole; name?: string } = {}) {
+export async function createUser(
+  overrides: { globalRole?: GlobalRole; name?: string; withRole?: boolean } = {},
+) {
   const user = await prisma.user.create({
     data: {
       email: `rbac-test-${randomUUID()}@example.test`,
@@ -23,12 +28,16 @@ export async function createUser(overrides: { globalRole?: GlobalRole; name?: st
     },
   });
   createdUserIds.push(user.id);
+  if (overrides.withRole ?? true) {
+    defaultRoleDepartmentId ??= (await createDepartment("RBAC Test Role")).id;
+    await addDepartmentMember(defaultRoleDepartmentId, user.id);
+  }
   return user;
 }
 
-export async function createDepartment(name?: string) {
+export async function createDepartment(name?: string, options: { canManageUsers?: boolean } = {}) {
   const department = await prisma.department.create({
-    data: { name: name ?? `RBAC Test Dept ${randomUUID()}` },
+    data: { name: name ?? `RBAC Test Dept ${randomUUID()}`, canManageUsers: options.canManageUsers ?? false },
   });
   createdDepartmentIds.push(department.id);
   return department;
@@ -168,7 +177,10 @@ export async function callRoute<P extends RouteParams = RouteParams>(
   return response;
 }
 
-/** Deletes only fixture rows created via the helpers above, in FK-safe order. */
+/**
+ * Deletes only fixture rows created via the helpers above, in FK-safe order.
+ * AppInvites cascade with their department and creator.
+ */
 export async function cleanupFixtures() {
   if (createdBoardIds.length > 0) {
     await prisma.board.deleteMany({ where: { id: { in: createdBoardIds } } });
@@ -177,6 +189,7 @@ export async function cleanupFixtures() {
   if (createdDepartmentIds.length > 0) {
     await prisma.department.deleteMany({ where: { id: { in: createdDepartmentIds } } });
     createdDepartmentIds.length = 0;
+    defaultRoleDepartmentId = null;
   }
   if (createdUserIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });

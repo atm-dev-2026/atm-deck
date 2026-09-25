@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
   const [joined, all] = await Promise.all([
     prisma.channel.findMany({
-      where: { isDirect: false, members: { some: { userId: session.user.id } } },
+      where: { isDirect: false, members: { some: { userId: user.id } } },
       orderBy: { name: "asc" },
     }),
     prisma.channel.findMany({
@@ -26,8 +26,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     data: {
       name,
       topic: topic || null,
-      createdById: session.user.id,
-      members: { create: [{ userId: session.user.id }] },
+      createdById: user.id,
+      members: { create: [{ userId: user.id }] },
     },
   });
 

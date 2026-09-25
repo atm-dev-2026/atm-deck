@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ channelId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
@@ -19,8 +19,8 @@ export async function POST(
   }
 
   await prisma.channelMember.upsert({
-    where: { channelId_userId: { channelId, userId: session.user.id } },
-    create: { channelId, userId: session.user.id },
+    where: { channelId_userId: { channelId, userId: user.id } },
+    create: { channelId, userId: user.id },
     update: {},
   });
 

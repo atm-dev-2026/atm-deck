@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, Users } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { SubmitButton } from "./SubmitButton";
 
@@ -13,16 +13,29 @@ export function UserMenu({
   image,
   signOutAction,
   placement = "right",
+  canManageUsers = false,
 }: {
   name: string | null;
   email: string | null;
   image: string | null;
   signOutAction: () => Promise<void>;
   placement?: "right" | "top";
+  canManageUsers?: boolean;
 }) {
   const t = useTranslations("Shell.userMenu");
+  const tNav = useTranslations("Shell.nav");
   const [open, setOpen] = useState(false);
   const label = name ?? email ?? "?";
+
+  // On desktop these live in the rail's SidebarActions group; the mobile
+  // bottom bar has no room for it, so they stay in this popover there.
+  const links =
+    placement === "top"
+      ? [
+          ...(canManageUsers ? [{ href: "/member", label: tNav("membersTitle"), icon: Users }] : []),
+          { href: "/settings", label: t("settings"), icon: Settings },
+        ]
+      : [];
 
   return (
     <div className={placement === "right" ? "relative" : "relative flex flex-1"}>
@@ -50,18 +63,21 @@ export function UserMenu({
                 : "glass-strong fixed bottom-16 right-3 z-20 w-52 max-w-[calc(100vw-1.5rem)] rounded-lg p-1"
             }
           >
-            <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+            <div className="mb-1 border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
               <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{name ?? t("signedIn")}</p>
               {email && <p className="truncate text-xs text-zinc-500">{email}</p>}
             </div>
-            <Link
-              href="/settings"
-              onClick={() => setOpen(false)}
-              className="mt-1 flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            >
-              <Settings size={14} />
-              {t("settings")}
-            </Link>
+            {links.map(({ href, label: linkLabel, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              >
+                <Icon size={14} />
+                {linkLabel}
+              </Link>
+            ))}
             <form action={signOutAction}>
               <SubmitButton
                 pendingLabel={t("signingOut")}

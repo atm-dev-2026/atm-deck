@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { messageInclude, serializeMessage } from "@/lib/chat";
 
 export const dynamic = "force-dynamic";
@@ -30,11 +30,11 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ channelId: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getCurrentUser();
+  if (!user) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
   const { channelId } = await params;
 
   const membership = await prisma.channelMember.findUnique({
