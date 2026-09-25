@@ -64,6 +64,8 @@ export function ActivityFeedItem({ entry }: { entry: ActivityEntryT }) {
         return value === "CAN_EDIT" ? tMembers("canEdit") : tMembers("readOnly");
       case "dueDate":
         return formatDueDateLogValue(value, locale);
+      case "isDone":
+        return value === "true" ? t("yes") : t("no");
       case "description":
         return truncate(value, DESCRIPTION_PREVIEW_LENGTH);
       default:

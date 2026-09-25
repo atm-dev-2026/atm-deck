@@ -44,7 +44,7 @@ async function main() {
   const defaultColumns = [
     { name: "To Do", order: 0 },
     { name: "In Progress", order: 1 },
-    { name: "Done", order: 2 },
+    { name: "Done", order: 2, isDone: true },
   ];
 
   const existingGlobal = await prisma.board.findFirst({ where: { name: "Seed: Global Board" } });

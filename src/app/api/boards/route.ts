@@ -49,7 +49,7 @@ export async function POST(request: Request) {
           create: [
             { name: "To Do", order: 0 },
             { name: "In Progress", order: 1 },
-            { name: "Done", order: 2 },
+            { name: "Done", order: 2, isDone: true },
           ],
         },
       },

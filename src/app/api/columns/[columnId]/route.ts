@@ -20,20 +20,31 @@ export async function PATCH(
 
   const data = await request.json();
 
+  if (data.isDone !== undefined && typeof data.isDone !== "boolean") {
+    return NextResponse.json({ error: "isDone ต้องเป็น true หรือ false" }, { status: 400 });
+  }
+
   try {
-    const before = await prisma.column.findUnique({ where: { id: columnId }, select: { name: true } });
+    const before = await prisma.column.findUnique({
+      where: { id: columnId },
+      select: { name: true, isDone: true },
+    });
 
     const column = await prisma.column.update({
       where: { id: columnId },
       data: {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.order !== undefined && { order: data.order }),
+        ...(data.isDone !== undefined && { isDone: data.isDone }),
       },
     });
 
-    if (before && data.name !== undefined) {
-      const change = buildChange("name", before.name, column.name);
-      if (change) {
+    if (before) {
+      const changes = [
+        data.name !== undefined ? buildChange("name", before.name, column.name) : null,
+        data.isDone !== undefined ? buildChange("isDone", String(before.isDone), String(column.isDone)) : null,
+      ].filter((c) => c !== null);
+      if (changes.length > 0) {
         await logActivity({
           boardId,
           entityType: "COLUMN",
@@ -41,7 +52,7 @@ export async function PATCH(
           entityName: column.name,
           action: "UPDATED",
           actor: gate.user,
-          changes: [change],
+          changes,
         });
       }
     }

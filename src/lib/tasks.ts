@@ -23,6 +23,7 @@ export function getMyTasks(user: CurrentUser) {
         select: {
           id: true,
           name: true,
+          isDone: true,
           board: { select: { id: true, name: true, visibilityType: true } },
         },
       },

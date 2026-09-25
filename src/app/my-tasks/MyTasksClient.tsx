@@ -24,6 +24,7 @@ export type MyTask = {
   column: {
     id: string;
     name: string;
+    isDone: boolean;
     board: { id: string; name: string; visibilityType: BoardVisibility };
   };
 };
@@ -93,7 +94,7 @@ export default function MyTasksClient({ tasks }: { tasks: MyTask[] }) {
 
                 {(task.dueDate || task.checklist.length > 0 || task.attachments.length > 0) && (
                   <div className="flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 dark:text-zinc-400">
-                    {task.dueDate && <DueDateBadge dueDate={task.dueDate} hasTime={task.dueDateHasTime} />}
+                    {task.dueDate && <DueDateBadge dueDate={task.dueDate} hasTime={task.dueDateHasTime} done={task.column.isDone} />}
                     {task.checklist.length > 0 && (
                       <span className="flex items-center gap-1">
                         <ListChecks size={11} />

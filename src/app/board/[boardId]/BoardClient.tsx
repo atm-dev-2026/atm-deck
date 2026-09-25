@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, CircleCheck, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { DueDateBadge } from "@/components/DueDateBadge";
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
@@ -25,6 +25,7 @@ type Column = {
   id: string;
   name: string;
   order: number;
+  isDone: boolean;
   tasks: TaskT[];
 };
 
@@ -273,7 +274,7 @@ export default function BoardClient({
     setSubmittingColumn(true);
 
     const tempId = `temp-${Math.random().toString(36).slice(2)}`;
-    const tempColumn: Column = { id: tempId, name, order: board?.columns.length ?? 0, tasks: [] };
+    const tempColumn: Column = { id: tempId, name, order: board?.columns.length ?? 0, isDone: false, tasks: [] };
     setBoard((prev) => (prev ? { ...prev, columns: [...prev.columns, tempColumn] } : prev));
 
     try {
@@ -307,6 +308,23 @@ export default function BoardClient({
     }
     setDeleteItemError(null);
     setPendingDelete({ type: "task", task });
+  };
+
+  const toggleColumnDone = async (column: Column) => {
+    const isDone = !column.isDone;
+    const setDone = (value: boolean) =>
+      updateColumns((cols) => cols.map((c) => (c.id === column.id ? { ...c, isDone: value } : c)));
+    setDone(isDone);
+    const res = await fetch(`/api/columns/${column.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isDone }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setDone(column.isDone);
+      toast.error(data?.error ?? t("saveFailed"));
+    }
   };
 
   const requestDeleteColumn = (column: Column) => {
@@ -808,6 +826,27 @@ export default function BoardClient({
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">{column.name}</h2>
+                {board.access.canEdit && !columnPending ? (
+                  <button
+                    onClick={() => toggleColumnDone(column)}
+                    className={`rounded p-0.5 transition-colors ${
+                      column.isDone
+                        ? "text-emerald-500 hover:bg-emerald-500/10"
+                        : "text-zinc-300 hover:bg-zinc-900/10 hover:text-emerald-500 dark:text-zinc-600 dark:hover:bg-white/10"
+                    }`}
+                    aria-label={column.isDone ? t("unmarkDoneColumn") : t("markDoneColumn")}
+                    aria-pressed={column.isDone}
+                    title={column.isDone ? t("unmarkDoneColumn") : t("markDoneColumn")}
+                  >
+                    <CircleCheck size={13} />
+                  </button>
+                ) : (
+                  column.isDone && (
+                    <span title={t("doneColumn")} className="text-emerald-500">
+                      <CircleCheck size={13} />
+                    </span>
+                  )
+                )}
                 {columnPending ? (
                   <Spinner size={11} />
                 ) : (
@@ -844,6 +883,7 @@ export default function BoardClient({
                   )}
                   <TaskCard
                     task={task}
+                    done={column.isDone}
                     showCreator={showCreator}
                     dragging={draggingId === task.id}
                     onDragStart={() => setDraggingId(task.id)}
@@ -1001,6 +1041,7 @@ export default function BoardClient({
 
 function TaskCard({
   task,
+  done,
   showCreator,
   dragging,
   onDragStart,
@@ -1011,6 +1052,7 @@ function TaskCard({
   onDelete,
 }: {
   task: TaskT;
+  done: boolean;
   showCreator: boolean;
   dragging: boolean;
   onDragStart: () => void;
@@ -1094,7 +1136,7 @@ function TaskCard({
               {task.assignee.name ?? task.assignee.email}
             </span>
           )}
-          {task.dueDate && <DueDateBadge dueDate={task.dueDate} hasTime={task.dueDateHasTime} />}
+          {task.dueDate && <DueDateBadge dueDate={task.dueDate} hasTime={task.dueDateHasTime} done={done} />}
           {task.checklist.length > 0 && (
             <span className="flex items-center gap-1">
               <ListChecks size={11} />

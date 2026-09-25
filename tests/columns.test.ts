@@ -123,6 +123,47 @@ describe("Column management", () => {
       expect(data.name).toBe("Renamed");
     });
 
+    it("a CAN_EDIT invitee marks and unmarks a done column", async () => {
+      const column = await createColumn(board.id);
+      mockSessionAs(editUser.id);
+      const marked = await callRoute(patchColumn, {
+        method: "PATCH",
+        params: { columnId: column.id },
+        body: { isDone: true },
+      });
+      expect(marked.status).toBe(200);
+      expect((await marked.json()).isDone).toBe(true);
+
+      const unmarked = await callRoute(patchColumn, {
+        method: "PATCH",
+        params: { columnId: column.id },
+        body: { isDone: false },
+      });
+      expect((await unmarked.json()).isDone).toBe(false);
+    });
+
+    it("a READ_ONLY invitee cannot mark a done column", async () => {
+      const column = await createColumn(board.id);
+      mockSessionAs(viewerUser.id);
+      const res = await callRoute(patchColumn, {
+        method: "PATCH",
+        params: { columnId: column.id },
+        body: { isDone: true },
+      });
+      expect(res.status).toBe(403);
+    });
+
+    it("rejects a non-boolean isDone", async () => {
+      const column = await createColumn(board.id);
+      mockSessionAs(owner.id);
+      const res = await callRoute(patchColumn, {
+        method: "PATCH",
+        params: { columnId: column.id },
+        body: { isDone: "yes" },
+      });
+      expect(res.status).toBe(400);
+    });
+
     it("a READ_ONLY invitee cannot rename a column", async () => {
       const column = await createColumn(board.id);
       mockSessionAs(viewerUser.id);

@@ -91,6 +91,8 @@ model Column {
   id        String    @id @default(cuid())
   name      String
   order     Int
+  // Tasks here count as finished: their due dates never show as overdue.
+  isDone    Boolean   @default(false)
   boardId   String
   deletedAt DateTime?
 
