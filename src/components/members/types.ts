@@ -10,7 +10,7 @@ export type MemberRow = {
   image: string | null;
   globalRole: GlobalRole;
   /** The user's single role; null = blocked until assigned one. */
-  membership: { departmentId: string; role: DepartmentRole } | null;
+  membership: { departmentId: string; role: DepartmentRole; joinedAt: string } | null;
 };
 
 type InvitePerson = { id: string; name: string | null; email: string | null };

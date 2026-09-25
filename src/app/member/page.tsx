@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation";
-import { Users } from "lucide-react";
-import { getTranslations } from "next-intl/server";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 import { inviteStatus } from "@/lib/roles";
@@ -25,7 +23,7 @@ export default async function MemberPage() {
         departmentMemberships: {
           orderBy: { joinedAt: "desc" },
           take: 1,
-          select: { departmentId: true, role: true },
+          select: { departmentId: true, role: true, joinedAt: true },
         },
       },
     }),
@@ -47,35 +45,27 @@ export default async function MemberPage() {
       },
     }),
   ]);
-  const t = await getTranslations("Members");
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <div className="glass relative z-10 rounded-none border-x-0 border-t-0 px-5 py-3">
-        <h1 className="flex items-center gap-1.5 font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">
-          <Users size={16} />
-          {t("title")}
-        </h1>
-      </div>
-
-      <div className="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
-        <p className="text-xs text-zinc-500">{t("hint")}</p>
-        <MemberManagementPanel
-          currentUser={{ id: user.id, isAdmin: user.globalRole === "ADMIN" }}
-          initialDepartments={departments}
-          initialUsers={users.map(({ departmentMemberships, ...u }) => ({
+      <MemberManagementPanel
+        currentUser={{ id: user.id, isAdmin: user.globalRole === "ADMIN" }}
+        initialDepartments={departments}
+        initialUsers={users.map(({ departmentMemberships, ...u }) => {
+          const membership = departmentMemberships[0];
+          return {
             ...u,
-            membership: departmentMemberships[0] ?? null,
-          }))}
-          initialInvites={invites.map((invite) => ({
-            ...invite,
-            createdAt: invite.createdAt.toISOString(),
-            expiresAt: invite.expiresAt.toISOString(),
-            acceptedAt: invite.acceptedAt?.toISOString() ?? null,
-            status: inviteStatus(invite),
-          }))}
-        />
-      </div>
+            membership: membership ? { ...membership, joinedAt: membership.joinedAt.toISOString() } : null,
+          };
+        })}
+        initialInvites={invites.map((invite) => ({
+          ...invite,
+          createdAt: invite.createdAt.toISOString(),
+          expiresAt: invite.expiresAt.toISOString(),
+          acceptedAt: invite.acceptedAt?.toISOString() ?? null,
+          status: inviteStatus(invite),
+        }))}
+      />
     </div>
   );
 }

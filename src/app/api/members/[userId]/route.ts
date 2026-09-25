@@ -48,7 +48,11 @@ export async function PATCH(
       return NextResponse.json({ error: "ไม่พบบทบาทนี้" }, { status: 404 });
     }
     const membership = await prisma.$transaction((tx) => assignRole(tx, userId, departmentId, departmentRole));
-    return NextResponse.json({ departmentId: membership.departmentId, role: membership.role });
+    return NextResponse.json({
+      departmentId: membership.departmentId,
+      role: membership.role,
+      joinedAt: membership.joinedAt,
+    });
   } catch (error) {
     return handleRouteError(error);
   }
