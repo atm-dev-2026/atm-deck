@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { signIn } from "../../../auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function LoginPage({
@@ -7,6 +9,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
+  if (await getCurrentUser()) redirect("/");
+
   const { callbackUrl } = await searchParams;
   const t = await getTranslations("Login");
 

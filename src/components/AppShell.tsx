@@ -1,18 +1,14 @@
 import Link from "next/link";
-import { auth, signOut } from "../../auth";
-import { prisma } from "@/lib/prisma";
+import { signOut } from "../../auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { NavRail } from "./NavRail";
 import { UserMenu } from "./UserMenu";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (!session?.user) return <>{children}</>;
+  const user = await getCurrentUser();
+  if (!user) return <>{children}</>;
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { globalRole: true },
-  });
-  const isAdmin = dbUser?.globalRole === "ADMIN";
+  const isAdmin = user.globalRole === "ADMIN";
 
   const signOutAction = async () => {
     "use server";
@@ -37,9 +33,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <div className="h-px w-8 bg-zinc-900/10 dark:bg-white/10" />
 
         <UserMenu
-          name={session.user.name ?? null}
-          email={session.user.email ?? null}
-          image={session.user.image ?? null}
+          name={user.name}
+          email={user.email}
+          image={user.image}
           signOutAction={signOutAction}
         />
       </aside>
@@ -49,9 +45,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <div className="glass relative z-20 flex shrink-0 items-stretch py-1 sm:hidden">
         <NavRail variant="bottom" isAdmin={isAdmin} />
         <UserMenu
-          name={session.user.name ?? null}
-          email={session.user.email ?? null}
-          image={session.user.image ?? null}
+          name={user.name}
+          email={user.email}
+          image={user.image}
           signOutAction={signOutAction}
           placement="top"
         />

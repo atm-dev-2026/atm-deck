@@ -1,14 +1,16 @@
 import { LogOut, Languages, Palette, User } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { auth, signOut } from "../../../auth";
+import { redirect } from "next/navigation";
+import { signOut } from "../../../auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { Avatar } from "@/components/Avatar";
 import { ThemeSettings } from "@/components/ThemeSettings";
 import { LocaleSettings } from "@/components/LocaleSettings";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function SettingsPage() {
-  const session = await auth();
-  if (!session?.user) return null;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
   const t = await getTranslations("Settings");
 
   const signOutAction = async () => {
@@ -52,15 +54,15 @@ export default async function SettingsPage() {
           </h2>
           <div className="glass mt-3 flex items-center gap-3 rounded-lg p-3">
             <Avatar
-              label={session.user.name ?? session.user.email ?? "?"}
-              image={session.user.image}
+              label={user.name ?? user.email ?? "?"}
+              image={user.image}
               size="lg"
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                {session.user.name ?? "—"}
+                {user.name ?? "—"}
               </p>
-              <p className="truncate text-xs text-zinc-500">{session.user.email}</p>
+              <p className="truncate text-xs text-zinc-500">{user.email}</p>
             </div>
           </div>
           <p className="mt-2 text-xs text-zinc-400">

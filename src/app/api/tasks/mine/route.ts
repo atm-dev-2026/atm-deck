@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
-import { boardListWhereClause } from "@/lib/permissions";
+import { getMyTasks } from "@/lib/tasks";
 import { handleRouteError } from "@/lib/apiError";
 
 export async function GET() {
@@ -11,29 +10,7 @@ export async function GET() {
   }
 
   try {
-    const tasks = await prisma.task.findMany({
-      where: {
-        assigneeId: user.id,
-        deletedAt: null,
-        column: { deletedAt: null, board: boardListWhereClause(user) },
-      },
-      orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }, { priority: "desc" }, { createdAt: "asc" }],
-      include: {
-        labels: { where: { deletedAt: null } },
-        checklist: { where: { deletedAt: null }, select: { id: true, done: true } },
-        attachments: { where: { deletedAt: null }, select: { id: true } },
-        createdBy: { select: { id: true, name: true, email: true, image: true } },
-        column: {
-          select: {
-            id: true,
-            name: true,
-            board: { select: { id: true, name: true, visibilityType: true } },
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(tasks);
+    return NextResponse.json(await getMyTasks(user));
   } catch (error) {
     return handleRouteError(error);
   }
