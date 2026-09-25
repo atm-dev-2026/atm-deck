@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Calendar, ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ChevronLeft, ListChecks, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { DueDateBadge } from "@/components/DueDateBadge";
 import { priorityConfig } from "@/components/priority";
 import { LabelChip } from "@/components/LabelChip";
 import { Spinner } from "@/components/Spinner";
@@ -1022,7 +1023,6 @@ function TaskCard({
   const priority = priorityConfig(task.priority);
   const PriorityIcon = priority.icon;
   const doneCount = task.checklist.filter((c) => c.done).length;
-  const overdue = task.dueDate ? new Date(task.dueDate) < new Date(new Date().toDateString()) : false;
   const pending = task.id.startsWith("temp-");
 
   return (
@@ -1093,12 +1093,7 @@ function TaskCard({
               {task.assignee.name ?? task.assignee.email}
             </span>
           )}
-          {task.dueDate && (
-            <span className={`flex items-center gap-1 ${overdue ? "text-red-500" : ""}`}>
-              <Calendar size={11} />
-              {new Date(task.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-            </span>
-          )}
+          {task.dueDate && <DueDateBadge dueDate={task.dueDate} />}
           {task.checklist.length > 0 && (
             <span className="flex items-center gap-1">
               <ListChecks size={11} />

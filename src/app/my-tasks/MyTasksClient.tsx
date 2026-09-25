@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Calendar, ListChecks, ListTodo, Paperclip } from "lucide-react";
+import { ListChecks, ListTodo, Paperclip } from "lucide-react";
+import { DueDateBadge } from "@/components/DueDateBadge";
 import { LabelChip } from "@/components/LabelChip";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import { priorityConfig } from "@/components/priority";
@@ -52,9 +53,6 @@ export default function MyTasksClient({ tasks }: { tasks: MyTask[] }) {
             const priority = priorityConfig(task.priority);
             const PriorityIcon = priority.icon;
             const doneCount = task.checklist.filter((c) => c.done).length;
-            const overdue = task.dueDate
-              ? new Date(task.dueDate) < new Date(new Date().toDateString())
-              : false;
 
             return (
               <Link
@@ -94,15 +92,7 @@ export default function MyTasksClient({ tasks }: { tasks: MyTask[] }) {
 
                 {(task.dueDate || task.checklist.length > 0 || task.attachments.length > 0) && (
                   <div className="flex flex-wrap items-center gap-2.5 text-xs text-zinc-500 dark:text-zinc-400">
-                    {task.dueDate && (
-                      <span className={`flex items-center gap-1 ${overdue ? "text-red-500" : ""}`}>
-                        <Calendar size={11} />
-                        {new Date(task.dueDate).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    )}
+                    {task.dueDate && <DueDateBadge dueDate={task.dueDate} />}
                     {task.checklist.length > 0 && (
                       <span className="flex items-center gap-1">
                         <ListChecks size={11} />
