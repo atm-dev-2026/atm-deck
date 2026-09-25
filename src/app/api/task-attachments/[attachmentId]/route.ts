@@ -36,6 +36,13 @@ export async function GET(
     { expiresIn: 60 },
   );
 
+  console.log("Task attachment downloaded", {
+    attachmentId,
+    fileName: attachment.fileName,
+    boardId,
+    userId: gate.user.id,
+  });
+
   return NextResponse.redirect(url);
 }
 

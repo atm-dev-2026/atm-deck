@@ -44,5 +44,12 @@ export async function GET(
     { expiresIn: 60 },
   );
 
+  console.log("Attachment downloaded", {
+    attachmentId,
+    fileName: attachment.fileName,
+    channelId: attachment.message.channelId,
+    userId,
+  });
+
   return NextResponse.redirect(url);
 }
