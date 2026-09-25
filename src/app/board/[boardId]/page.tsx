@@ -12,6 +12,7 @@ import { Avatar } from "@/components/Avatar";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMembersPanel";
 import { BoardActivityPanel } from "@/components/BoardActivityPanel";
+import { BoardSkeleton } from "@/components/skeletons/BoardSkeleton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import type { LabelColor } from "@/components/labelColors";
@@ -675,11 +676,7 @@ export default function BoardPage({
   };
 
   if (!board) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-zinc-500">{t("loading")}</p>
-      </div>
-    );
+    return <BoardSkeleton />;
   }
 
   const columns = [...board.columns].sort((a, b) => a.order - b.order);

@@ -9,6 +9,7 @@ import { MessageItem } from "../MessageItem";
 import { PendingAttachmentList } from "../AttachmentView";
 import { useAttachmentUpload } from "../useAttachmentUpload";
 import { ThreadPanel } from "./ThreadPanel";
+import { ChatMessagesSkeleton } from "@/components/skeletons/ChatMessagesSkeleton";
 import { ChatMessage, ChatUser } from "../types";
 import { Spinner } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -233,11 +234,9 @@ function ChannelView({ channelId }: { channelId: string }) {
 
   if (!channel) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col" role="status" aria-label={t("loading")}>
         <MobileChatHeader onMenuClick={toggleSidebar} />
-        <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-          {t("loading")}
-        </div>
+        <ChatMessagesSkeleton />
       </div>
     );
   }

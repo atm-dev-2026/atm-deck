@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { History, X } from "lucide-react";
 import { Spinner } from "./Spinner";
 import { ActivityFeedItem, type ActivityEntryT } from "./ActivityFeedItem";
+import { ActivityFeedSkeleton } from "./skeletons/ActivityFeedSkeleton";
 
 type ActivityPage = { items: ActivityEntryT[]; nextCursor: string | null };
 
@@ -77,9 +78,8 @@ export function BoardActivityPanel({ boardId }: { boardId: string }) {
 
             <div className="flex-1 overflow-y-auto px-4 py-4">
               {items === null ? (
-                <div className="flex items-center gap-2 text-xs text-zinc-400">
-                  <Spinner size={13} />
-                  {t("loading")}
+                <div role="status" aria-label={t("loading")}>
+                  <ActivityFeedSkeleton />
                 </div>
               ) : items.length === 0 ? (
                 <p className="text-xs text-zinc-400">{t("empty")}</p>

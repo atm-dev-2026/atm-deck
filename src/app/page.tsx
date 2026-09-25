@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import { Skeleton } from "@/components/Skeleton";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
@@ -236,50 +237,68 @@ export default function Home() {
           />
         </div>
 
-        {loading && <p className="px-1 text-sm text-zinc-500">{t("loading")}</p>}
-
-        {!loading && filtered.length === 0 && (
-          <div className="glass flex flex-col items-center justify-center gap-2 rounded-lg py-16 text-center">
-            <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
-            <p className="text-sm text-zinc-500">
-              {boards.length === 0 ? t("emptyDefault") : t("emptyFiltered")}
-            </p>
-          </div>
-        )}
-
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((board) => (
-            <Link
-              key={board.id}
-              href={`/board/${board.id}`}
-              className="glass group flex items-center justify-between rounded-lg px-4 py-3.5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-glow"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">
-                  <SquareKanban size={16} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
-                    <VisibilityBadge visibilityType={board.visibilityType} />
-                  </div>
-                  <p className="text-xs text-zinc-500">
-                    {t("columnsAndTasks", { columns: board.columnCount, tasks: board.taskCount })}
-                  </p>
+        {loading ? (
+          <div
+            role="status"
+            aria-label={t("loading")}
+            className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="glass flex items-center gap-3 rounded-lg px-4 py-3.5">
+                <Skeleton className="h-9 w-9 shrink-0 rounded-md bg-zinc-900/10 dark:bg-white/10" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3.5 w-2/3 rounded bg-zinc-900/10 dark:bg-white/10" />
+                  <Skeleton className="h-2.5 w-1/3 rounded bg-zinc-900/5 dark:bg-white/5" />
                 </div>
               </div>
-              {board.access.canDelete && (
-                <button
-                  onClick={(e) => requestDeleteBoard(e, board)}
-                  className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
-                  aria-label={t("deleteBoardAria")}
+            ))}
+          </div>
+        ) : (
+          <>
+            {filtered.length === 0 && (
+              <div className="glass flex flex-col items-center justify-center gap-2 rounded-lg py-16 text-center">
+                <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
+                <p className="text-sm text-zinc-500">
+                  {boards.length === 0 ? t("emptyDefault") : t("emptyFiltered")}
+                </p>
+              </div>
+            )}
+
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((board) => (
+                <Link
+                  key={board.id}
+                  href={`/board/${board.id}`}
+                  className="glass group flex items-center justify-between rounded-lg px-4 py-3.5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-glow"
                 >
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </Link>
-          ))}
-        </div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">
+                      <SquareKanban size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
+                        <VisibilityBadge visibilityType={board.visibilityType} />
+                      </div>
+                      <p className="text-xs text-zinc-500">
+                        {t("columnsAndTasks", { columns: board.columnCount, tasks: board.taskCount })}
+                      </p>
+                    </div>
+                  </div>
+                  {board.access.canDelete && (
+                    <button
+                      onClick={(e) => requestDeleteBoard(e, board)}
+                      className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
+                      aria-label={t("deleteBoardAria")}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <ConfirmDialog

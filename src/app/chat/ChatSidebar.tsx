@@ -8,6 +8,7 @@ import { Compass, Plus } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
+import { ChannelListSkeleton, DmListSkeleton } from "@/components/skeletons/ListRowSkeleton";
 
 type Channel = {
   id: string;
@@ -197,9 +198,9 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         )}
 
         {loading ? (
-          <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
-            <Spinner size={11} /> {t("loadingChannels")}
-          </p>
+          <div role="status" aria-label={t("loadingChannels")}>
+            <ChannelListSkeleton />
+          </div>
         ) : (
           <nav className="flex flex-col gap-0.5">
             {joined.map((c) => (
@@ -246,9 +247,9 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
         )}
 
         {loading ? (
-          <p className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-400">
-            <Spinner size={11} /> {t("loadingMessages")}
-          </p>
+          <div role="status" aria-label={t("loadingMessages")}>
+            <DmListSkeleton />
+          </div>
         ) : (
           <nav className="flex flex-col gap-0.5">
             {dms.map((dm) => {

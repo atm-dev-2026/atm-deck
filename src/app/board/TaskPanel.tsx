@@ -9,6 +9,7 @@ import { LabelChip } from "@/components/LabelChip";
 import { AssigneePicker } from "@/components/AssigneePicker";
 import { Spinner } from "@/components/Spinner";
 import { ActivityFeedItem, type ActivityEntryT } from "@/components/ActivityFeedItem";
+import { ActivityFeedSkeleton } from "@/components/skeletons/ActivityFeedSkeleton";
 import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
 
@@ -444,9 +445,8 @@ export function TaskPanel({
             </div>
 
             {activityLoading || activity === null ? (
-              <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
-                <Spinner size={13} />
-                {tActivity("loading")}
+              <div className="mt-2" role="status" aria-label={tActivity("loading")}>
+                <ActivityFeedSkeleton rows={3} />
               </div>
             ) : activity.length === 0 ? (
               <p className="mt-2 text-xs text-zinc-400">{tActivity("empty")}</p>
