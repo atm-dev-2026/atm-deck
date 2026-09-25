@@ -37,6 +37,13 @@
       "light": "สว่าง",
       "dark": "มืด",
       "system": "ตามระบบ"
+    },
+    "godMode": {
+      "label": "God mode",
+      "onHint": "เข้าถึงทุกบอร์ดได้เต็มสิทธิ์",
+      "offHint": "เปิดเพื่อใช้สิทธิ์เต็มทุกบอร์ด",
+      "turnedOn": "เปิดโหมด God แล้ว — การเปิด/ปิดถูกบันทึกไว้",
+      "turnedOff": "ปิดโหมด God แล้ว"
     }
   },
   "Login": {
@@ -79,7 +86,6 @@
     "editTitle": "แก้ไขผู้ใช้งาน",
     "fieldRole": "สิทธิ์การใช้งาน (บทบาท)",
     "fieldPosition": "ตำแหน่งในบทบาท",
-    "fieldGlobalRole": "สิทธิ์ระบบ",
     "saving": "กำลังบันทึก…",
     "accessToggle": "สิทธิ์เข้าใช้งาน ATM Deck",
     "noMatches": "ไม่พบผู้ใช้งาน",
@@ -101,8 +107,6 @@
     "assignRole": "เลือกบทบาท…",
     "deptManager": "หัวหน้า",
     "deptMember": "สมาชิก",
-    "globalAdmin": "แอดมิน",
-    "globalUser": "ผู้ใช้",
     "you": "คุณ",
     "removeAccess": "เพิกถอนสิทธิ์",
     "removeAccessTitle": "เพิกถอนสิทธิ์ของ {name}?",
@@ -115,7 +119,12 @@
     "statusActive": "ใช้งานได้",
     "statusExpired": "หมดอายุ",
     "statusAccepted": "{name} รับแล้ว",
-    "generatedBy": "สร้างโดย {name}"
+    "generatedBy": "สร้างโดย {name}",
+    "godModeBadge": "God",
+    "godModeLogHeading": "ประวัติโหมด God",
+    "godModeLogEmpty": "ยังไม่มีใครใช้โหมด God",
+    "godModeOn": "เปิด",
+    "godModeOff": "ปิด"
   },
   "Invite": {
     "heading": "คุณได้รับเชิญเข้าร่วม ATM Deck",

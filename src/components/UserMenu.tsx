@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LogOut, Settings, Users } from "lucide-react";
 import { Avatar } from "./Avatar";
+import { GodModeAvatarRing, GodModeToggle } from "./GodModeToggle";
 import { SubmitButton } from "./SubmitButton";
 
 export function UserMenu({
@@ -14,6 +15,8 @@ export function UserMenu({
   signOutAction,
   placement = "right",
   canManageUsers = false,
+  canUseGodMode = false,
+  godMode = false,
 }: {
   name: string | null;
   email: string | null;
@@ -21,6 +24,8 @@ export function UserMenu({
   signOutAction: () => Promise<void>;
   placement?: "right" | "top";
   canManageUsers?: boolean;
+  canUseGodMode?: boolean;
+  godMode?: boolean;
 }) {
   const t = useTranslations("Shell.userMenu");
   const tNav = useTranslations("Shell.nav");
@@ -49,7 +54,9 @@ export function UserMenu({
         }
         title={label}
       >
-        <Avatar label={label} image={image} size={placement === "right" ? "sm" : "xs"} />
+        <GodModeAvatarRing active={godMode}>
+          <Avatar label={label} image={image} size={placement === "right" ? "sm" : "xs"} />
+        </GodModeAvatarRing>
         {placement === "top" && t("me")}
       </button>
 
@@ -59,14 +66,15 @@ export function UserMenu({
           <div
             className={
               placement === "right"
-                ? "glass-strong absolute bottom-0 left-full z-20 ml-2 w-52 rounded-lg p-1"
-                : "glass-strong fixed bottom-16 right-3 z-20 w-52 max-w-[calc(100vw-1.5rem)] rounded-lg p-1"
+                ? "glass-strong absolute bottom-0 left-full z-20 ml-2 w-60 rounded-lg p-1"
+                : "glass-strong fixed bottom-16 right-3 z-20 w-60 max-w-[calc(100vw-1.5rem)] rounded-lg p-1"
             }
           >
             <div className="mb-1 border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
               <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{name ?? t("signedIn")}</p>
               {email && <p className="truncate text-xs text-zinc-500">{email}</p>}
             </div>
+            {canUseGodMode && <GodModeToggle enabled={godMode} />}
             {links.map(({ href, label: linkLabel, icon: Icon }) => (
               <Link
                 key={href}

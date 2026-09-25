@@ -13,14 +13,14 @@ import {
   cleanupFixtures,
 } from "./helpers/fixtures";
 
-describe("Global admin override (precedence rule #1)", () => {
+describe("God mode override (precedence rule #1)", () => {
   let admin: Awaited<ReturnType<typeof createUser>>;
   let owner: Awaited<ReturnType<typeof createUser>>;
   let personalBoard: Awaited<ReturnType<typeof createBoard>>;
   let departmentBoard: Awaited<ReturnType<typeof createBoard>>;
 
   beforeEach(async () => {
-    admin = await createUser({ globalRole: "ADMIN" });
+    admin = await createUser({ godMode: true });
     owner = await createUser();
     const department = await createDepartment();
     personalBoard = await createBoard(owner.id, { visibilityType: "PERSONAL" });

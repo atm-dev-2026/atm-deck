@@ -39,6 +39,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           email={user.email}
           image={user.image}
           signOutAction={signOutAction}
+          canUseGodMode={user.canUseGodMode}
+          godMode={user.godMode}
         />
       </aside>
 
@@ -53,6 +55,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           signOutAction={signOutAction}
           placement="top"
           canManageUsers={user.canManageUsers}
+          canUseGodMode={user.canUseGodMode}
+          godMode={user.godMode}
         />
       </div>
     </div>

@@ -4,7 +4,7 @@ import { getCurrentUser, type CurrentUser } from "@/lib/current-user";
 import type { BoardRole, BoardVisibility, Prisma } from "@/generated/prisma/client";
 
 export type BoardAccess = {
-  role: "ADMIN" | "OWNER" | "DEPT_MANAGER" | "DEPT_MEMBER" | "VIEWER" | BoardRole;
+  role: "GOD_MODE" | "OWNER" | "DEPT_MANAGER" | "DEPT_MEMBER" | "VIEWER" | BoardRole;
   canView: true;
   canEdit: boolean;
   canDelete: boolean;
@@ -20,11 +20,11 @@ type BoardForAccessCheck = {
 };
 
 /**
- * Access precedence: global admin > owner > direct invite (any visibility,
+ * Access precedence: god mode > owner > direct invite (any visibility,
  * including PERSONAL) > department role (DEPARTMENT boards only) > GLOBAL
  * default read-only. Capability flags are independent, not an ordinal ladder:
  * a CAN_EDIT invitee or department MANAGER can edit but never delete or
- * manage members — only OWNER/ADMIN get those.
+ * manage members — only OWNER/GOD_MODE get those.
  */
 export function resolveBoardAccess(
   user: CurrentUser | null,
@@ -32,8 +32,8 @@ export function resolveBoardAccess(
 ): BoardAccess | null {
   if (!user) return null;
 
-  if (user.globalRole === "ADMIN") {
-    return { role: "ADMIN", canView: true, canEdit: true, canDelete: true, canManageMembers: true };
+  if (user.godMode) {
+    return { role: "GOD_MODE", canView: true, canEdit: true, canDelete: true, canManageMembers: true };
   }
 
   if (board.ownerId === user.id) {
@@ -76,7 +76,7 @@ export function resolveBoardAccess(
 
 /**
  * Validates a (visibilityType, departmentId) pair for a board create/update.
- * DEPARTMENT boards require a departmentId the user belongs to (or global admin);
+ * DEPARTMENT boards require a departmentId the user belongs to (or god mode);
  * any other visibility forces departmentId to null.
  */
 export function validateBoardVisibility(
@@ -92,7 +92,7 @@ export function validateBoardVisibility(
     return { ok: false, status: 400, error: "บอร์ดประเภทแผนกต้องระบุแผนก" };
   }
   const isMember = user.departmentMemberships.some((d) => d.departmentId === departmentId);
-  if (user.globalRole !== "ADMIN" && !isMember) {
+  if (!user.godMode && !isMember) {
     return {
       ok: false,
       status: 403,
@@ -104,7 +104,7 @@ export function validateBoardVisibility(
 
 /** Builds the Prisma `where` for "boards visible to this user" — filtering happens in the DB query. */
 export function boardListWhereClause(user: CurrentUser): Prisma.BoardWhereInput {
-  if (user.globalRole === "ADMIN") {
+  if (user.godMode) {
     return { deletedAt: null };
   }
 
@@ -161,18 +161,19 @@ export async function requireBoardAccess(
   return { user, board, access };
 }
 
-export async function requireGlobalAdmin() {
+/** Gate for god-mode-only endpoints (e.g. raw department membership edits). */
+export async function requireGodMode() {
   const user = await getCurrentUser();
   if (!user) {
     return { error: jsonError(401, "ต้องเข้าสู่ระบบก่อน") } as const;
   }
-  if (user.globalRole !== "ADMIN") {
+  if (!user.godMode) {
     return { error: jsonError(403, "ไม่มีสิทธิ์เข้าถึง") } as const;
   }
   return { user };
 }
 
-/** Gate for /member and user/invite management: global admins and `canManageUsers` roles. */
+/** Gate for /member and user/invite management: `canManageUsers` roles. */
 export async function requireUserManager() {
   const user = await getCurrentUser();
   if (!user) {

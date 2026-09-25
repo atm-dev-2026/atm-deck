@@ -5,7 +5,6 @@ import type {
   BoardRole,
   BoardVisibility,
   DepartmentRole,
-  GlobalRole,
 } from "@/generated/prisma/client";
 
 // Tracks fixture rows created by the current test file so cleanup only ever
@@ -16,28 +15,43 @@ const createdDepartmentIds: string[] = [];
 // Role-less users are locked out of the app, so fixture users get this
 // (otherwise unused) department as their role unless a test opts out.
 let defaultRoleDepartmentId: string | null = null;
+// Role that may use god mode (and manage users, like the real ones), for
+// `createUser({ godMode: true })`.
+let godModeRoleDepartmentId: string | null = null;
 
 export async function createUser(
-  overrides: { globalRole?: GlobalRole; name?: string; withRole?: boolean } = {},
+  overrides: { godMode?: boolean; name?: string; withRole?: boolean } = {},
 ) {
   const user = await prisma.user.create({
     data: {
       email: `rbac-test-${randomUUID()}@example.test`,
       name: overrides.name ?? "RBAC Test User",
-      globalRole: overrides.globalRole ?? "USER",
+      godMode: overrides.godMode ?? false,
     },
   });
   createdUserIds.push(user.id);
-  if (overrides.withRole ?? true) {
+  if (overrides.godMode) {
+    godModeRoleDepartmentId ??= (
+      await createDepartment("RBAC Test God Role", { canManageUsers: true, canUseGodMode: true })
+    ).id;
+    await addDepartmentMember(godModeRoleDepartmentId, user.id);
+  } else if (overrides.withRole ?? true) {
     defaultRoleDepartmentId ??= (await createDepartment("RBAC Test Role")).id;
     await addDepartmentMember(defaultRoleDepartmentId, user.id);
   }
   return user;
 }
 
-export async function createDepartment(name?: string, options: { canManageUsers?: boolean } = {}) {
+export async function createDepartment(
+  name?: string,
+  options: { canManageUsers?: boolean; canUseGodMode?: boolean } = {},
+) {
   const department = await prisma.department.create({
-    data: { name: name ?? `RBAC Test Dept ${randomUUID()}`, canManageUsers: options.canManageUsers ?? false },
+    data: {
+      name: name ?? `RBAC Test Dept ${randomUUID()}`,
+      canManageUsers: options.canManageUsers ?? false,
+      canUseGodMode: options.canUseGodMode ?? false,
+    },
   });
   createdDepartmentIds.push(department.id);
   return department;
@@ -190,6 +204,7 @@ export async function cleanupFixtures() {
     await prisma.department.deleteMany({ where: { id: { in: createdDepartmentIds } } });
     createdDepartmentIds.length = 0;
     defaultRoleDepartmentId = null;
+    godModeRoleDepartmentId = null;
   }
   if (createdUserIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });

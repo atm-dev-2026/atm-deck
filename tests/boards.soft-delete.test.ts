@@ -27,7 +27,7 @@ describe("Soft delete — read-path exclusion", () => {
 
   beforeEach(async () => {
     owner = await createUser();
-    admin = await createUser({ globalRole: "ADMIN" });
+    admin = await createUser({ godMode: true });
     board = await createBoard(owner.id);
     column = await createColumn(board.id);
   });
@@ -36,7 +36,7 @@ describe("Soft delete — read-path exclusion", () => {
     await cleanupFixtures();
   });
 
-  it("a deleted board 404s for its owner and for a global admin, and is absent from the board list, while the row survives", async () => {
+  it("a deleted board 404s for its owner and for a user in god mode, and is absent from the board list, while the row survives", async () => {
     const label = await createLabel(board.id);
 
     mockSessionAs(owner.id);

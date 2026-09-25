@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { History, PlusCircle, Search } from "lucide-react";
+import { History, PlusCircle, Search, Zap } from "lucide-react";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { useToast } from "../Toast";
 import { RoleTabs, type RoleTab } from "./RoleTabs";
@@ -10,22 +10,34 @@ import { MemberTable } from "./MemberTable";
 import { EditMemberDialog, type MemberEdit } from "./EditMemberDialog";
 import { InviteDialog } from "./InviteDialog";
 import { InviteHistoryDialog } from "./InviteHistory";
+import { GodModeLogDialog } from "./GodModeLogDialog";
 import { AddRoleDialog } from "./AddRoleDialog";
-import { personLabel, type DepartmentOption, type InviteRow, type MemberRow } from "./types";
+import {
+  personLabel,
+  type DepartmentOption,
+  type GodModeLogRow,
+  type InviteRow,
+  type MemberRow,
+} from "./types";
 
 const ALL_TAB = "__all";
 const NO_ROLE_TAB = "__none";
+
+const secondaryButton =
+  "glass-field flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium text-zinc-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300";
 
 export function MemberManagementPanel({
   currentUser,
   initialDepartments,
   initialUsers,
   initialInvites,
+  godModeLogs,
 }: {
-  currentUser: { id: string; isAdmin: boolean };
+  currentUser: { id: string; godMode: boolean };
   initialDepartments: DepartmentOption[];
   initialUsers: MemberRow[];
   initialInvites: InviteRow[];
+  godModeLogs: GodModeLogRow[];
 }) {
   const t = useTranslations("Members");
   const toast = useToast();
@@ -40,7 +52,7 @@ export function MemberManagementPanel({
   const [editing, setEditing] = useState<MemberRow | null>(null);
   const [removing, setRemoving] = useState<MemberRow | null>(null);
   const [removePending, setRemovePending] = useState(false);
-  const [dialog, setDialog] = useState<"invite" | "history" | "addRole" | null>(null);
+  const [dialog, setDialog] = useState<"invite" | "history" | "godModeLog" | "addRole" | null>(null);
 
   const departmentNames = useMemo(() => new Map(departments.map((d) => [d.id, d.name])), [departments]);
 
@@ -49,7 +61,7 @@ export function MemberManagementPanel({
     let roleless = 0;
     for (const u of rows) {
       if (u.membership) counts.set(u.membership.departmentId, (counts.get(u.membership.departmentId) ?? 0) + 1);
-      else if (u.globalRole !== "ADMIN") roleless++;
+      else roleless++;
     }
     return [
       { id: ALL_TAB, label: t("tabAll"), count: rows.length },
@@ -61,7 +73,7 @@ export function MemberManagementPanel({
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows.filter((u) => {
-      if (tab === NO_ROLE_TAB && (u.membership || u.globalRole === "ADMIN")) return false;
+      if (tab === NO_ROLE_TAB && u.membership) return false;
       if (tab !== ALL_TAB && tab !== NO_ROLE_TAB && u.membership?.departmentId !== tab) return false;
       if (!q) return true;
       return (u.name ?? "").toLowerCase().includes(q) || (u.email ?? "").toLowerCase().includes(q);
@@ -88,25 +100,19 @@ export function MemberManagementPanel({
   };
 
   const saveEdit = async (row: MemberRow, edit: MemberEdit): Promise<boolean> => {
-    const roleChanged =
-      row.membership?.departmentId !== edit.departmentId || row.membership?.role !== edit.departmentRole;
-    if (roleChanged) {
-      const membership = await request(row.id, `/api/members/${row.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ departmentId: edit.departmentId, departmentRole: edit.departmentRole }),
-      });
-      if (!membership) return false;
-      patchRow(row.id, { membership });
-    }
-    if (edit.globalRole !== row.globalRole) {
-      const updated = await request(row.id, `/api/admin/users/${row.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ globalRole: edit.globalRole }),
-      });
-      if (!updated) return false;
-      patchRow(row.id, { globalRole: edit.globalRole });
-    }
-    if (roleChanged || edit.globalRole !== row.globalRole) toast.success(t("roleUpdated"));
+    const unchanged =
+      row.membership?.departmentId === edit.departmentId && row.membership?.role === edit.departmentRole;
+    if (unchanged) return true;
+
+    const data = await request(row.id, `/api/members/${row.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ departmentId: edit.departmentId, departmentRole: edit.departmentRole }),
+    });
+    if (!data) return false;
+    const { godMode, ...membership } = data;
+    // A role that can't use god mode switches it off server-side.
+    patchRow(row.id, { membership, godMode: row.godMode && godMode });
+    toast.success(t("roleUpdated"));
     return true;
   };
 
@@ -116,7 +122,7 @@ export function MemberManagementPanel({
     const ok = await request(removing.id, `/api/members/${removing.id}`, { method: "DELETE" });
     setRemovePending(false);
     if (ok) {
-      patchRow(removing.id, { membership: null });
+      patchRow(removing.id, { membership: null, godMode: false });
       toast.success(t("accessRemoved"));
       setRemoving(null);
     }
@@ -146,8 +152,18 @@ export function MemberManagementPanel({
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setDialog("godModeLog")}
+            title={t("godModeLogHeading")}
+            className={secondaryButton}
+          >
+            <Zap size={14} />
+            <span className="hidden sm:inline">{t("godModeLogHeading")}</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setDialog("history")}
-            className="glass-field flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium text-zinc-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow dark:text-zinc-300"
+            title={t("historyHeading")}
+            className={secondaryButton}
           >
             <History size={14} />
             <span className="hidden sm:inline">{t("historyHeading")}</span>
@@ -180,7 +196,6 @@ export function MemberManagementPanel({
           key={editing.id}
           row={editing}
           departments={departments}
-          canEditGlobalRole={currentUser.isAdmin}
           onClose={() => setEditing(null)}
           onSave={(edit) => saveEdit(editing, edit)}
         />
@@ -193,6 +208,7 @@ export function MemberManagementPanel({
         />
       )}
       {dialog === "history" && <InviteHistoryDialog invites={invites} onClose={() => setDialog(null)} />}
+      {dialog === "godModeLog" && <GodModeLogDialog logs={godModeLogs} onClose={() => setDialog(null)} />}
       {dialog === "addRole" && (
         <AddRoleDialog
           onClose={() => setDialog(null)}

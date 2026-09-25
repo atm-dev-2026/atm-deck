@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireGlobalAdmin } from "@/lib/permissions";
+import { requireGodMode } from "@/lib/permissions";
 import type { DepartmentRole } from "@/generated/prisma/client";
 
 const DEPARTMENT_ROLES: DepartmentRole[] = ["MANAGER", "MEMBER"];
@@ -9,7 +9,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ departmentId: string; userId: string }> },
 ) {
-  const gate = await requireGlobalAdmin();
+  const gate = await requireGodMode();
   if ("error" in gate) return gate.error;
 
   const { departmentId, userId } = await params;
@@ -30,7 +30,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ departmentId: string; userId: string }> },
 ) {
-  const gate = await requireGlobalAdmin();
+  const gate = await requireGodMode();
   if ("error" in gate) return gate.error;
 
   const { departmentId, userId } = await params;

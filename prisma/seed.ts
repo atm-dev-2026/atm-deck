@@ -17,17 +17,17 @@ async function main() {
   const manager = await prisma.user.upsert({
     where: { email: "seed-manager@example.test" },
     update: {},
-    create: { email: "seed-manager@example.test", name: "Seed Manager", globalRole: "USER" },
+    create: { email: "seed-manager@example.test", name: "Seed Manager", },
   });
   const member = await prisma.user.upsert({
     where: { email: "seed-member@example.test" },
     update: {},
-    create: { email: "seed-member@example.test", name: "Seed Member", globalRole: "USER" },
+    create: { email: "seed-member@example.test", name: "Seed Member", },
   });
   const outsider = await prisma.user.upsert({
     where: { email: "seed-outsider@example.test" },
     update: {},
-    create: { email: "seed-outsider@example.test", name: "Seed Outsider", globalRole: "USER" },
+    create: { email: "seed-outsider@example.test", name: "Seed Outsider", },
   });
 
   await prisma.departmentMember.upsert({

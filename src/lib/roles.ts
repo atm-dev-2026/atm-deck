@@ -13,8 +13,26 @@ export function hashInviteToken(token: string): string {
 }
 
 /**
+ * Switches a user's *own* god mode and records it in GodModeLog. Only ever
+ * called on behalf of the user themselves (POST /api/god-mode) — nobody can
+ * flip someone else's switch. No-op (and no log row) when the flag already
+ * has that value. Returns whether it changed.
+ */
+export async function setOwnGodMode(tx: Prisma.TransactionClient, userId: string, enabled: boolean): Promise<boolean> {
+  const { count } = await tx.user.updateMany({
+    where: { id: userId, godMode: !enabled },
+    data: { godMode: enabled },
+  });
+  if (count === 0) return false;
+  await tx.godModeLog.create({ data: { userId, enabled } });
+  return true;
+}
+
+/**
  * Gives a user exactly one role (department), replacing whatever they had.
- * Must run inside a transaction so the user is never briefly role-less.
+ * Never touches their god mode switch: if the new role doesn't allow god
+ * mode, it simply stops taking effect. Must run inside a transaction so the
+ * user is never briefly role-less.
  */
 export async function assignRole(
   tx: Prisma.TransactionClient,
@@ -23,7 +41,10 @@ export async function assignRole(
   role: DepartmentRole = "MEMBER",
 ) {
   await tx.departmentMember.deleteMany({ where: { userId } });
-  return tx.departmentMember.create({ data: { userId, departmentId, role } });
+  return tx.departmentMember.create({
+    data: { userId, departmentId, role },
+    include: { department: { select: { canUseGodMode: true } } },
+  });
 }
 
 export type InviteStatus = "active" | "expired" | "accepted";

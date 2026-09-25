@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ShieldCheck, SquarePen } from "lucide-react";
+import { SquarePen, Zap } from "lucide-react";
 import { Avatar } from "../Avatar";
+import { GodModeAvatarRing } from "../GodModeToggle";
 import { Spinner } from "../Spinner";
 import { Switch } from "../Switch";
 import { useDateLocale } from "../CalendarProvider";
@@ -19,7 +20,7 @@ export function MemberTable({
 }: {
   rows: MemberRow[];
   departmentNames: Map<string, string>;
-  currentUser: { id: string; isAdmin: boolean };
+  currentUser: { id: string; godMode: boolean };
   pendingUserId: string | null;
   onEdit: (row: MemberRow) => void;
   onToggleAccess: (row: MemberRow, next: boolean) => void;
@@ -50,12 +51,12 @@ export function MemberTable({
         <tbody>
           {rows.map((u) => {
             const isSelf = u.id === currentUser.id;
-            // Non-admin managers can't edit admins (the API refuses too).
-            const readOnly = isSelf || (u.globalRole === "ADMIN" && !currentUser.isAdmin);
+            // Only someone in god mode may edit a user who is in god mode (the API refuses too).
+            const readOnly = isSelf || (u.godMode && !currentUser.godMode);
             const pending = pendingUserId === u.id;
-            const active = u.membership !== null || u.globalRole === "ADMIN";
+            const active = u.membership !== null;
             // Role-less rows read as "disabled", like a resigned account.
-            const muted = u.membership === null && u.globalRole !== "ADMIN";
+            const muted = !active;
             const roleName = u.membership ? (departmentNames.get(u.membership.departmentId) ?? "—") : null;
 
             return (
@@ -65,7 +66,9 @@ export function MemberTable({
               >
                 <td className={`${td} text-center`}>
                   <span className={`inline-flex ${muted ? "opacity-60 grayscale" : ""}`}>
-                    <Avatar label={personLabel(u)} image={u.image} size="lg" />
+                    <GodModeAvatarRing active={u.godMode}>
+                      <Avatar label={personLabel(u)} image={u.image} size="lg" />
+                    </GodModeAvatarRing>
                   </span>
                 </td>
                 <td className={td}>
@@ -75,8 +78,11 @@ export function MemberTable({
                     }`}
                   >
                     <span className="truncate">{u.name ?? u.email}</span>
-                    {u.globalRole === "ADMIN" && (
-                      <ShieldCheck size={12} className="shrink-0 text-accent" aria-label={t("globalAdmin")} />
+                    {u.godMode && (
+                      <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-rose-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400">
+                        <Zap size={9} className="fill-current" />
+                        {t("godModeBadge")}
+                      </span>
                     )}
                     {isSelf && (
                       <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent dark:bg-accent/20">
@@ -107,7 +113,7 @@ export function MemberTable({
                   <span className="inline-flex items-center gap-1.5">
                     <Switch
                       checked={active}
-                      disabled={readOnly || pending || (u.globalRole === "ADMIN" && !u.membership)}
+                      disabled={readOnly || pending}
                       onChange={(next) => onToggleAccess(u, next)}
                       label={t("accessToggle")}
                     />

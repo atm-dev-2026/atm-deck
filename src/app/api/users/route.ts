@@ -12,7 +12,7 @@ export async function GET() {
     // Role-less users can't sign in to the app, so don't offer them as DM targets.
     where: {
       id: { not: user.id },
-      OR: [{ globalRole: "ADMIN" }, { departmentMemberships: { some: {} } }],
+      departmentMemberships: { some: {} },
     },
     orderBy: { name: "asc" },
     select: { id: true, name: true, email: true, image: true },

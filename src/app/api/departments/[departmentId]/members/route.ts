@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
-import { requireGlobalAdmin } from "@/lib/permissions";
+import { requireGodMode } from "@/lib/permissions";
 import { Prisma, type DepartmentRole } from "@/generated/prisma/client";
 
 const DEPARTMENT_ROLES: DepartmentRole[] = ["MANAGER", "MEMBER"];
@@ -33,7 +33,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ departmentId: string }> },
 ) {
-  const gate = await requireGlobalAdmin();
+  const gate = await requireGodMode();
   if ("error" in gate) return gate.error;
 
   const { departmentId } = await params;

@@ -1,22 +1,27 @@
 import { cache } from "react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { GlobalRole } from "@/generated/prisma/client";
 
 export type CurrentUser = {
   id: string;
   name: string | null;
   email: string | null;
   image: string | null;
-  globalRole: GlobalRole;
   departmentMemberships: { departmentId: string; role: "MANAGER" | "MEMBER" }[];
-  /** Global admin, or member of a department flagged `canManageUsers`. */
+  /** Member of a department flagged `canManageUsers`: may open /member. */
   canManageUsers: boolean;
+  /** Member of a department flagged `canUseGodMode`: may switch god mode on. */
+  canUseGodMode: boolean;
+  /**
+   * God mode in effect: switched on *and* still eligible. Bypasses every board
+   * permission check, the way a global admin would.
+   */
+  godMode: boolean;
 };
 
-/** Every non-admin user needs a role (department) before they can use the app. */
+/** Every user needs a role (department) before they can use the app. */
 export function hasRole(user: CurrentUser): boolean {
-  return user.globalRole === "ADMIN" || user.departmentMemberships.length > 0;
+  return user.departmentMemberships.length > 0;
 }
 
 /**
@@ -43,20 +48,27 @@ export const getSessionUser = cache(async (): Promise<CurrentUser | null> => {
       name: true,
       email: true,
       image: true,
-      globalRole: true,
+      godMode: true,
       departmentMemberships: {
-        select: { departmentId: true, role: true, department: { select: { canManageUsers: true } } },
+        select: {
+          departmentId: true,
+          role: true,
+          department: { select: { canManageUsers: true, canUseGodMode: true } },
+        },
       },
     },
   });
   if (!user) return null;
 
-  const { departmentMemberships, ...rest } = user;
+  const { departmentMemberships, godMode, ...rest } = user;
+  const canUseGodMode = departmentMemberships.some((m) => m.department.canUseGodMode);
   return {
     ...rest,
     departmentMemberships: departmentMemberships.map(({ departmentId, role }) => ({ departmentId, role })),
-    canManageUsers:
-      user.globalRole === "ADMIN" || departmentMemberships.some((m) => m.department.canManageUsers),
+    canManageUsers: departmentMemberships.some((m) => m.department.canManageUsers),
+    canUseGodMode,
+    // A stale flag (the user's role changed since) grants nothing.
+    godMode: godMode && canUseGodMode,
   };
 });
 

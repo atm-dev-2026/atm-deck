@@ -64,13 +64,15 @@ enum DepartmentRole {
   MEMBER
 }
 
-// A Department doubles as a user's app-level role: every non-admin user must
-// belong to exactly one (enforced in code, see src/lib/current-user.ts).
+// A Department doubles as a user's app-level role: every user must belong to
+// exactly one (enforced in code, see src/lib/current-user.ts).
 model Department {
   id             String   @id @default(cuid())
   name           String
   // Members of this department can open /member and manage users/invites.
   canManageUsers Boolean  @default(false)
+  // Members of this department may switch god mode on for themselves.
+  canUseGodMode  Boolean  @default(false)
   createdAt      DateTime @default(now())
 
   members DepartmentMember[]
@@ -93,6 +95,19 @@ model AppInvite {
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   createdBy  User       @relation("AppInviteCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   acceptedBy User?      @relation("AppInviteAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
+
+// Audit trail for god mode: one row per switch on/off. Only the user
+// themselves can flip their own switch, so the user is also the actor.
+model GodModeLog {
+  id        String   @id @default(cuid())
+  userId    String
+  enabled   Boolean
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
 }
@@ -242,11 +257,6 @@ model ActivityLog {
   @@index([entityType, entityId])
 }
 
-enum GlobalRole {
-  ADMIN
-  USER
-}
-
 // Auth.js (next-auth v5) models — required shape for @auth/prisma-adapter
 model User {
   id            String     @id @default(cuid())
@@ -254,7 +264,11 @@ model User {
   email         String?    @unique
   emailVerified DateTime?
   image         String?
-  globalRole    GlobalRole @default(USER)
+  // Self-service superuser switch — only the user themselves ever changes it.
+  // Only takes effect while their role has canUseGodMode (see getSessionUser
+  // in src/lib/current-user.ts), so a role change neutralizes it without
+  // touching it.
+  godMode       Boolean   @default(false)
 
   accounts Account[]
   sessions Session[]
@@ -273,6 +287,7 @@ model User {
   activityLogs          ActivityLog[]      @relation("ActivityLogActor")
   createdInvites        AppInvite[]        @relation("AppInviteCreatedBy")
   acceptedInvites       AppInvite[]        @relation("AppInviteAcceptedBy")
+  godModeLogs           GodModeLog[]
 }
 
 model Channel {
