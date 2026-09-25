@@ -14,6 +14,7 @@ import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
 import { fromDueDateInputs, toDueDateInputs } from "@/lib/dueDate";
 import { useHydrated } from "@/lib/useHydrated";
+import { DatePicker } from "@/components/DatePicker";
 import { TimePicker } from "@/components/TimePicker";
 
 export type ChecklistItemT = { id: string; text: string; done: boolean; order: number };
@@ -469,9 +470,8 @@ export function TaskPanel({
 }
 
 /**
- * Due date with an optional 24-hour time. The date saves when its input loses
- * focus, the time as soon as it's picked. Browser-only: timed values are shown
- * in local time.
+ * Due date with an optional 24-hour time; each saves as soon as it's picked.
+ * Browser-only: timed values are shown in local time.
  */
 function DueDateField({
   dueDate,
@@ -484,7 +484,6 @@ function DueDateField({
   saving: boolean;
   onCommit: (patch: { dueDate: string; dueDateHasTime: boolean }, revert: () => void) => void;
 }) {
-  const t = useTranslations("Boards.task");
   const saved = toDueDateInputs(dueDate, hasTime);
   const [date, setDate] = useState(saved.date);
   const [time, setTime] = useState(saved.time);
@@ -513,16 +512,14 @@ function DueDateField({
   return (
     <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
       <Calendar size={12} className="text-zinc-400" />
-      <input
-        type="date"
-        aria-label={t("dueDateAria")}
+      <DatePicker
         value={date}
-        onChange={(e) => {
-          setDate(e.target.value);
-          if (!e.target.value) setTime("");
+        onChange={(next) => {
+          const nextTime = next ? time : "";
+          setDate(next);
+          setTime(nextTime);
+          save(next, nextTime);
         }}
-        onBlur={() => save(date, date ? time : "")}
-        className="bg-transparent focus:outline-none"
       />
       <span className="h-3 w-px bg-zinc-900/10 dark:bg-white/10" />
       <TimePicker
