@@ -18,8 +18,11 @@ export async function GET() {
     where: boardListWhereClause(user),
     orderBy: { createdAt: "asc" },
     include: {
-      _count: { select: { columns: true } },
-      columns: { select: { _count: { select: { tasks: true } } } },
+      _count: { select: { columns: { where: { deletedAt: null } } } },
+      columns: {
+        where: { deletedAt: null },
+        select: { _count: { select: { tasks: { where: { deletedAt: null } } } } },
+      },
       members: { where: { userId: user.id, deletedAt: null }, select: { role: true } },
     },
   });
