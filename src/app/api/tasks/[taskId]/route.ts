@@ -6,6 +6,7 @@ import { afterResponse } from "@/lib/afterResponse";
 import { broadcast } from "@/lib/supabase";
 import { buildChange, logActivity, type ActivityChange } from "@/lib/activityLog";
 import { softDeleteTask } from "@/lib/softDelete";
+import { dueDateLogValue } from "@/lib/dueDate";
 
 function userDisplayName(user: { name: string | null; email: string | null } | null): string | null {
   if (!user) return null;
@@ -30,6 +31,10 @@ export async function PATCH(
   if ("error" in gate) return gate.error;
 
   const data = await request.json();
+
+  if (data.dueDate && Number.isNaN(Date.parse(data.dueDate))) {
+    return NextResponse.json({ error: "วันครบกำหนดไม่ถูกต้อง" }, { status: 400 });
+  }
 
   if (data.columnId !== undefined) {
     const destinationColumn = await prisma.column.findUnique({
@@ -68,6 +73,7 @@ export async function PATCH(
         description: true,
         priority: true,
         dueDate: true,
+        dueDateHasTime: true,
         assignee: { select: { name: true, email: true } },
         column: { select: { name: true } },
         labels: { select: { name: true } },
@@ -83,8 +89,11 @@ export async function PATCH(
         ...(data.columnId !== undefined && { columnId: data.columnId }),
         ...(data.order !== undefined && { order: data.order }),
         ...(data.priority !== undefined && { priority: data.priority }),
+        // dueDateHasTime is only meaningful alongside dueDate, so they're always
+        // written together; omitting it (older clients) means date-only.
         ...(data.dueDate !== undefined && {
           dueDate: data.dueDate ? new Date(data.dueDate) : null,
+          dueDateHasTime: Boolean(data.dueDate) && data.dueDateHasTime === true,
         }),
         ...(labelIdsToSet !== undefined && { labels: { set: labelIdsToSet } }),
       },
@@ -113,8 +122,8 @@ export async function PATCH(
         push(
           buildChange(
             "dueDate",
-            before.dueDate ? before.dueDate.toISOString() : null,
-            task.dueDate ? task.dueDate.toISOString() : null,
+            dueDateLogValue(before.dueDate, before.dueDateHasTime),
+            dueDateLogValue(task.dueDate, task.dueDateHasTime),
           ),
         );
       }

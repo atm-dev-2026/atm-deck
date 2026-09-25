@@ -7,7 +7,7 @@ import { broadcast } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLog";
 
 export async function POST(request: Request) {
-  const { columnId, title, description, assigneeId, dueDate } =
+  const { columnId, title, description, assigneeId, dueDate, dueDateHasTime } =
     await request.json();
 
   if (!columnId || !title) {
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         description,
         assigneeId: assigneeId || undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
+        dueDateHasTime: Boolean(dueDate) && dueDateHasTime === true,
         order: lastTask ? lastTask.order + 1 : 0,
         createdById: gate.user.id,
       },

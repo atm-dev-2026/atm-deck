@@ -98,6 +98,59 @@ describe("Task management", () => {
       expect(data.priority).toBe("HIGH");
     });
 
+    it("stores a due date with a time as an exact instant", async () => {
+      const task = await createTask(column.id);
+      mockSessionAs(owner.id);
+      const res = await callRoute(patchTask, {
+        method: "PATCH",
+        params: { taskId: task.id },
+        body: { dueDate: "2026-12-01T09:30:00.000Z", dueDateHasTime: true },
+      });
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.dueDate).toBe("2026-12-01T09:30:00.000Z");
+      expect(data.dueDateHasTime).toBe(true);
+    });
+
+    it("a date-only due date (or clearing it) resets dueDateHasTime", async () => {
+      const task = await createTask(column.id);
+      mockSessionAs(owner.id);
+      await callRoute(patchTask, {
+        method: "PATCH",
+        params: { taskId: task.id },
+        body: { dueDate: "2026-12-01T09:30:00.000Z", dueDateHasTime: true },
+      });
+
+      const dateOnly = await callRoute(patchTask, {
+        method: "PATCH",
+        params: { taskId: task.id },
+        body: { dueDate: "2026-12-02" },
+      });
+      const dateOnlyData = await dateOnly.json();
+      expect(dateOnlyData.dueDate).toBe("2026-12-02T00:00:00.000Z");
+      expect(dateOnlyData.dueDateHasTime).toBe(false);
+
+      const cleared = await callRoute(patchTask, {
+        method: "PATCH",
+        params: { taskId: task.id },
+        body: { dueDate: null, dueDateHasTime: true },
+      });
+      const clearedData = await cleared.json();
+      expect(clearedData.dueDate).toBeNull();
+      expect(clearedData.dueDateHasTime).toBe(false);
+    });
+
+    it("rejects an unparseable due date", async () => {
+      const task = await createTask(column.id);
+      mockSessionAs(owner.id);
+      const res = await callRoute(patchTask, {
+        method: "PATCH",
+        params: { taskId: task.id },
+        body: { dueDate: "not-a-date" },
+      });
+      expect(res.status).toBe(400);
+    });
+
     it("moving a task to another column on the same board succeeds", async () => {
       const task = await createTask(column.id);
       const otherColumn = await createColumn(board.id, { order: 1 });

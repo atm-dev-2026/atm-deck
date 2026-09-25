@@ -130,6 +130,8 @@
       "copyNumberAria": "Copy task number",
       "deleteAria": "Delete task",
       "closeAria": "Close",
+      "dueDateAria": "Due date",
+      "dueTimeAria": "Due time",
       "description": "Description",
       "descriptionPlaceholder": "Add more detail…",
       "checklist": "Checklist",

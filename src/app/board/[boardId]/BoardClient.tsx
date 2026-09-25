@@ -218,6 +218,7 @@ export default function BoardClient({
       description: null,
       assignee: null,
       dueDate: null,
+      dueDateHasTime: false,
       order: 0,
       columnId,
       priority: "NONE",
@@ -1093,7 +1094,7 @@ function TaskCard({
               {task.assignee.name ?? task.assignee.email}
             </span>
           )}
-          {task.dueDate && <DueDateBadge dueDate={task.dueDate} />}
+          {task.dueDate && <DueDateBadge dueDate={task.dueDate} hasTime={task.dueDateHasTime} />}
           {task.checklist.length > 0 && (
             <span className="flex items-center gap-1">
               <ListChecks size={11} />

@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Avatar } from "./Avatar";
+import { formatDueDateLogValue } from "@/lib/dueDate";
 
 export type ActivityEntityTypeT = "BOARD" | "COLUMN" | "TASK" | "LABEL" | "BOARD_MEMBER";
 export type ActivityActionT = "CREATED" | "UPDATED" | "DELETED" | "INVITED" | "ROLE_CHANGED" | "REMOVED";
@@ -60,7 +61,7 @@ export function ActivityFeedItem({ entry }: { entry: ActivityEntryT }) {
       case "role":
         return value === "CAN_EDIT" ? tMembers("canEdit") : tMembers("readOnly");
       case "dueDate":
-        return new Date(value).toLocaleDateString();
+        return formatDueDateLogValue(value);
       case "description":
         return truncate(value, DESCRIPTION_PREVIEW_LENGTH);
       default:

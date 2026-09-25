@@ -12,6 +12,8 @@ import { ActivityFeedItem, type ActivityEntryT } from "@/components/ActivityFeed
 import { ActivityFeedSkeleton } from "@/components/skeletons/ActivityFeedSkeleton";
 import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
+import { fromDueDateInputs, toDueDateInputs } from "@/lib/dueDate";
+import { useHydrated } from "@/lib/useHydrated";
 
 export type ChecklistItemT = { id: string; text: string; done: boolean; order: number };
 export type LabelT = { id: string; name: string; color: string };
@@ -24,6 +26,7 @@ export type TaskT = {
   description: string | null;
   assignee: TaskUserT | null;
   dueDate: string | null;
+  dueDateHasTime: boolean;
   order: number;
   columnId: string;
   priority: Priority;
@@ -44,6 +47,7 @@ type TaskPatch = Partial<{
   description: string;
   assigneeId: string | null;
   dueDate: string;
+  dueDateHasTime: boolean;
   priority: Priority;
   labelIds: string[];
 }>;
@@ -81,13 +85,13 @@ export function TaskPanel({
   const tActivity = useTranslations("Boards.activity");
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
-  const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
   const [numberCopied, setNumberCopied] = useState(false);
   const [activity, setActivity] = useState<ActivityEntryT[] | null>(null);
   const [activityTaskId, setActivityTaskId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hydrated = useHydrated();
 
   useEffect(() => {
     let cancelled = false;
@@ -206,20 +210,21 @@ export function TaskPanel({
               {savingFields.has("assignee") && <Spinner size={11} />}
             </div>
 
-            <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
-              <Calendar size={12} className="text-zinc-400" />
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                onBlur={() =>
-                  dueDate !== (task.dueDate ? task.dueDate.slice(0, 10) : "") &&
-                  commit("dueDate", { dueDate }, () => setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : ""))
-                }
-                className="bg-transparent focus:outline-none"
+            {hydrated ? (
+              <DueDateField
+                // Re-seeds the inputs whenever the saved value changes (a save
+                // landing, a realtime update, or a different task).
+                key={`${task.id}:${task.dueDate}:${task.dueDateHasTime}`}
+                dueDate={task.dueDate}
+                hasTime={task.dueDateHasTime}
+                saving={savingFields.has("dueDate")}
+                onCommit={(patch, revert) => commit("dueDate", patch, revert)}
               />
-              {savingFields.has("dueDate") && <Spinner size={11} />}
-            </div>
+            ) : (
+              <div className="glass-field flex h-7 w-32 items-center gap-1.5 rounded-md px-2 py-1">
+                <Calendar size={12} className="text-zinc-400" />
+              </div>
+            )}
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -460,6 +465,67 @@ export function TaskPanel({
           </div>
         </div>
       </aside>
+    </div>
+  );
+}
+
+/**
+ * Due date with an optional time. Commits once focus leaves the whole field,
+ * so filling in the date and then the time is a single save (and a single
+ * activity-log entry). Browser-only: timed values are shown in local time.
+ */
+function DueDateField({
+  dueDate,
+  hasTime,
+  saving,
+  onCommit,
+}: {
+  dueDate: string | null;
+  hasTime: boolean;
+  saving: boolean;
+  onCommit: (patch: { dueDate: string; dueDateHasTime: boolean }, revert: () => void) => void;
+}) {
+  const t = useTranslations("Boards.task");
+  const initial = toDueDateInputs(dueDate, hasTime);
+  const [date, setDate] = useState(initial.date);
+  const [time, setTime] = useState(initial.time);
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    const next = fromDueDateInputs(date, time);
+    const current = fromDueDateInputs(initial.date, initial.time);
+    if (next.dueDate === current.dueDate && next.dueDateHasTime === current.dueDateHasTime) return;
+    onCommit({ dueDate: next.dueDate ?? "", dueDateHasTime: next.dueDateHasTime }, () => {
+      setDate(initial.date);
+      setTime(initial.time);
+    });
+  };
+
+  return (
+    <div
+      onBlur={handleBlur}
+      className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400"
+    >
+      <Calendar size={12} className="text-zinc-400" />
+      <input
+        type="date"
+        aria-label={t("dueDateAria")}
+        value={date}
+        onChange={(e) => {
+          setDate(e.target.value);
+          if (!e.target.value) setTime("");
+        }}
+        className="bg-transparent focus:outline-none"
+      />
+      <input
+        type="time"
+        aria-label={t("dueTimeAria")}
+        value={time}
+        disabled={!date}
+        onChange={(e) => setTime(e.target.value)}
+        className="bg-transparent focus:outline-none disabled:opacity-40"
+      />
+      {saving && <Spinner size={11} />}
     </div>
   );
 }

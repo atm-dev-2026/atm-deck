@@ -109,19 +109,22 @@ enum Priority {
 }
 
 model Task {
-  id          String    @id @default(cuid())
-  number      Int       @unique @default(autoincrement())
-  title       String
-  description String?   @db.Text
-  order       Int
-  priority    Priority  @default(NONE)
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-  columnId    String
-  createdById String?
-  assigneeId  String?
+  id             String    @id @default(cuid())
+  number         Int       @unique @default(autoincrement())
+  title          String
+  description    String?   @db.Text
+  order          Int
+  priority       Priority  @default(NONE)
+  dueDate        DateTime?
+  // false: dueDate is a calendar date, stored as UTC midnight of that date.
+  // true: dueDate is an exact instant (date + time).
+  dueDateHasTime Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  columnId       String
+  createdById    String?
+  assigneeId     String?
 
   column      Column           @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy   User?            @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)

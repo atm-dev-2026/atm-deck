@@ -130,6 +130,8 @@
       "copyNumberAria": "คัดลอกหมายเลขงาน",
       "deleteAria": "ลบงาน",
       "closeAria": "ปิด",
+      "dueDateAria": "วันครบกำหนด",
+      "dueTimeAria": "เวลาครบกำหนด",
       "description": "รายละเอียด",
       "descriptionPlaceholder": "เพิ่มรายละเอียด…",
       "checklist": "เช็กลิสต์",
