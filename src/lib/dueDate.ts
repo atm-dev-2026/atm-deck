@@ -26,11 +26,17 @@ export function isDueDateOverdue(dueDate: string, hasTime: boolean, now = new Da
 export function formatDueDate(dueDate: string, hasTime: boolean): string {
   const date = new Date(dueDate);
   return hasTime
-    ? date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    ? date.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      })
     : date.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
-/** Stored value → `<input type="date">` / `<input type="time">` values. Browser-only for timed values. */
+/** Stored value → the date input's "YYYY-MM-DD" and a 24-hour "HH:mm" time. Browser-only for timed values. */
 export function toDueDateInputs(dueDate: string | null, hasTime: boolean): { date: string; time: string } {
   if (!dueDate) return { date: "", time: "" };
   if (!hasTime) return { date: dueDate.slice(0, 10), time: "" };

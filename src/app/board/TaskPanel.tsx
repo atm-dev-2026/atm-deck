@@ -469,6 +469,12 @@ export function TaskPanel({
   );
 }
 
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const HOURS = Array.from({ length: 24 }, (_, i) => pad2(i));
+const MINUTES = Array.from({ length: 60 }, (_, i) => pad2(i));
+const TIME_SELECT_CLASS =
+  "cursor-pointer appearance-none bg-transparent tabular-nums focus:outline-none disabled:cursor-default disabled:opacity-40";
+
 /**
  * Due date with an optional time. Commits once focus leaves the whole field,
  * so filling in the date and then the time is a single save (and a single
@@ -489,6 +495,7 @@ function DueDateField({
   const initial = toDueDateInputs(dueDate, hasTime);
   const [date, setDate] = useState(initial.date);
   const [time, setTime] = useState(initial.time);
+  const [hour, minute] = time ? time.split(":") : ["", ""];
 
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
@@ -517,14 +524,37 @@ function DueDateField({
         }}
         className="bg-transparent focus:outline-none"
       />
-      <input
-        type="time"
-        aria-label={t("dueTimeAria")}
-        value={time}
+      {/* Hour/minute selects rather than <input type="time">, whose 12h/24h
+          display follows the OS locale and can't be forced to 24-hour. */}
+      <select
+        aria-label={t("dueHourAria")}
+        value={hour}
         disabled={!date}
-        onChange={(e) => setTime(e.target.value)}
-        className="bg-transparent focus:outline-none disabled:opacity-40"
-      />
+        onChange={(e) => setTime(e.target.value ? `${e.target.value}:${minute || "00"}` : "")}
+        className={TIME_SELECT_CLASS}
+      >
+        <option value="">--</option>
+        {HOURS.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <span className={hour ? "" : "opacity-40"}>:</span>
+      <select
+        aria-label={t("dueMinuteAria")}
+        value={minute}
+        disabled={!date || !hour}
+        onChange={(e) => setTime(`${hour}:${e.target.value}`)}
+        className={TIME_SELECT_CLASS}
+      >
+        {!hour && <option value="">--</option>}
+        {MINUTES.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
       {saving && <Spinner size={11} />}
     </div>
   );
