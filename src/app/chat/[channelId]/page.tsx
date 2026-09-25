@@ -1,389 +1,41 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/current-user";
+import { getChannelForUser, getChannelMessages } from "@/lib/chat";
+import { ChannelView } from "./ChannelView";
 
-import { useEffect, useRef, useState, use } from "react";
-import { useTranslations } from "next-intl";
-import { Hash, Menu, Paperclip, Send } from "lucide-react";
-import { useChatUserId } from "../ChatUserContext";
-import { useChatSidebar } from "../ChatSidebarContext";
-import { MessageItem } from "../MessageItem";
-import { PendingAttachmentList } from "../AttachmentView";
-import { useAttachmentUpload } from "../useAttachmentUpload";
-import { ThreadPanel } from "./ThreadPanel";
-import { ChatMessagesSkeleton } from "@/components/skeletons/ChatMessagesSkeleton";
-import { ChatMessage, ChatUser } from "../types";
-import { Spinner } from "@/components/Spinner";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { useToast } from "@/components/Toast";
-import { supabase } from "@/lib/supabase";
-
-type Channel = {
-  id: string;
-  name: string | null;
-  topic: string | null;
-  isDirect: boolean;
-  members: { userId: string; user: ChatUser }[];
-};
-
-type TypingUser = { userId: string; name: string | null };
-
-export default function ChannelPage({
+export default async function ChannelPage({
   params,
 }: {
   params: Promise<{ channelId: string }>;
 }) {
-  const { channelId } = use(params);
-  // Remount the view whenever channelId changes, so all local state
-  // (messages, thread panel, etc.) resets cleanly instead of leaking
-  // between channels.
-  return <ChannelView key={channelId} channelId={channelId} />;
-}
+  const { channelId } = await params;
 
-function ChannelView({ channelId }: { channelId: string }) {
-  const currentUserId = useChatUserId();
-  const { toggleSidebar } = useChatSidebar();
-  const toast = useToast();
-  const t = useTranslations("Chat.channel");
-  const tm = useTranslations("Chat.message");
-  const tThread = useTranslations("Chat.thread");
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
-  const [channel, setChannel] = useState<Channel | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [deletingMessage, setDeletingMessage] = useState(false);
-  const [deleteMessageError, setDeleteMessageError] = useState<string | null>(null);
+  // Taken before querying, so the live stream (which resumes from here) re-sends
+  // anything that changes while this page renders rather than skipping it.
+  const since = new Date().toISOString();
 
-  const listRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const lastTypingSentRef = useRef(0);
-  const attachmentUpload = useAttachmentUpload(channelId);
+  // Fetched in parallel; messages are discarded below for non-members, matching
+  // GET /api/channels/[channelId]/messages' membership check.
+  const [result, messages] = await Promise.all([
+    getChannelForUser(channelId, user.id),
+    getChannelMessages(channelId, user.id),
+  ]);
 
-  useEffect(() => {
-    let ignore = false;
-    (async () => {
-      const [channelRes, messagesRes] = await Promise.all([
-        fetch(`/api/channels/${channelId}`),
-        fetch(`/api/channels/${channelId}/messages`),
-      ]);
-      if (ignore) return;
-      if (!channelRes.ok) {
-        setNotFound(true);
-        return;
-      }
-      setChannel(await channelRes.json());
-      if (messagesRes.ok) setMessages(await messagesRes.json());
-    })();
+  const channel = result.ok ? result.channel : null;
+  const initialMessages = channel?.isMember ? messages : [];
 
-    return () => {
-      ignore = true;
-    };
-  }, [channelId]);
-
-  useEffect(() => {
-    const source = new EventSource(`/api/channels/${channelId}/stream`);
-
-    source.addEventListener("messages", (event) => {
-      const incoming: ChatMessage[] = JSON.parse((event as MessageEvent).data);
-      setMessages((prev) => {
-        const byId = new Map(prev.map((m) => [m.id, m]));
-        for (const m of incoming) byId.set(m.id, m);
-        return Array.from(byId.values()).sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-        );
-      });
-    });
-
-    source.addEventListener("typing", (event) => {
-      const users: TypingUser[] = JSON.parse((event as MessageEvent).data);
-      setTypingUsers(users);
-    });
-
-    return () => source.close();
-  }, [channelId]);
-
-  useEffect(() => {
-    const client = supabase;
-    if (!client) return;
-
-    const channel = client
-      .channel(`channel:${channelId}`)
-      .on("broadcast", { event: "message-created" }, ({ payload }) => {
-        const message = payload as ChatMessage;
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === message.id)) return prev;
-          return [...prev, message].sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-          );
-        });
-      })
-      .subscribe();
-
-    return () => {
-      client.removeChannel(channel);
-    };
-  }, [channelId]);
-
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-  }, [messages.length]);
-
-  const sendTyping = () => {
-    const now = Date.now();
-    if (now - lastTypingSentRef.current < 2000) return;
-    lastTypingSentRef.current = now;
-    fetch(`/api/channels/${channelId}/typing`, { method: "POST" });
-  };
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const body = draft.trim();
-    if ((!body && attachmentUpload.pending.length === 0) || sending) return;
-
-    let attachments;
-    try {
-      attachments = await attachmentUpload.uploadAll();
-    } catch {
-      return;
-    }
-
-    setDraft("");
-    setSending(true);
-    try {
-      const res = await fetch(`/api/channels/${channelId}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, attachments }),
-      });
-      if (res.ok) {
-        const message: ChatMessage = await res.json();
-        setMessages((prev) => [...prev.filter((m) => m.id !== message.id), message]);
-      } else {
-        setDraft(body);
-        toast.error(tm("sendFailed"));
-      }
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const react = async (id: string, emoji: string) => {
-    const res = await fetch(`/api/messages/${id}/reactions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emoji }),
-    });
-    if (res.ok) {
-      const updated: ChatMessage = await res.json();
-      setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)));
-    }
-  };
-
-  const saveEdit = async (id: string, body: string): Promise<boolean> => {
-    const res = await fetch(`/api/messages/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
-    });
-    if (res.ok) {
-      const updated: ChatMessage = await res.json();
-      setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)));
-      return true;
-    }
-    toast.error(tm("saveFailed"));
-    return false;
-  };
-
-  const requestDeleteMessage = (id: string) => {
-    setDeleteMessageError(null);
-    setPendingDeleteId(id);
-  };
-
-  const confirmDeleteMessage = async () => {
-    if (!pendingDeleteId) return;
-    const id = pendingDeleteId;
-    setDeletingMessage(true);
-    setDeleteMessageError(null);
-    try {
-      const res = await fetch(`/api/messages/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setDeleteMessageError(data?.error ?? tm("deleteFailed"));
-        return;
-      }
-      setMessages((prev) => prev.filter((m) => m.id !== id));
-      setPendingDeleteId(null);
-    } finally {
-      setDeletingMessage(false);
-    }
-  };
-
-  if (notFound) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col">
-        <MobileChatHeader onMenuClick={toggleSidebar} />
-        <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
-          {t("notFound")}
-        </div>
-      </div>
-    );
-  }
-
-  if (!channel) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col" role="status" aria-label={t("loading")}>
-        <MobileChatHeader onMenuClick={toggleSidebar} />
-        <ChatMessagesSkeleton />
-      </div>
-    );
-  }
-
-  const other = channel.isDirect
-    ? channel.members.find((m) => m.userId !== currentUserId)?.user
-    : null;
-  const title = channel.isDirect ? other?.name ?? other?.email ?? t("directMessageFallback") : channel.name;
-
-  const typingNames = typingUsers.map((u) => u.name ?? t("someone")).join(", ");
-  const typingLabel =
-    typingUsers.length > 0 ? t("typing", { names: typingNames, count: typingUsers.length }) : "";
-
+  // Keyed by channel and membership so switching channels — or joining this
+  // one — remounts the view with fresh state instead of reusing the old one.
   return (
-    <div className="flex min-h-0 flex-1">
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="glass relative z-10 flex items-center gap-1.5 rounded-none border-x-0 border-t-0 px-2 py-3 sm:px-4">
-          <button
-            onClick={toggleSidebar}
-            className="mr-1 shrink-0 rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 md:hidden"
-            aria-label={t("toggleListAria")}
-          >
-            <Menu size={16} />
-          </button>
-          {!channel.isDirect && <Hash size={14} className="shrink-0 text-zinc-400" />}
-          <div className="min-w-0">
-            <h1 className="truncate font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">
-              {title}
-            </h1>
-            {channel.topic && (
-              <p className="truncate text-xs text-zinc-500">{channel.topic}</p>
-            )}
-          </div>
-        </div>
-
-        <div ref={listRef} className="flex-1 overflow-y-auto px-2 py-3">
-          <div className="flex flex-col gap-1">
-            {messages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                currentUserId={currentUserId}
-                onReact={(emoji) => react(message.id, emoji)}
-                onSave={(body) => saveEdit(message.id, body)}
-                onDelete={() => requestDeleteMessage(message.id)}
-                onOpenThread={() => setOpenThreadId(message.id)}
-              />
-            ))}
-            {messages.length === 0 && (
-              <p className="px-2 py-8 text-center text-sm text-zinc-400">
-                {t("emptyMessages")}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="h-5 px-4 text-xs text-zinc-400">
-          {typingLabel}
-          {attachmentUpload.error && (
-            <span className="text-red-500">{attachmentUpload.error}</span>
-          )}
-        </div>
-
-        <PendingAttachmentList
-          pending={attachmentUpload.pending}
-          onRemove={attachmentUpload.removeFile}
-        />
-
-        <form
-          onSubmit={sendMessage}
-          className="glass relative z-10 flex gap-2 rounded-none border-x-0 border-b-0 p-3"
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files?.length) attachmentUpload.addFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="shrink-0 rounded-md p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-            aria-label={t("attachFileAria")}
-          >
-            <Paperclip size={16} />
-          </button>
-          <input
-            value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              sendTyping();
-            }}
-            placeholder={
-              channel.isDirect
-                ? t("messagePlaceholder", { title: title ?? "" })
-                : t("messagePlaceholderChannel", { name: channel.name ?? "" })
-            }
-            className="glass-field min-w-0 flex-1 rounded-md px-3 py-2 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
-          />
-          <button
-            type="submit"
-            disabled={attachmentUpload.uploading || sending}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-50"
-          >
-            {sending ? <Spinner size={14} /> : <Send size={14} />}
-          </button>
-        </form>
-      </div>
-
-      {openThreadId && (
-        <ThreadPanel
-          messageId={openThreadId}
-          currentUserId={currentUserId}
-          onClose={() => setOpenThreadId(null)}
-        />
-      )}
-
-      <ConfirmDialog
-        open={pendingDeleteId !== null}
-        title={tThread("deleteMessageTitle")}
-        description={tThread("deleteMessageDesc")}
-        pending={deletingMessage}
-        error={deleteMessageError}
-        onConfirm={confirmDeleteMessage}
-        onCancel={() => {
-          if (!deletingMessage) setPendingDeleteId(null);
-        }}
-      />
-    </div>
-  );
-}
-
-function MobileChatHeader({ onMenuClick }: { onMenuClick: () => void }) {
-  const t = useTranslations("Chat.channel");
-  return (
-    <div className="glass relative z-10 flex items-center gap-1.5 rounded-none border-x-0 border-t-0 px-2 py-3 md:hidden">
-      <button
-        onClick={onMenuClick}
-        className="rounded p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-        aria-label={t("toggleListAria")}
-      >
-        <Menu size={16} />
-      </button>
-    </div>
+    <ChannelView
+      key={`${channelId}:${channel?.isMember ?? false}`}
+      channelId={channelId}
+      channel={JSON.parse(JSON.stringify(channel))}
+      initialMessages={JSON.parse(JSON.stringify(initialMessages))}
+      since={since}
+    />
   );
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { messageInclude, serializeMessage } from "@/lib/chat";
+import { getChannelMessages, messageInclude, serializeMessage } from "@/lib/chat";
 import { broadcast } from "@/lib/supabase";
 import { afterResponse } from "@/lib/afterResponse";
 
@@ -24,13 +24,7 @@ export async function GET(
     return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
   }
 
-  const messages = await prisma.message.findMany({
-    where: { channelId, parentId: null },
-    orderBy: { createdAt: "asc" },
-    include: messageInclude,
-  });
-
-  return NextResponse.json(messages.map((m) => serializeMessage(m, userId)));
+  return NextResponse.json(await getChannelMessages(channelId, userId));
 }
 
 export async function POST(

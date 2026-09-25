@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 
 const messageWithRelations = {
   include: {
@@ -47,4 +48,40 @@ export function serializeMessage(
     attachments: message.attachments,
     replyCount: message._count.replies,
   };
+}
+
+/**
+ * Loads a channel with its members for `userId` — shared by
+ * GET /api/channels/[channelId] and the channel page's server component.
+ * Public channels are viewable by non-members (`isMember: false`); DMs are not.
+ */
+export async function getChannelForUser(channelId: string, userId: string) {
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+    include: {
+      members: {
+        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+      },
+    },
+  });
+  if (!channel) return { ok: false as const, status: 404 as const };
+
+  const isMember = channel.members.some((m) => m.userId === userId);
+  if (channel.isDirect && !isMember) return { ok: false as const, status: 403 as const };
+
+  return { ok: true as const, channel: { ...channel, isMember } };
+}
+
+/**
+ * A channel's top-level messages, serialized for `userId`. Does not check
+ * membership — callers must, since this backs both GET
+ * /api/channels/[channelId]/messages and the channel page.
+ */
+export async function getChannelMessages(channelId: string, userId: string) {
+  const messages = await prisma.message.findMany({
+    where: { channelId, parentId: null },
+    orderBy: { createdAt: "asc" },
+    include: messageInclude,
+  });
+  return messages.map((m) => serializeMessage(m, userId));
 }
