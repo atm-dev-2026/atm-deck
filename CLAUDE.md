@@ -7,7 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 - `npm run dev` — start the dev server (this also rewrites the AGENTS.md block above; keep it if it reappears)
-- `npm run build` — `prisma generate && next build`
+- `npm run build` — `prisma generate && next build` (never migrates — safe to run locally even though `.env` points at the live DB)
+- `npm run vercel-build` — what the deploy runs: `prisma generate && prisma migrate deploy && next build`, so a deploy's migrations are applied before its code goes live. A migration that removes something the *currently deployed* code still reads (e.g. a dropped column) must be split across two deploys: first ship code that stops using it, then the migration that drops it.
 - `npm run lint` — ESLint (flat config via `eslint-config-next`)
 - `npm test` — run the full Vitest suite once; `npm run test:watch` for watch mode
 - Single test file: `npx vitest run tests/boards.members.test.ts`
@@ -16,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - After editing `prisma/schema.prisma`: `npx prisma migrate dev --name <desc>` (local) or `npx prisma migrate deploy` (deploy step)
 
 ### Tests hit a real database
-Vitest is *not* mocking Prisma — `tests/setup.ts` loads `.env.test` (falls back to `.env` with a warning if absent), so create a dedicated `.env.test` pointing at a disposable Postgres database before running `npm test`. Only `@/lib/auth`'s `auth()` is mocked (`vi.mock("@/lib/auth", () => ({ auth: vi.fn() }))` + `mockSessionAs()` from `tests/helpers/fixtures.ts`); permission logic and Prisma queries run for real against that DB. Fixture helpers (`createUser`, `createBoard`, etc.) track what they insert and `cleanupFixtures()` deletes only those rows — the DB is never assumed to start empty, and routes are invoked directly via `callRoute(handler, { method, body, params })` rather than over HTTP.
+Vitest is *not* mocking Prisma — `tests/setup.ts` loads `.env.test` and refuses to run without one (or if it points at the same `DATABASE_URL` as `.env`), so create a dedicated `.env.test` pointing at a disposable Postgres database and `npx prisma migrate deploy` against it before running `npm test`. A throwaway local one: `docker run -d --name atm-deck-test-db -e POSTGRES_PASSWORD=test -p 54329:5432 postgres:17` with `DATABASE_URL="postgresql://postgres:test@localhost:54329/postgres"`. Only `@/lib/auth`'s `auth()` is mocked (`vi.mock("@/lib/auth", () => ({ auth: vi.fn() }))` + `mockSessionAs()` from `tests/helpers/fixtures.ts`); permission logic and Prisma queries run for real against that DB. Fixture helpers (`createUser`, `createBoard`, etc.) track what they insert and `cleanupFixtures()` deletes only those rows — the DB is never assumed to start empty, and routes are invoked directly via `callRoute(handler, { method, body, params })` rather than over HTTP.
 
 ## Architecture
 
