@@ -23,17 +23,21 @@ export function isDueDateOverdue(dueDate: string, hasTime: boolean, now = new Da
   return dueDate.slice(0, 10) < localDateString(now);
 }
 
-export function formatDueDate(dueDate: string, hasTime: boolean): string {
+/**
+ * `locale` comes from useDateLocale — the app's UI language plus the user's
+ * calendar setting — not the browser's locale.
+ */
+export function formatDueDate(dueDate: string, hasTime: boolean, locale: string): string {
   const date = new Date(dueDate);
   return hasTime
-    ? date.toLocaleString(undefined, {
+    ? date.toLocaleString(locale, {
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         hourCycle: "h23",
       })
-    : date.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+    : date.toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 /** Stored value → the date input's "YYYY-MM-DD" and a 24-hour "HH:mm" time. Browser-only for timed values. */
@@ -62,8 +66,8 @@ export function dueDateLogValue(dueDate: Date | null, hasTime: boolean): string 
   return hasTime ? dueDate.toISOString().replace(/\.\d{3}Z$/, "Z") : dueDate.toISOString().slice(0, 10);
 }
 
-export function formatDueDateLogValue(value: string): string {
+export function formatDueDateLogValue(value: string, locale: string): string {
   const legacyDateOnly = value.endsWith("T00:00:00.000Z");
   const hasTime = !DATE_ONLY.test(value) && !legacyDateOnly;
-  return formatDueDate(legacyDateOnly ? value.slice(0, 10) : value, hasTime);
+  return formatDueDate(legacyDateOnly ? value.slice(0, 10) : value, hasTime, locale);
 }

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Avatar } from "./Avatar";
 import { formatDueDateLogValue } from "@/lib/dueDate";
+import { useDateLocale } from "@/components/CalendarProvider";
 
 export type ActivityEntityTypeT = "BOARD" | "COLUMN" | "TASK" | "LABEL" | "BOARD_MEMBER";
 export type ActivityActionT = "CREATED" | "UPDATED" | "DELETED" | "INVITED" | "ROLE_CHANGED" | "REMOVED";
@@ -26,6 +27,7 @@ function truncate(value: string, max: number) {
 
 export function ActivityFeedItem({ entry }: { entry: ActivityEntryT }) {
   const t = useTranslations("Boards.activity");
+  const locale = useDateLocale();
   const tPriority = useTranslations("Boards.priority");
   const tVisibility = useTranslations("Boards.visibility");
   const tMembers = useTranslations("Boards.members");
@@ -61,7 +63,7 @@ export function ActivityFeedItem({ entry }: { entry: ActivityEntryT }) {
       case "role":
         return value === "CAN_EDIT" ? tMembers("canEdit") : tMembers("readOnly");
       case "dueDate":
-        return formatDueDateLogValue(value);
+        return formatDueDateLogValue(value, locale);
       case "description":
         return truncate(value, DESCRIPTION_PREVIEW_LENGTH);
       default:
@@ -76,7 +78,7 @@ export function ActivityFeedItem({ entry }: { entry: ActivityEntryT }) {
         <div className="flex flex-wrap items-baseline gap-1.5">
           <span className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{entry.actorName}</span>
           <span className="text-sm text-zinc-600 dark:text-zinc-400">{actionText}</span>
-          <span className="text-xs text-zinc-400">{new Date(entry.createdAt).toLocaleString()}</span>
+          <span className="text-xs text-zinc-400">{new Date(entry.createdAt).toLocaleString(locale)}</span>
         </div>
         {entry.changes && entry.changes.length > 0 && (
           <div className="mt-1 flex flex-col gap-0.5">

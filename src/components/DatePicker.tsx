@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useDateLocale } from "@/components/CalendarProvider";
 
 const POPOVER_WIDTH = 240; // w-60
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -17,8 +18,8 @@ function parseKey(value: string): Date | null {
  * Calendar date picker ("YYYY-MM-DD", or "" for none) in the same popover
  * style as TimePicker/PrioritySelect — the native date input's picker is
  * drawn by the OS and can't be styled. Works on local calendar dates only;
- * no timezone conversion. Labels follow the app locale, on the Gregorian
- * calendar (Thai's default would show Buddhist-era years).
+ * no timezone conversion. Labels follow the app locale and the user's
+ * calendar setting (พ.ศ. or ค.ศ.) via useDateLocale.
  */
 export function DatePicker({
   value,
@@ -28,7 +29,7 @@ export function DatePicker({
   onChange: (value: string) => void;
 }) {
   const t = useTranslations("Boards.task");
-  const locale = `${useLocale()}-u-ca-gregory`;
+  const locale = useDateLocale();
   const [open, setOpen] = useState(false);
   const [alignRight, setAlignRight] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);

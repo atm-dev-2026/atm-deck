@@ -3,6 +3,7 @@
 import { Calendar } from "lucide-react";
 import { formatDueDate, isDueDateOverdue } from "@/lib/dueDate";
 import { useHydrated } from "@/lib/useHydrated";
+import { useDateLocale } from "@/components/CalendarProvider";
 
 /**
  * Due date in the viewer's locale (with the time, when it has one), red once
@@ -13,12 +14,13 @@ import { useHydrated } from "@/lib/useHydrated";
  */
 export function DueDateBadge({ dueDate, hasTime }: { dueDate: string; hasTime: boolean }) {
   const hydrated = useHydrated();
+  const locale = useDateLocale();
   const overdue = hydrated && isDueDateOverdue(dueDate, hasTime);
 
   return (
     <span className={`flex items-center gap-1 ${overdue ? "text-red-500" : ""}`}>
       <Calendar size={11} />
-      {hydrated && formatDueDate(dueDate, hasTime)}
+      {hydrated && formatDueDate(dueDate, hasTime, locale)}
     </span>
   );
 }

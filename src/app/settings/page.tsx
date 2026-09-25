@@ -1,4 +1,4 @@
-import { LogOut, Languages, Palette, User } from "lucide-react";
+import { CalendarDays, LogOut, Languages, Palette, User } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { signOut } from "../../../auth";
@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { Avatar } from "@/components/Avatar";
 import { ThemeSettings } from "@/components/ThemeSettings";
 import { LocaleSettings } from "@/components/LocaleSettings";
+import { CalendarSettings } from "@/components/CalendarSettings";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function SettingsPage() {
@@ -44,6 +45,17 @@ export default async function SettingsPage() {
           <p className="mt-1 text-xs text-zinc-500">{t("languageHint")}</p>
           <div className="mt-3">
             <LocaleSettings />
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            <CalendarDays size={13} />
+            {t("calendar")}
+          </h2>
+          <p className="mt-1 text-xs text-zinc-500">{t("calendarHint")}</p>
+          <div className="mt-3">
+            <CalendarSettings />
           </div>
         </section>
 

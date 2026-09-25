@@ -7,6 +7,7 @@ import { Spinner } from "@/components/Spinner";
 import { useHydrated } from "@/lib/useHydrated";
 import { AttachmentView } from "./AttachmentView";
 import { ChatMessage, QUICK_REACTIONS } from "./types";
+import { useDateLocale } from "@/components/CalendarProvider";
 
 export function MessageItem({
   message,
@@ -33,6 +34,7 @@ export function MessageItem({
   // Browser-locale timestamp: rendered only after hydration so it can't
   // mismatch the server-rendered HTML.
   const hydrated = useHydrated();
+  const locale = useDateLocale();
 
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +55,7 @@ export function MessageItem({
             {message.user.name ?? message.user.email}
           </span>
           <span className="text-xs text-zinc-400">
-            {hydrated && new Date(message.createdAt).toLocaleString()}
+            {hydrated && new Date(message.createdAt).toLocaleString(locale)}
           </span>
           {message.editedAt && (
             <span className="text-xs text-zinc-400">{t("edited")}</span>

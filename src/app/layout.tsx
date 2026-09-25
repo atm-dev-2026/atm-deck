@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/AppShell";
+import { CalendarProvider } from "@/components/CalendarProvider";
 import { ThemeSync } from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
 import { themeInitScript } from "@/lib/theme";
+import { CALENDAR_COOKIE, parseCalendar } from "@/lib/calendar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,6 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
+  const calendar = parseCalendar((await cookies()).get(CALENDAR_COOKIE)?.value);
 
   return (
     <html
@@ -47,10 +51,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="h-full overflow-hidden flex flex-col bg-background text-foreground">
         <NextIntlClientProvider>
-          <ThemeSync />
-          <ToastProvider>
-            <AppShell>{children}</AppShell>
-          </ToastProvider>
+          <CalendarProvider calendar={calendar}>
+            <ThemeSync />
+            <ToastProvider>
+              <AppShell>{children}</AppShell>
+            </ToastProvider>
+          </CalendarProvider>
         </NextIntlClientProvider>
       </body>
     </html>
