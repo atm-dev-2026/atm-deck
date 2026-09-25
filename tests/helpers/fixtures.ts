@@ -103,6 +103,19 @@ export async function createChecklistItem(
   });
 }
 
+export async function createLabel(
+  boardId: string,
+  overrides: { name?: string; color?: string } = {},
+) {
+  return prisma.label.create({
+    data: {
+      boardId,
+      name: overrides.name ?? "RBAC Test Label",
+      color: overrides.color ?? "#00ff00",
+    },
+  });
+}
+
 export async function createTaskAttachment(
   taskId: string,
   overrides: { key?: string; fileName?: string; fileType?: string; fileSize?: number } = {},

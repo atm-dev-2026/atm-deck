@@ -23,7 +23,7 @@ export async function POST(
 
   try {
     const lastItem = await prisma.checklistItem.findFirst({
-      where: { taskId },
+      where: { taskId, deletedAt: null },
       orderBy: { order: "desc" },
     });
 

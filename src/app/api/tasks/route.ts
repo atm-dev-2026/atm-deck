@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, isBoardParticipant, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
 import { broadcast } from "@/lib/supabase";
+import { logActivity } from "@/lib/activityLog";
 
 export async function POST(request: Request) {
   const { columnId, title, description, assigneeId, dueDate } =
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
 
   try {
     const lastTask = await prisma.task.findFirst({
-      where: { columnId },
+      where: { columnId, deletedAt: null },
       orderBy: { order: "desc" },
     });
 
@@ -52,6 +53,15 @@ export async function POST(request: Request) {
         createdBy: { select: { id: true, name: true, email: true, image: true } },
         assignee: { select: { id: true, name: true, email: true, image: true } },
       },
+    });
+
+    await logActivity({
+      boardId,
+      entityType: "TASK",
+      entityId: task.id,
+      entityName: task.title,
+      action: "CREATED",
+      actor: gate.user,
     });
 
     await broadcast(`board:${boardId}`, "task-created", task);

@@ -105,16 +105,17 @@ export function validateBoardVisibility(
 /** Builds the Prisma `where` for "boards visible to this user" — filtering happens in the DB query. */
 export function boardListWhereClause(user: CurrentUser): Prisma.BoardWhereInput {
   if (user.globalRole === "ADMIN") {
-    return {};
+    return { deletedAt: null };
   }
 
   const departmentIds = user.departmentMemberships.map((d) => d.departmentId);
 
   return {
+    deletedAt: null,
     OR: [
       { ownerId: user.id },
       { visibilityType: "GLOBAL" },
-      { members: { some: { userId: user.id } } },
+      { members: { some: { userId: user.id, deletedAt: null } } },
       ...(departmentIds.length > 0
         ? [{ visibilityType: "DEPARTMENT" as const, departmentId: { in: departmentIds } }]
         : []),
@@ -136,8 +137,8 @@ export async function requireBoardAccess(
   }
 
   const board = await prisma.board.findUnique({
-    where: { id: boardId },
-    include: { members: { where: { userId: user.id } } },
+    where: { id: boardId, deletedAt: null },
+    include: { members: { where: { userId: user.id, deletedAt: null } } },
   });
   if (!board) {
     return { error: jsonError(404, "ไม่พบบอร์ดนี้") } as const;
@@ -174,8 +175,8 @@ export async function requireGlobalAdmin() {
 /** Whether a user is the board's owner or has a direct BoardMember invite — used to validate assignee picks. */
 export async function isBoardParticipant(boardId: string, userId: string): Promise<boolean> {
   const board = await prisma.board.findUnique({
-    where: { id: boardId },
-    select: { ownerId: true, members: { where: { userId }, select: { userId: true } } },
+    where: { id: boardId, deletedAt: null },
+    select: { ownerId: true, members: { where: { userId, deletedAt: null }, select: { userId: true } } },
   });
   if (!board) return false;
   return board.ownerId === userId || board.members.length > 0;
@@ -183,7 +184,7 @@ export async function isBoardParticipant(boardId: string, userId: string): Promi
 
 export async function getBoardIdForColumn(columnId: string): Promise<string | null> {
   const column = await prisma.column.findUnique({
-    where: { id: columnId },
+    where: { id: columnId, deletedAt: null },
     select: { boardId: true },
   });
   return column?.boardId ?? null;
@@ -191,7 +192,7 @@ export async function getBoardIdForColumn(columnId: string): Promise<string | nu
 
 export async function getBoardIdForTask(taskId: string): Promise<string | null> {
   const task = await prisma.task.findUnique({
-    where: { id: taskId },
+    where: { id: taskId, deletedAt: null },
     select: { column: { select: { boardId: true } } },
   });
   return task?.column.boardId ?? null;
@@ -199,7 +200,7 @@ export async function getBoardIdForTask(taskId: string): Promise<string | null> 
 
 export async function getBoardIdForChecklistItem(itemId: string): Promise<string | null> {
   const item = await prisma.checklistItem.findUnique({
-    where: { id: itemId },
+    where: { id: itemId, deletedAt: null },
     select: { task: { select: { column: { select: { boardId: true } } } } },
   });
   return item?.task.column.boardId ?? null;
@@ -207,7 +208,7 @@ export async function getBoardIdForChecklistItem(itemId: string): Promise<string
 
 export async function getBoardIdForTaskAttachment(attachmentId: string): Promise<string | null> {
   const attachment = await prisma.taskAttachment.findUnique({
-    where: { id: attachmentId },
+    where: { id: attachmentId, deletedAt: null },
     select: { task: { select: { column: { select: { boardId: true } } } } },
   });
   return attachment?.task.column.boardId ?? null;
@@ -215,7 +216,7 @@ export async function getBoardIdForTaskAttachment(attachmentId: string): Promise
 
 export async function getBoardIdForLabel(labelId: string): Promise<string | null> {
   const label = await prisma.label.findUnique({
-    where: { id: labelId },
+    where: { id: labelId, deletedAt: null },
     select: { boardId: true },
   });
   return label?.boardId ?? null;

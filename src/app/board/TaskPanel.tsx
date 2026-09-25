@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Calendar, Check, Copy, Download, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { PrioritySelect } from "@/components/PrioritySelect";
@@ -8,6 +8,7 @@ import { LabelPicker } from "@/components/LabelPicker";
 import { LabelChip } from "@/components/LabelChip";
 import { AssigneePicker } from "@/components/AssigneePicker";
 import { Spinner } from "@/components/Spinner";
+import { ActivityFeedItem, type ActivityEntryT } from "@/components/ActivityFeedItem";
 import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
 
@@ -76,13 +77,37 @@ export function TaskPanel({
   onDeleteAttachment: (attachmentId: string) => void;
 }) {
   const t = useTranslations("Boards.task");
+  const tActivity = useTranslations("Boards.activity");
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.slice(0, 10) : "");
   const [newChecklistText, setNewChecklistText] = useState("");
   const [savingFields, setSavingFields] = useState<Set<string>>(new Set());
   const [numberCopied, setNumberCopied] = useState(false);
+  const [activity, setActivity] = useState<ActivityEntryT[] | null>(null);
+  const [activityTaskId, setActivityTaskId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/tasks/${task.id}/activity`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: ActivityEntryT[]) => {
+        if (cancelled) return;
+        setActivity(data);
+        setActivityTaskId(task.id);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setActivity([]);
+        setActivityTaskId(task.id);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [task.id]);
+
+  const activityLoading = activityTaskId !== task.id;
 
   const copyTaskNumber = async () => {
     try {
@@ -408,6 +433,30 @@ export function TaskPanel({
               <Plus size={13} className="shrink-0" />
               {t("attachFile")}
             </button>
+          </div>
+
+          <div className="mt-5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-zinc-500">{tActivity("heading")}</label>
+              {!activityLoading && activity && activity.length > 0 && (
+                <span className="text-xs text-zinc-400">{activity.length}</span>
+              )}
+            </div>
+
+            {activityLoading || activity === null ? (
+              <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400">
+                <Spinner size={13} />
+                {tActivity("loading")}
+              </div>
+            ) : activity.length === 0 ? (
+              <p className="mt-2 text-xs text-zinc-400">{tActivity("empty")}</p>
+            ) : (
+              <div className="mt-1 flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+                {activity.map((entry) => (
+                  <ActivityFeedItem key={entry.id} entry={entry} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </aside>

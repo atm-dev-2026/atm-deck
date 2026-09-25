@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { buildChange, logActivity } from "@/lib/activityLog";
+import { softDeleteColumn } from "@/lib/softDelete";
 
 export async function PATCH(
   request: Request,
@@ -19,6 +21,8 @@ export async function PATCH(
   const data = await request.json();
 
   try {
+    const before = await prisma.column.findUnique({ where: { id: columnId }, select: { name: true } });
+
     const column = await prisma.column.update({
       where: { id: columnId },
       data: {
@@ -26,6 +30,21 @@ export async function PATCH(
         ...(data.order !== undefined && { order: data.order }),
       },
     });
+
+    if (before && data.name !== undefined) {
+      const change = buildChange("name", before.name, column.name);
+      if (change) {
+        await logActivity({
+          boardId,
+          entityType: "COLUMN",
+          entityId: column.id,
+          entityName: column.name,
+          action: "UPDATED",
+          actor: gate.user,
+          changes: [change],
+        });
+      }
+    }
 
     return NextResponse.json(column);
   } catch (error) {
@@ -47,7 +66,20 @@ export async function DELETE(
   if ("error" in gate) return gate.error;
 
   try {
-    await prisma.column.delete({ where: { id: columnId } });
+    const deleted = await softDeleteColumn(columnId);
+    if (!deleted) {
+      return NextResponse.json({ error: "ไม่พบคอลัมน์นี้" }, { status: 404 });
+    }
+
+    await logActivity({
+      boardId,
+      entityType: "COLUMN",
+      entityId: deleted.id,
+      entityName: deleted.name,
+      action: "DELETED",
+      actor: gate.user,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);

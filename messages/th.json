@@ -180,6 +180,39 @@
       "removeDesc": "จะไม่สามารถเข้าถึงบอร์ดนี้ได้ทันที",
       "remove": "นำออก",
       "removing": "กำลังนำออก…"
+    },
+    "activity": {
+      "heading": "ความเคลื่อนไหว",
+      "empty": "ยังไม่มีความเคลื่อนไหว",
+      "loading": "กำลังโหลดความเคลื่อนไหว…",
+      "loadMore": "โหลดเพิ่ม",
+      "triggerAria": "ความเคลื่อนไหว",
+      "noValue": "—",
+      "created": "สร้าง{entityLabel} \"{entityName}\"",
+      "updated": "แก้ไข{entityLabel} \"{entityName}\"",
+      "deleted": "ลบ{entityLabel} \"{entityName}\"",
+      "invited": "เชิญ {entityName} เข้าบอร์ด",
+      "roleChanged": "เปลี่ยนสิทธิ์ของ {entityName}",
+      "removed": "นำ {entityName} ออกจากบอร์ด",
+      "entityLabels": {
+        "BOARD": "บอร์ด",
+        "COLUMN": "คอลัมน์",
+        "TASK": "งาน",
+        "LABEL": "ป้ายกำกับ"
+      },
+      "fields": {
+        "name": "ชื่อ",
+        "title": "ชื่องาน",
+        "description": "รายละเอียด",
+        "priority": "ความสำคัญ",
+        "assignee": "ผู้รับผิดชอบ",
+        "dueDate": "วันครบกำหนด",
+        "column": "คอลัมน์",
+        "labels": "ป้ายกำกับ",
+        "visibility": "การมองเห็น",
+        "department": "แผนก",
+        "role": "สิทธิ์"
+      }
     }
   },
   "MyTasks": {

@@ -11,6 +11,7 @@ import { Spinner } from "@/components/Spinner";
 import { Avatar } from "@/components/Avatar";
 import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
 import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMembersPanel";
+import { BoardActivityPanel } from "@/components/BoardActivityPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import type { LabelColor } from "@/components/labelColors";
@@ -761,6 +762,7 @@ export default function BoardPage({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
+              <BoardActivityPanel boardId={board.id} />
               <InviteMembersPanel
                 boardId={board.id}
                 owner={board.owner}

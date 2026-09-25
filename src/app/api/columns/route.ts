@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { logActivity } from "@/lib/activityLog";
 
 export async function POST(request: Request) {
   const { boardId, name } = await request.json();
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
 
   try {
     const lastColumn = await prisma.column.findFirst({
-      where: { boardId },
+      where: { boardId, deletedAt: null },
       orderBy: { order: "desc" },
     });
 
@@ -27,6 +28,15 @@ export async function POST(request: Request) {
         name,
         order: lastColumn ? lastColumn.order + 1 : 0,
       },
+    });
+
+    await logActivity({
+      boardId,
+      entityType: "COLUMN",
+      entityId: column.id,
+      entityName: column.name,
+      action: "CREATED",
+      actor: gate.user,
     });
 
     return NextResponse.json(column, { status: 201 });

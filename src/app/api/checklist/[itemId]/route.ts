@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForChecklistItem, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { softDeleteChecklistItem } from "@/lib/softDelete";
 
 export async function PATCH(
   request: Request,
@@ -47,7 +48,10 @@ export async function DELETE(
   if ("error" in gate) return gate.error;
 
   try {
-    await prisma.checklistItem.delete({ where: { id: itemId } });
+    const deleted = await softDeleteChecklistItem(itemId);
+    if (!deleted) {
+      return NextResponse.json({ error: "ไม่พบรายการเช็กลิสต์นี้" }, { status: 404 });
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getBoardIdForLabel, requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
+import { logActivity } from "@/lib/activityLog";
+import { softDeleteLabel } from "@/lib/softDelete";
 
 export async function DELETE(
   _request: Request,
@@ -15,6 +17,23 @@ export async function DELETE(
   const gate = await requireBoardAccess(boardId, { minEdit: true });
   if ("error" in gate) return gate.error;
 
-  await prisma.label.delete({ where: { id: labelId } });
-  return NextResponse.json({ ok: true });
+  try {
+    const deleted = await softDeleteLabel(labelId);
+    if (!deleted) {
+      return NextResponse.json({ error: "ไม่พบป้ายกำกับนี้" }, { status: 404 });
+    }
+
+    await logActivity({
+      boardId,
+      entityType: "LABEL",
+      entityId: deleted.id,
+      entityName: deleted.name,
+      action: "DELETED",
+      actor: gate.user,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

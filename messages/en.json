@@ -180,6 +180,39 @@
       "removeDesc": "They'll lose access to this board immediately.",
       "remove": "Remove",
       "removing": "Removing…"
+    },
+    "activity": {
+      "heading": "Activity",
+      "empty": "No activity yet.",
+      "loading": "Loading activity…",
+      "loadMore": "Load more",
+      "triggerAria": "Activity",
+      "noValue": "—",
+      "created": "created {entityLabel} \"{entityName}\"",
+      "updated": "updated {entityLabel} \"{entityName}\"",
+      "deleted": "deleted {entityLabel} \"{entityName}\"",
+      "invited": "invited {entityName} to the board",
+      "roleChanged": "changed {entityName}'s role",
+      "removed": "removed {entityName} from the board",
+      "entityLabels": {
+        "BOARD": "board",
+        "COLUMN": "column",
+        "TASK": "task",
+        "LABEL": "label"
+      },
+      "fields": {
+        "name": "Name",
+        "title": "Title",
+        "description": "Description",
+        "priority": "Priority",
+        "assignee": "Assignee",
+        "dueDate": "Due date",
+        "column": "Column",
+        "labels": "Labels",
+        "visibility": "Visibility",
+        "department": "Department",
+        "role": "Role"
+      }
     }
   },
   "MyTasks": {

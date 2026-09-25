@@ -169,7 +169,7 @@ describe("Task attachments", () => {
   });
 
   describe("DELETE /api/task-attachments/[attachmentId]", () => {
-    it("owner deletes an attachment", async () => {
+    it("owner deletes an attachment (soft-deleted, not removed)", async () => {
       const attachment = await createTaskAttachment(task.id);
       mockSessionAs(owner.id);
       const res = await callRoute(deleteAttachment, {
@@ -177,7 +177,8 @@ describe("Task attachments", () => {
         params: { attachmentId: attachment.id },
       });
       expect(res.status).toBe(200);
-      expect(await prisma.taskAttachment.findUnique({ where: { id: attachment.id } })).toBeNull();
+      const deleted = await prisma.taskAttachment.findUnique({ where: { id: attachment.id } });
+      expect(deleted?.deletedAt).not.toBeNull();
     });
 
     it("a READ_ONLY invitee cannot delete an attachment", async () => {

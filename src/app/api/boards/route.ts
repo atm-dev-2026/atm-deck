@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
 import { boardListWhereClause, resolveBoardAccess, validateBoardVisibility } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { logActivity } from "@/lib/activityLog";
 import type { BoardVisibility } from "@/generated/prisma/client";
 
 const VISIBILITY_TYPES: BoardVisibility[] = ["GLOBAL", "DEPARTMENT", "PERSONAL"];
@@ -19,7 +20,7 @@ export async function GET() {
     include: {
       _count: { select: { columns: true } },
       columns: { select: { _count: { select: { tasks: true } } } },
-      members: { where: { userId: user.id }, select: { role: true } },
+      members: { where: { userId: user.id, deletedAt: null }, select: { role: true } },
     },
   });
 
@@ -67,6 +68,15 @@ export async function POST(request: Request) {
           ],
         },
       },
+    });
+
+    await logActivity({
+      boardId: board.id,
+      entityType: "BOARD",
+      entityId: board.id,
+      entityName: board.name,
+      action: "CREATED",
+      actor: user,
     });
 
     return NextResponse.json(board, { status: 201 });

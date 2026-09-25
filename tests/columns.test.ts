@@ -146,7 +146,7 @@ describe("Column management", () => {
   });
 
   describe("DELETE /api/columns/[columnId]", () => {
-    it("owner deletes a column, cascading to its tasks", async () => {
+    it("owner deletes a column, soft-deleting it and cascading to its tasks", async () => {
       const column = await createColumn(board.id);
       const task = await createTask(column.id);
       mockSessionAs(owner.id);
@@ -155,7 +155,10 @@ describe("Column management", () => {
         params: { columnId: column.id },
       });
       expect(res.status).toBe(200);
-      expect(await prisma.task.findUnique({ where: { id: task.id } })).toBeNull();
+      const deletedColumn = await prisma.column.findUnique({ where: { id: column.id } });
+      expect(deletedColumn?.deletedAt).not.toBeNull();
+      const deletedTask = await prisma.task.findUnique({ where: { id: task.id } });
+      expect(deletedTask?.deletedAt).not.toBeNull();
     });
 
     it("a CAN_EDIT invitee can delete a column (content deletion only needs edit access)", async () => {

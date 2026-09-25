@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess } from "@/lib/permissions";
+import { handleRouteError } from "@/lib/apiError";
+import { logActivity } from "@/lib/activityLog";
 
 export async function POST(
   request: Request,
@@ -16,9 +18,22 @@ export async function POST(
     return NextResponse.json({ error: "ต้องระบุชื่อและสีของป้ายกำกับ" }, { status: 400 });
   }
 
-  const label = await prisma.label.create({
-    data: { boardId, name, color },
-  });
+  try {
+    const label = await prisma.label.create({
+      data: { boardId, name, color },
+    });
 
-  return NextResponse.json(label, { status: 201 });
+    await logActivity({
+      boardId,
+      entityType: "LABEL",
+      entityId: label.id,
+      entityName: label.name,
+      action: "CREATED",
+      actor: gate.user,
+    });
+
+    return NextResponse.json(label, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error);
+  }
 }

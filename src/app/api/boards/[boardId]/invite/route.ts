@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { buildChange, logActivity } from "@/lib/activityLog";
 import type { BoardRole } from "@/generated/prisma/client";
 
 const BOARD_ROLES: BoardRole[] = ["READ_ONLY", "CAN_EDIT"];
@@ -38,11 +39,44 @@ export async function POST(
   }
 
   try {
+    const existing = await prisma.boardMember.findUnique({
+      where: { boardId_userId: { boardId, userId } },
+      select: { role: true, deletedAt: true },
+    });
+
     const member = await prisma.boardMember.upsert({
       where: { boardId_userId: { boardId, userId } },
       create: { boardId, userId, role },
-      update: { role },
+      update: { role, deletedAt: null },
     });
+
+    const entityName = targetUser.name ?? targetUser.email ?? "?";
+    const isRevive = !existing || existing.deletedAt !== null;
+
+    if (isRevive) {
+      await logActivity({
+        boardId,
+        entityType: "BOARD_MEMBER",
+        entityId: userId,
+        entityName,
+        action: "INVITED",
+        actor: gate.user,
+        changes: [{ field: "role", from: null, to: role }],
+      });
+    } else {
+      const change = buildChange("role", existing.role, role);
+      if (change) {
+        await logActivity({
+          boardId,
+          entityType: "BOARD_MEMBER",
+          entityId: userId,
+          entityName,
+          action: "ROLE_CHANGED",
+          actor: gate.user,
+          changes: [change],
+        });
+      }
+    }
 
     return NextResponse.json({ ...member, user: targetUser }, { status: 201 });
   } catch (error) {

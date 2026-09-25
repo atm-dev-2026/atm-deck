@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { buildChange, logActivity } from "@/lib/activityLog";
+import { removeBoardMember } from "@/lib/softDelete";
 import { Prisma, type BoardRole } from "@/generated/prisma/client";
 
 const BOARD_ROLES: BoardRole[] = ["READ_ONLY", "CAN_EDIT"];
@@ -25,10 +27,32 @@ export async function PATCH(
   }
 
   try {
+    const before = await prisma.boardMember.findUnique({
+      where: { boardId_userId: { boardId, userId }, deletedAt: null },
+      select: { role: true, user: { select: { name: true, email: true } } },
+    });
+    if (!before) {
+      return NextResponse.json({ error: "ไม่พบสมาชิกนี้" }, { status: 404 });
+    }
+
     const member = await prisma.boardMember.update({
       where: { boardId_userId: { boardId, userId } },
       data: { role },
     });
+
+    const change = buildChange("role", before.role, role);
+    if (change) {
+      await logActivity({
+        boardId,
+        entityType: "BOARD_MEMBER",
+        entityId: userId,
+        entityName: before.user.name ?? before.user.email ?? "?",
+        action: "ROLE_CHANGED",
+        actor: gate.user,
+        changes: [change],
+      });
+    }
+
     return NextResponse.json(member);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
@@ -52,12 +76,22 @@ export async function DELETE(
   }
 
   try {
-    await prisma.boardMember.delete({ where: { boardId_userId: { boardId, userId } } });
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+    const removed = await removeBoardMember(boardId, userId);
+    if (!removed) {
       return NextResponse.json({ error: "ไม่พบสมาชิกนี้" }, { status: 404 });
     }
+
+    await logActivity({
+      boardId,
+      entityType: "BOARD_MEMBER",
+      entityId: userId,
+      entityName: removed.user.name ?? removed.user.email ?? "?",
+      action: "REMOVED",
+      actor: gate.user,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
     return handleRouteError(error);
   }
 }

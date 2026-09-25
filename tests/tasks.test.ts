@@ -148,7 +148,7 @@ describe("Task management", () => {
   });
 
   describe("DELETE /api/tasks/[taskId]", () => {
-    it("owner deletes a task, cascading to its checklist items", async () => {
+    it("owner deletes a task, soft-deleting it and its checklist items", async () => {
       const task = await createTask(column.id);
       const item = await createChecklistItem(task.id);
       mockSessionAs(owner.id);
@@ -157,7 +157,10 @@ describe("Task management", () => {
         params: { taskId: task.id },
       });
       expect(res.status).toBe(200);
-      expect(await prisma.checklistItem.findUnique({ where: { id: item.id } })).toBeNull();
+      const deletedTask = await prisma.task.findUnique({ where: { id: task.id } });
+      expect(deletedTask?.deletedAt).not.toBeNull();
+      const deletedItem = await prisma.checklistItem.findUnique({ where: { id: item.id } });
+      expect(deletedItem?.deletedAt).not.toBeNull();
     });
 
     it("a CAN_EDIT invitee can delete a task (content deletion only needs edit access)", async () => {

@@ -14,13 +14,14 @@ export async function GET() {
     const tasks = await prisma.task.findMany({
       where: {
         assigneeId: user.id,
-        column: { board: boardListWhereClause(user) },
+        deletedAt: null,
+        column: { deletedAt: null, board: boardListWhereClause(user) },
       },
       orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }, { priority: "desc" }, { createdAt: "asc" }],
       include: {
-        labels: true,
-        checklist: { select: { id: true, done: true } },
-        attachments: { select: { id: true } },
+        labels: { where: { deletedAt: null } },
+        checklist: { where: { deletedAt: null }, select: { id: true, done: true } },
+        attachments: { where: { deletedAt: null }, select: { id: true } },
         createdBy: { select: { id: true, name: true, email: true, image: true } },
         column: {
           select: {

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getBoardIdForTaskAttachment, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
 import { r2Client, R2_BUCKET } from "@/lib/r2";
+import { softDeleteTaskAttachment } from "@/lib/softDelete";
 
 export async function GET(
   _request: Request,
@@ -19,7 +20,7 @@ export async function GET(
   const gate = await requireBoardAccess(boardId);
   if ("error" in gate) return gate.error;
 
-  const attachment = await prisma.taskAttachment.findUnique({ where: { id: attachmentId } });
+  const attachment = await prisma.taskAttachment.findUnique({ where: { id: attachmentId, deletedAt: null } });
   if (!attachment) {
     return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
   }
@@ -52,7 +53,10 @@ export async function DELETE(
   if ("error" in gate) return gate.error;
 
   try {
-    await prisma.taskAttachment.delete({ where: { id: attachmentId } });
+    const deleted = await softDeleteTaskAttachment(attachmentId);
+    if (!deleted) {
+      return NextResponse.json({ error: "ไม่พบไฟล์นี้" }, { status: 404 });
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);
