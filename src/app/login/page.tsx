@@ -39,6 +39,7 @@ export default async function LoginPage({
             </SubmitButton>
           </form>
 
+          {/* LINE login hidden — re-enable by uncommenting this form
           <form
             action={async () => {
               "use server";
@@ -53,6 +54,7 @@ export default async function LoginPage({
               {t("continueWithLine")}
             </SubmitButton>
           </form>
+          */}
         </div>
       </div>
     </div>
@@ -82,10 +84,11 @@ function GoogleMark() {
   );
 }
 
-function LineMark() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2C6.48 2 2 5.58 2 10c0 3.95 3.58 7.26 8.4 7.9.33.07.78.22.89.5.1.26.06.66.03.92l-.14.86c-.04.26-.2 1 .87.55 1.07-.46 5.77-3.4 7.87-5.82C21.24 12.9 22 11.53 22 10c0-4.42-4.48-8-10-8Z" />
-    </svg>
-  );
-}
+// LineMark unused while LINE login is hidden above
+// function LineMark() {
+//   return (
+//     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+//       <path d="M12 2C6.48 2 2 5.58 2 10c0 3.95 3.58 7.26 8.4 7.9.33.07.78.22.89.5.1.26.06.66.03.92l-.14.86c-.04.26-.2 1 .87.55 1.07-.46 5.77-3.4 7.87-5.82C21.24 12.9 22 11.53 22 10c0-4.42-4.48-8-10-8Z" />
+//     </svg>
+//   );
+// }
