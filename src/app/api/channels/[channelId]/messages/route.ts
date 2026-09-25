@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { messageInclude, serializeMessage } from "@/lib/chat";
 import { broadcast } from "@/lib/supabase";
+import { afterResponse } from "@/lib/afterResponse";
 
 export async function GET(
   _request: Request,
@@ -107,7 +108,7 @@ export async function POST(
   }
 
   const serialized = serializeMessage(message, userId);
-  await broadcast(`channel:${channelId}`, "message-created", serialized);
+  afterResponse(() => broadcast(`channel:${channelId}`, "message-created", serialized));
 
   return NextResponse.json(serialized, { status: 201 });
 }

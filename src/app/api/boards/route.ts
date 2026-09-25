@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/current-user";
-import { boardListWhereClause, resolveBoardAccess, validateBoardVisibility } from "@/lib/permissions";
+import { validateBoardVisibility } from "@/lib/permissions";
+import { getBoardsForUser } from "@/lib/boards";
 import { handleRouteError } from "@/lib/apiError";
 import { logActivity } from "@/lib/activityLog";
 import type { BoardVisibility } from "@/generated/prisma/client";
@@ -14,27 +15,8 @@ export async function GET() {
     return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
-  const boards = await prisma.board.findMany({
-    where: boardListWhereClause(user),
-    orderBy: { createdAt: "asc" },
-    include: {
-      _count: { select: { columns: { where: { deletedAt: null } } } },
-      columns: {
-        where: { deletedAt: null },
-        select: { _count: { select: { tasks: { where: { deletedAt: null } } } } },
-      },
-      members: { where: { userId: user.id, deletedAt: null }, select: { role: true } },
-    },
-  });
-
-  const result = boards.map(({ columns, _count, members, ...board }) => ({
-    ...board,
-    columnCount: _count.columns,
-    taskCount: columns.reduce((sum, c) => sum + c._count.tasks, 0),
-    access: resolveBoardAccess(user, { ...board, members }),
-  }));
-
-  return NextResponse.json(result);
+  const boards = await getBoardsForUser(user);
+  return NextResponse.json(boards);
 }
 
 export async function POST(request: Request) {

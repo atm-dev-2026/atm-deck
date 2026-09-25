@@ -1,0 +1,283 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { LayoutGrid, Plus, Search, SquareKanban, Trash2 } from "lucide-react";
+import { Spinner } from "@/components/Spinner";
+import { VisibilityBadge, type BoardVisibility } from "@/components/VisibilityBadge";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+
+type BoardAccess = { canEdit: boolean; canDelete: boolean; canManageMembers: boolean };
+
+export type Board = {
+  id: string;
+  name: string;
+  createdAt: string;
+  columnCount: number;
+  taskCount: number;
+  visibilityType: BoardVisibility;
+  access: BoardAccess;
+};
+
+type Department = { id: string; name: string };
+
+export default function HomeClient({ initialBoards }: { initialBoards: Board[] }) {
+  const t = useTranslations("Boards.list");
+  const tf = useTranslations("Boards.form");
+  const [boards, setBoards] = useState<Board[]>(initialBoards);
+  const [query, setQuery] = useState("");
+  const [name, setName] = useState("");
+  const [visibility, setVisibility] = useState<BoardVisibility>("PERSONAL");
+  const [departmentId, setDepartmentId] = useState("");
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const loadBoards = async () => {
+    const res = await fetch("/api/boards");
+    const data = await res.json();
+    setBoards(Array.isArray(data) ? data : []);
+  };
+
+  const openCreate = () => {
+    setCreating((v) => !v);
+    setCreateError(null);
+    if (departments.length === 0) {
+      setDepartmentsLoading(true);
+      fetch("/api/departments")
+        .then((res) => res.json())
+        .then((data) => setDepartments(Array.isArray(data) ? data : []))
+        .catch(() => {})
+        .finally(() => setDepartmentsLoading(false));
+    }
+  };
+
+  const createBoard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || submitting) return;
+    if (visibility === "DEPARTMENT" && !departmentId) {
+      setCreateError(tf("pickDepartment"));
+      return;
+    }
+    setSubmitting(true);
+    setCreateError(null);
+    try {
+      const res = await fetch("/api/boards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          visibilityType: visibility,
+          departmentId: visibility === "DEPARTMENT" ? departmentId : undefined,
+        }),
+      });
+      if (res.ok) {
+        setName("");
+        setVisibility("PERSONAL");
+        setDepartmentId("");
+        setCreating(false);
+        await loadBoards();
+      } else {
+        const data = await res.json().catch(() => null);
+        setCreateError(data?.error ?? t("createFailed"));
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const [deleteTarget, setDeleteTarget] = useState<Board | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const requestDeleteBoard = (e: React.MouseEvent, board: Board) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteError(null);
+    setDeleteTarget(board);
+  };
+
+  const confirmDeleteBoard = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleting(true);
+    setDeleteError(null);
+    const previous = boards;
+    setBoards((prev) => prev.filter((b) => b.id !== target.id));
+    try {
+      const res = await fetch(`/api/boards/${target.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setBoards(previous);
+        setDeleteError(data?.error ?? t("deleteFailed"));
+        return;
+      }
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const filtered = useMemo(
+    () => boards.filter((b) => b.name.toLowerCase().includes(query.toLowerCase())),
+    [boards, query],
+  );
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="glass relative z-10 flex flex-wrap items-center justify-between gap-2 rounded-none border-x-0 border-t-0 px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-2">
+          <LayoutGrid size={16} className="text-zinc-400" />
+          <h1 className="font-serif text-base font-semibold text-zinc-950 dark:text-zinc-50">{t("heading")}</h1>
+          <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            {boards.length}
+          </span>
+        </div>
+        <button
+          onClick={openCreate}
+          className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-xs font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover"
+        >
+          <Plus size={13} strokeWidth={2.5} />
+          {t("newBoard")}
+        </button>
+      </div>
+
+      <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        {creating && (
+          <form
+            onSubmit={createBoard}
+            className="glass mb-5 flex flex-col gap-2 rounded-lg p-3"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={tf("namePlaceholder")}
+                className="glass-field min-w-0 flex-1 rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+              />
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as BoardVisibility)}
+                className="glass-field rounded-md px-2 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+              >
+                <option value="PERSONAL">{tf("visibilityPersonal")}</option>
+                <option value="DEPARTMENT">{tf("visibilityDepartment")}</option>
+                <option value="GLOBAL">{tf("visibilityGlobal")}</option>
+              </select>
+            </div>
+
+            {visibility === "DEPARTMENT" && (
+              <select
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                disabled={departmentsLoading}
+                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-wait dark:text-zinc-50"
+              >
+                <option value="">{departmentsLoading ? tf("loadingDepartments") : tf("selectDepartment")}</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {createError && <p className="text-xs text-red-500">{createError}</p>}
+
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground shadow-glow transition-transform hover:-translate-y-0.5 hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+              >
+                {submitting && <Spinner size={13} />}
+                {tf("create")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreating(false)}
+                disabled={submitting}
+                className="glass-field rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-300"
+              >
+                {tf("cancel")}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="relative mb-4">
+          <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("filterPlaceholder")}
+            className="glass-field w-full rounded-md py-1.5 pl-8 pr-3 text-sm text-zinc-950 focus:outline-none focus:ring-2 focus:ring-accent/40 dark:text-zinc-50"
+          />
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="glass flex flex-col items-center justify-center gap-2 rounded-lg py-16 text-center">
+            <SquareKanban size={22} className="text-zinc-300 dark:text-zinc-700" />
+            <p className="text-sm text-zinc-500">
+              {boards.length === 0 ? t("emptyDefault") : t("emptyFiltered")}
+            </p>
+          </div>
+        )}
+
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((board) => (
+            <Link
+              key={board.id}
+              href={`/board/${board.id}`}
+              className="glass group flex items-center justify-between rounded-lg px-4 py-3.5 transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-glow"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent dark:bg-accent/20">
+                  <SquareKanban size={16} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium text-zinc-950 dark:text-zinc-50">{board.name}</p>
+                    <VisibilityBadge visibilityType={board.visibilityType} />
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    {t("columnsAndTasks", { columns: board.columnCount, tasks: board.taskCount })}
+                  </p>
+                </div>
+              </div>
+              {board.access.canDelete && (
+                <button
+                  onClick={(e) => requestDeleteBoard(e, board)}
+                  className="rounded p-1.5 text-zinc-300 opacity-0 hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
+                  aria-label={t("deleteBoardAria")}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title={deleteTarget ? t("deleteBoardTitle", { name: deleteTarget.name }) : ""}
+        description={
+          deleteTarget
+            ? t("deleteBoardDesc", { columns: deleteTarget.columnCount, tasks: deleteTarget.taskCount })
+            : undefined
+        }
+        pending={deleting}
+        error={deleteError}
+        onConfirm={confirmDeleteBoard}
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+      />
+    </div>
+  );
+}

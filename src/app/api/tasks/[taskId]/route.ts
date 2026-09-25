@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForTask, isBoardParticipant, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { afterResponse } from "@/lib/afterResponse";
 import { broadcast } from "@/lib/supabase";
 import { buildChange, logActivity, type ActivityChange } from "@/lib/activityLog";
 import { softDeleteTask } from "@/lib/softDelete";
@@ -140,7 +141,7 @@ export async function PATCH(
       }
     }
 
-    await broadcast(`board:${boardId}`, "task-updated", task);
+    afterResponse(() => broadcast(`board:${boardId}`, "task-updated", task));
 
     return NextResponse.json(task);
   } catch (error) {
@@ -176,7 +177,7 @@ export async function DELETE(
       actor: gate.user,
     });
 
-    await broadcast(`board:${boardId}`, "task-deleted", { id: taskId });
+    afterResponse(() => broadcast(`board:${boardId}`, "task-deleted", { id: taskId }));
     return NextResponse.json({ ok: true });
   } catch (error) {
     return handleRouteError(error);

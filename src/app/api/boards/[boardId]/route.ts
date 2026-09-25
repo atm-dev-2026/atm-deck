@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireBoardAccess, validateBoardVisibility } from "@/lib/permissions";
+import { getCurrentUser } from "@/lib/current-user";
+import { getBoardDetail } from "@/lib/boards";
 import { handleRouteError } from "@/lib/apiError";
 import { buildChange, logActivity } from "@/lib/activityLog";
 import { softDeleteBoard } from "@/lib/softDelete";
@@ -14,44 +16,18 @@ export async function GET(
 ) {
   const { boardId } = await params;
 
-  const gate = await requireBoardAccess(boardId);
-  if ("error" in gate) return gate.error;
-
-  const board = await prisma.board.findUnique({
-    where: { id: boardId, deletedAt: null },
-    include: {
-      labels: { where: { deletedAt: null }, orderBy: { name: "asc" } },
-      columns: {
-        where: { deletedAt: null },
-        orderBy: { order: "asc" },
-        include: {
-          tasks: {
-            where: { deletedAt: null },
-            orderBy: { order: "asc" },
-            include: {
-              labels: { where: { deletedAt: null } },
-              checklist: { where: { deletedAt: null }, orderBy: { order: "asc" } },
-              attachments: { where: { deletedAt: null }, orderBy: { createdAt: "asc" } },
-              createdBy: { select: { id: true, name: true, email: true, image: true } },
-              assignee: { select: { id: true, name: true, email: true, image: true } },
-            },
-          },
-        },
-      },
-      owner: { select: { id: true, name: true, email: true, image: true } },
-      members: {
-        where: { deletedAt: null },
-        orderBy: { invitedAt: "asc" },
-        include: { user: { select: { id: true, name: true, email: true, image: true } } },
-      },
-    },
-  });
-
-  if (!board) {
-    return NextResponse.json({ error: "ไม่พบบอร์ดนี้" }, { status: 404 });
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "ต้องเข้าสู่ระบบก่อน" }, { status: 401 });
   }
 
-  return NextResponse.json({ ...board, access: gate.access });
+  const result = await getBoardDetail(boardId, user);
+  if (!result.ok) {
+    const error = result.status === 404 ? "ไม่พบบอร์ดนี้" : "ไม่มีสิทธิ์เข้าถึง";
+    return NextResponse.json({ error }, { status: result.status });
+  }
+
+  return NextResponse.json({ ...result.board, access: result.access });
 }
 
 export async function PATCH(

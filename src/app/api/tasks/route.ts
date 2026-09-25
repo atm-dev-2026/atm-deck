@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBoardIdForColumn, isBoardParticipant, requireBoardAccess } from "@/lib/permissions";
 import { handleRouteError } from "@/lib/apiError";
+import { afterResponse } from "@/lib/afterResponse";
 import { broadcast } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLog";
 
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
       actor: gate.user,
     });
 
-    await broadcast(`board:${boardId}`, "task-created", task);
+    afterResponse(() => broadcast(`board:${boardId}`, "task-created", task));
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
