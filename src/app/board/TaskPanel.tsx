@@ -14,6 +14,7 @@ import type { LabelColor } from "@/components/labelColors";
 import type { Priority } from "@/components/priority";
 import { fromDueDateInputs, toDueDateInputs } from "@/lib/dueDate";
 import { useHydrated } from "@/lib/useHydrated";
+import { TimePicker } from "@/components/TimePicker";
 
 export type ChecklistItemT = { id: string; text: string; done: boolean; order: number };
 export type LabelT = { id: string; name: string; color: string };
@@ -212,9 +213,7 @@ export function TaskPanel({
 
             {hydrated ? (
               <DueDateField
-                // Re-seeds the inputs whenever the saved value changes (a save
-                // landing, a realtime update, or a different task).
-                key={`${task.id}:${task.dueDate}:${task.dueDateHasTime}`}
+                key={task.id}
                 dueDate={task.dueDate}
                 hasTime={task.dueDateHasTime}
                 saving={savingFields.has("dueDate")}
@@ -469,16 +468,10 @@ export function TaskPanel({
   );
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
-const HOURS = Array.from({ length: 24 }, (_, i) => pad2(i));
-const MINUTES = Array.from({ length: 60 }, (_, i) => pad2(i));
-const TIME_SELECT_CLASS =
-  "cursor-pointer appearance-none bg-transparent tabular-nums focus:outline-none disabled:cursor-default disabled:opacity-40";
-
 /**
- * Due date with an optional time. Commits once focus leaves the whole field,
- * so filling in the date and then the time is a single save (and a single
- * activity-log entry). Browser-only: timed values are shown in local time.
+ * Due date with an optional 24-hour time. The date saves when its input loses
+ * focus, the time as soon as it's picked. Browser-only: timed values are shown
+ * in local time.
  */
 function DueDateField({
   dueDate,
@@ -492,27 +485,33 @@ function DueDateField({
   onCommit: (patch: { dueDate: string; dueDateHasTime: boolean }, revert: () => void) => void;
 }) {
   const t = useTranslations("Boards.task");
-  const initial = toDueDateInputs(dueDate, hasTime);
-  const [date, setDate] = useState(initial.date);
-  const [time, setTime] = useState(initial.time);
-  const [hour, minute] = time ? time.split(":") : ["", ""];
+  const saved = toDueDateInputs(dueDate, hasTime);
+  const [date, setDate] = useState(saved.date);
+  const [time, setTime] = useState(saved.time);
 
-  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-    const next = fromDueDateInputs(date, time);
-    const current = fromDueDateInputs(initial.date, initial.time);
+  // Re-sync the inputs when the saved value changes (a save landing, or a
+  // realtime update) — in place rather than by remounting, which would close
+  // the time picker mid-selection.
+  const savedKey = `${dueDate}:${hasTime}`;
+  const [syncedKey, setSyncedKey] = useState(savedKey);
+  if (syncedKey !== savedKey) {
+    setSyncedKey(savedKey);
+    setDate(saved.date);
+    setTime(saved.time);
+  }
+
+  const save = (nextDate: string, nextTime: string) => {
+    const next = fromDueDateInputs(nextDate, nextTime);
+    const current = fromDueDateInputs(saved.date, saved.time);
     if (next.dueDate === current.dueDate && next.dueDateHasTime === current.dueDateHasTime) return;
     onCommit({ dueDate: next.dueDate ?? "", dueDateHasTime: next.dueDateHasTime }, () => {
-      setDate(initial.date);
-      setTime(initial.time);
+      setDate(saved.date);
+      setTime(saved.time);
     });
   };
 
   return (
-    <div
-      onBlur={handleBlur}
-      className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400"
-    >
+    <div className="glass-field flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400">
       <Calendar size={12} className="text-zinc-400" />
       <input
         type="date"
@@ -522,39 +521,18 @@ function DueDateField({
           setDate(e.target.value);
           if (!e.target.value) setTime("");
         }}
+        onBlur={() => save(date, date ? time : "")}
         className="bg-transparent focus:outline-none"
       />
-      {/* Hour/minute selects rather than <input type="time">, whose 12h/24h
-          display follows the OS locale and can't be forced to 24-hour. */}
-      <select
-        aria-label={t("dueHourAria")}
-        value={hour}
+      <span className="h-3 w-px bg-zinc-900/10 dark:bg-white/10" />
+      <TimePicker
+        value={time}
         disabled={!date}
-        onChange={(e) => setTime(e.target.value ? `${e.target.value}:${minute || "00"}` : "")}
-        className={TIME_SELECT_CLASS}
-      >
-        <option value="">--</option>
-        {HOURS.map((h) => (
-          <option key={h} value={h}>
-            {h}
-          </option>
-        ))}
-      </select>
-      <span className={hour ? "" : "opacity-40"}>:</span>
-      <select
-        aria-label={t("dueMinuteAria")}
-        value={minute}
-        disabled={!date || !hour}
-        onChange={(e) => setTime(`${hour}:${e.target.value}`)}
-        className={TIME_SELECT_CLASS}
-      >
-        {!hour && <option value="">--</option>}
-        {MINUTES.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
-        ))}
-      </select>
+        onChange={(next) => {
+          setTime(next);
+          save(date, next);
+        }}
+      />
       {saving && <Spinner size={11} />}
     </div>
   );
