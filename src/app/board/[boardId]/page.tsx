@@ -250,9 +250,14 @@ export default function BoardPage({
       if (res.ok) {
         const task: TaskT = await res.json();
         updateColumns((cols) =>
-          cols.map((c) =>
-            c.id === columnId ? { ...c, tasks: c.tasks.map((t) => (t.id === tempId ? task : t)) } : c,
-          ),
+          cols.map((c) => {
+            if (c.id !== columnId) return c;
+            // The realtime "task-created" broadcast for this same task may already have
+            // inserted it (keyed by its real id) before this response arrives — drop both
+            // the temp placeholder and any such duplicate before adding the real task.
+            const withoutTempOrDuplicate = c.tasks.filter((t) => t.id !== tempId && t.id !== task.id);
+            return { ...c, tasks: [...withoutTempOrDuplicate, task].sort((a, b) => a.order - b.order) };
+          }),
         );
       } else {
         const data = await res.json().catch(() => null);
