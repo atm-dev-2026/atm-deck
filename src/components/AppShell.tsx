@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { signOut } from "../../auth";
 import { getSessionUser, hasRole } from "@/lib/current-user";
@@ -7,6 +8,10 @@ import { SidebarActions } from "./SidebarActions";
 import { UserMenu } from "./UserMenu";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
+  // /about is a public, standalone landing page — no sidebar even when signed in.
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  if (pathname.startsWith("/about")) return <>{children}</>;
+
   const user = await getSessionUser();
   // Role-less users only ever reach /no-access and /invite/* — no navigation for them.
   if (!user || !hasRole(user)) return <>{children}</>;

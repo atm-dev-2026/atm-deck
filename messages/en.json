@@ -149,6 +149,26 @@
   "About": {
     "title": "About ATM Deck",
     "subtitle": "A quick tour of what ATM Deck can do for your team.",
+    "nav": {
+      "features": "Features"
+    },
+    "cta": {
+      "signIn": "Sign in",
+      "openApp": "Open ATM Deck",
+      "learnMore": "See what's inside"
+    },
+    "featuresEyebrow": "What's inside",
+    "featuresHeading": "Everything your team needs, in one deck",
+    "marquee": {
+      "0": "Boards",
+      "1": "My Tasks",
+      "2": "Chat",
+      "3": "Notifications",
+      "4": "Access control",
+      "5": "Dark mode",
+      "6": "Web push",
+      "7": "Thai & English"
+    },
     "sections": {
       "boards": {
         "title": "Boards & tasks",
