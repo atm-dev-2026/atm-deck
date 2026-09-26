@@ -23,10 +23,21 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 type Section = { key: string; title: string; body: string };
+type Variant = "default" | "wide" | "banner";
 
-function FeatureCard({ section, index }: { section: Section; index: number }) {
+// "wide"/"banner" widen the card via col-span so the grid reads as an
+// asymmetric bento layout instead of a flat uniform grid — reserved for the
+// flagship feature (longest copy) and a full-width closer.
+const VARIANT_SPAN: Record<Variant, string> = {
+  default: "",
+  wide: "sm:col-span-2 lg:col-span-2",
+  banner: "sm:col-span-2 lg:col-span-3",
+};
+
+function FeatureCard({ section, index, variant = "default" }: { section: Section; index: number; variant?: Variant }) {
   const ref = useRef<HTMLDivElement>(null);
   const Icon = ICONS[section.key];
+  const horizontal = variant !== "default";
 
   function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
     const el = ref.current;
@@ -40,28 +51,41 @@ function FeatureCard({ section, index }: { section: Section; index: number }) {
     <section
       ref={ref}
       onPointerMove={handlePointerMove}
-      className="group relative overflow-hidden rounded-xl glass p-5 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-glow motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards] motion-safe:animate-[about-fade-up_0.7s_ease-out]"
+      className={`group relative overflow-hidden rounded-2xl glass p-6 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-glow motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards] motion-safe:animate-[about-fade-up_0.7s_ease-out] ${VARIANT_SPAN[variant]}`}
       style={{ animationDelay: `${index * 90}ms` }}
     >
+      {/* Hairline top edge-light, always faintly on, brightens on hover. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent opacity-50 transition-opacity duration-300 group-hover:opacity-100"
+      />
+      {/* Oversized ghost numeral, bleeding off the corner. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -top-3 right-1 select-none font-serif text-7xl font-semibold text-zinc-900/[0.045] dark:text-white/[0.05]"
+      >
+        {String(index + 1).padStart(2, "0")}
+      </span>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
           background:
-            "radial-gradient(220px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%)",
+            "radial-gradient(260px circle at var(--x, 50%) var(--y, 50%), color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%)",
         }}
       />
-      <div className="relative">
-        <div className="flex items-start justify-between">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent transition-transform duration-300 group-hover:scale-110 motion-safe:group-hover:animate-[about-float_1.6s_ease-in-out_infinite] dark:bg-accent/20">
-            {Icon && <Icon size={17} />}
+      <div className={`relative flex ${horizontal ? "flex-col gap-4 sm:flex-row sm:items-start" : "flex-col"}`}>
+        <div className={horizontal ? "flex shrink-0 flex-col items-start sm:w-44" : ""}>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent/30 to-accent/5 text-accent ring-1 ring-accent/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-[0_0_24px_-6px_var(--accent)] motion-safe:group-hover:animate-[about-float_1.6s_ease-in-out_infinite] dark:from-accent/35 dark:to-accent/10">
+            {Icon && <Icon size={19} />}
           </span>
-          <span className="font-mono text-[11px] text-zinc-400/70 dark:text-zinc-500/70">
-            {String(index + 1).padStart(2, "0")}
-          </span>
+          <h2 className={`font-serif font-semibold text-zinc-950 dark:text-zinc-50 ${horizontal ? "mt-3 text-base" : "mt-4 text-base"}`}>
+            {section.title}
+          </h2>
         </div>
-        <h2 className="mt-3 font-serif text-sm font-semibold text-zinc-950 dark:text-zinc-50">{section.title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{section.body}</p>
+        <p className={`text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 ${horizontal ? "sm:pt-1" : "mt-2"}`}>
+          {section.body}
+        </p>
       </div>
     </section>
   );
@@ -164,17 +188,23 @@ export function AboutContent({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-14">
+      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-14">
         <div id="features" className="scroll-mt-20 text-center">
           <span className="text-[11px] font-semibold uppercase tracking-widest text-accent">{featuresEyebrow}</span>
           <h2 className="mx-auto mt-2 max-w-lg font-serif text-2xl font-semibold text-zinc-950 dark:text-zinc-50 sm:text-3xl">
             {featuresHeading}
           </h2>
+          <div aria-hidden className="mx-auto mt-4 h-px w-16 bg-gradient-to-r from-transparent via-accent to-transparent" />
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((section, i) => (
-            <FeatureCard key={section.key} section={section} index={i} />
+            <FeatureCard
+              key={section.key}
+              section={section}
+              index={i}
+              variant={i === 0 ? "wide" : i === sections.length - 1 ? "banner" : "default"}
+            />
           ))}
         </div>
 
