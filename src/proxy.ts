@@ -12,17 +12,9 @@ import { SESSION_COOKIES } from "@/lib/session-cookie";
  */
 export default function proxy(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;
-
-  // AppShell can't read the request path itself (server components don't get
-  // it for free), so it's forwarded as a header — used to suppress the app
-  // shell/nav on the public, no-sidebar /about page.
-  const headers = new Headers(req.headers);
-  headers.set("x-pathname", pathname);
-  const next = () => NextResponse.next({ request: { headers } });
-
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/auth") || pathname.startsWith("/about")) {
-    return next();
-  }
+  // /about is a public landing page (outside the (app) route group, so it never
+  // gets the sidebar) — no session required to view it.
+  if (pathname.startsWith("/login") || pathname.startsWith("/api/auth") || pathname.startsWith("/about")) return;
 
   const hasSessionCookie = SESSION_COOKIES.some((name) => req.cookies.has(name));
   if (!hasSessionCookie) {
@@ -30,8 +22,6 @@ export default function proxy(req: NextRequest) {
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
-
-  return next();
 }
 
 export const config = {

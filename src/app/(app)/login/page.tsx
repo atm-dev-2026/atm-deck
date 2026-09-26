@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { signIn } from "../../../auth";
+import { signIn } from "../../../../auth";
 import { getSessionUser, hasRole } from "@/lib/current-user";
 import { SubmitButton } from "@/components/SubmitButton";
 

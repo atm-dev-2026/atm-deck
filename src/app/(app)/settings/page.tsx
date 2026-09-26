@@ -1,7 +1,7 @@
 import { Bell, CalendarDays, LogOut, Languages, Palette, User } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { signOut } from "../../../auth";
+import { signOut } from "../../../../auth";
 import { getCurrentUser } from "@/lib/current-user";
 import { Avatar } from "@/components/Avatar";
 import { ThemeSettings } from "@/components/ThemeSettings";

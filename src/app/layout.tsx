@@ -3,7 +3,6 @@ import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AppShell } from "@/components/AppShell";
 import { CalendarProvider } from "@/components/CalendarProvider";
 import { ThemeSync } from "@/components/ThemeSync";
 import { ToastProvider } from "@/components/Toast";
@@ -53,9 +52,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <NextIntlClientProvider>
           <CalendarProvider calendar={calendar}>
             <ThemeSync />
-            <ToastProvider>
-              <AppShell>{children}</AppShell>
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </CalendarProvider>
         </NextIntlClientProvider>
       </body>

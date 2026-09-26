@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { LogOut, ShieldAlert } from "lucide-react";
-import { signOut } from "../../../auth";
+import { signOut } from "../../../../auth";
 import { getSessionUser, hasRole } from "@/lib/current-user";
 import { SubmitButton } from "@/components/SubmitButton";
 
