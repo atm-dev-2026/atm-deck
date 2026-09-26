@@ -161,18 +161,6 @@ export async function requireBoardAccess(
   return { user, board, access };
 }
 
-/** Gate for god-mode-only endpoints (e.g. raw department membership edits). */
-export async function requireGodMode() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return { error: jsonError(401, "ต้องเข้าสู่ระบบก่อน") } as const;
-  }
-  if (!user.godMode) {
-    return { error: jsonError(403, "ไม่มีสิทธิ์เข้าถึง") } as const;
-  }
-  return { user };
-}
-
 /** Gate for /member and user/invite management: `canManageUsers` roles. */
 export async function requireUserManager() {
   const user = await getCurrentUser();
