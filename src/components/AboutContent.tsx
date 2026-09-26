@@ -39,7 +39,7 @@ function FeatureCard({ section, index }: { section: Section; index: number }) {
     <section
       ref={ref}
       onPointerMove={handlePointerMove}
-      className="group relative overflow-hidden rounded-xl glass p-4 opacity-0 transition-[transform,box-shadow] duration-300 [animation-fill-mode:forwards] hover:-translate-y-1 hover:shadow-glow motion-safe:animate-[about-fade-up_0.7s_ease-out]"
+      className="group relative overflow-hidden rounded-xl glass p-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-glow motion-safe:opacity-0 motion-safe:[animation-fill-mode:forwards] motion-safe:animate-[about-fade-up_0.7s_ease-out]"
       style={{ animationDelay: `${index * 90}ms` }}
     >
       <div
