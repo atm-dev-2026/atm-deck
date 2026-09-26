@@ -23,7 +23,8 @@
       "chat": "Chat",
       "members": "Users",
       "membersTitle": "Manage users",
-      "settings": "Settings"
+      "settings": "Settings",
+      "about": "About"
     },
     "appDescription": "Internal taskboard for ATM Holding",
     "userMenu": {
@@ -144,6 +145,37 @@
     "body": "Your account ({email}) doesn't have a role yet. Ask HR or IT for an invite link to join ATM Deck.",
     "signOut": "Sign out",
     "signingOut": "Signing out…"
+  },
+  "About": {
+    "title": "About ATM Deck",
+    "subtitle": "A quick tour of what ATM Deck can do for your team.",
+    "sections": {
+      "boards": {
+        "title": "Boards & tasks",
+        "body": "Organize work in Kanban-style boards with columns you define. Drag tasks between columns, assign owners, attach files, add checklists and labels, and reorder everything by hand. Boards can be shared with the whole company, kept within a department, or made personal — and you can invite specific people as read-only viewers or editors."
+      },
+      "myTasks": {
+        "title": "My Tasks",
+        "body": "See every task assigned to you across every board in one place, without hunting through each board individually."
+      },
+      "chat": {
+        "title": "Chat",
+        "body": "Talk with your team in channels and threads. React to messages, share attachments, and see when someone's typing — updates arrive live while you're in the conversation."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "Unread badges keep you posted on new messages and task assignments. Install ATM Deck on your phone or desktop to get toast alerts and push notifications even when the app isn't open."
+      },
+      "access": {
+        "title": "Access & roles",
+        "body": "Everyone joins through an invite tied to a department, which sets their base permissions. Departments that manage people can add teammates and adjust roles; departments with elevated trust can switch on God Mode for themselves when they need full access — every switch is logged."
+      },
+      "settings": {
+        "title": "Make it yours",
+        "body": "Switch between light, dark, or system theme, choose Thai or English, and pick the calendar era you're used to — all from Settings."
+      }
+    },
+    "footer": "Have feedback or found a bug? Reach out to your IT Support team."
   },
   "Boards": {
     "list": {

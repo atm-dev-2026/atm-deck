@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Settings, Users } from "lucide-react";
+import { Info, Settings, Users } from "lucide-react";
 
-/** Desktop rail's bottom button group, above the avatar: Manage users (if allowed) + Settings. */
+/** Desktop rail's bottom button group, above the avatar: Manage users (if allowed) + Settings + About. */
 export function SidebarActions({ canManageUsers }: { canManageUsers: boolean }) {
   const t = useTranslations("Shell.nav");
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export function SidebarActions({ canManageUsers }: { canManageUsers: boolean }) 
   const items = [
     ...(canManageUsers ? [{ href: "/member", label: t("members"), title: t("membersTitle"), icon: Users }] : []),
     { href: "/settings", label: t("settings"), title: t("settings"), icon: Settings },
+    { href: "/about", label: t("about"), title: t("about"), icon: Info },
   ];
 
   return (

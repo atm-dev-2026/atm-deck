@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { LogOut, Settings, Users } from "lucide-react";
+import { Info, LogOut, Settings, Users } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { GodModeAvatarRing, GodModeToggle } from "./GodModeToggle";
 import { SubmitButton } from "./SubmitButton";
@@ -39,6 +39,7 @@ export function UserMenu({
       ? [
           ...(canManageUsers ? [{ href: "/member", label: tNav("membersTitle"), icon: Users }] : []),
           { href: "/settings", label: t("settings"), icon: Settings },
+          { href: "/about", label: tNav("about"), icon: Info },
         ]
       : [];
 
