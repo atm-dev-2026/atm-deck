@@ -7,6 +7,7 @@ import { broadcast } from "@/lib/supabase";
 import { buildChange, logActivity, type ActivityChange } from "@/lib/activityLog";
 import { softDeleteTask } from "@/lib/softDelete";
 import { dueDateLogValue } from "@/lib/dueDate";
+import { notifyTaskAssigned } from "@/lib/notifications";
 
 function userDisplayName(user: { name: string | null; email: string | null } | null): string | null {
   if (!user) return null;
@@ -74,6 +75,7 @@ export async function PATCH(
         priority: true,
         dueDate: true,
         dueDateHasTime: true,
+        assigneeId: true,
         assignee: { select: { name: true, email: true } },
         column: { select: { name: true } },
         labels: { select: { name: true } },
@@ -148,6 +150,10 @@ export async function PATCH(
           changes,
         });
       }
+    }
+
+    if (before && task.assigneeId !== before.assigneeId) {
+      await notifyTaskAssigned({ taskId: task.id, assigneeId: task.assigneeId, actorId: gate.user.id });
     }
 
     afterResponse(() => broadcast(`board:${boardId}`, "task-updated", task));

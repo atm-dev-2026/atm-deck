@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getChannelMessages, messageInclude, serializeMessage } from "@/lib/chat";
 import { broadcast } from "@/lib/supabase";
 import { afterResponse } from "@/lib/afterResponse";
+import { notifyChatMessage } from "@/lib/notifications";
 
 export async function GET(
   _request: Request,
@@ -103,6 +104,7 @@ export async function POST(
 
   const serialized = serializeMessage(message, userId);
   afterResponse(() => broadcast(`channel:${channelId}`, "message-created", serialized));
+  afterResponse(() => notifyChatMessage(message.id));
 
   return NextResponse.json(serialized, { status: 201 });
 }

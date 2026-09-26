@@ -1,4 +1,4 @@
-import { CalendarDays, LogOut, Languages, Palette, User } from "lucide-react";
+import { Bell, CalendarDays, LogOut, Languages, Palette, User } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { signOut } from "../../../auth";
@@ -7,12 +7,14 @@ import { Avatar } from "@/components/Avatar";
 import { ThemeSettings } from "@/components/ThemeSettings";
 import { LocaleSettings } from "@/components/LocaleSettings";
 import { CalendarSettings } from "@/components/CalendarSettings";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { SubmitButton } from "@/components/SubmitButton";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const t = await getTranslations("Settings");
+  const tn = await getTranslations("Notifications.settings");
 
   const signOutAction = async () => {
     "use server";
@@ -34,6 +36,17 @@ export default async function SettingsPage() {
           <p className="mt-1 text-xs text-zinc-500">{t("appearanceHint")}</p>
           <div className="mt-3">
             <ThemeSettings />
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            <Bell size={13} />
+            {tn("heading")}
+          </h2>
+          <p className="mt-1 text-xs text-zinc-500">{tn("hint")}</p>
+          <div className="mt-3">
+            <NotificationSettings />
           </div>
         </section>
 

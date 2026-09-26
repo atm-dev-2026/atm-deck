@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LayoutGrid, ListTodo, MessageSquare } from "lucide-react";
+import { UnreadBadge, useNotifications } from "./NotificationsProvider";
 
 const ITEM_DEFS = [
   { href: "/", key: "boards" as const, icon: LayoutGrid, match: (p: string) => p === "/" || p.startsWith("/board") },
@@ -14,6 +15,11 @@ const ITEM_DEFS = [
 export function NavRail({ variant = "rail" }: { variant?: "rail" | "bottom" }) {
   const t = useTranslations("Shell.nav");
   const pathname = usePathname();
+  const { chatUnreadTotal, taskUnreadCount } = useNotifications();
+  const unread: Partial<Record<(typeof ITEM_DEFS)[number]["key"], number>> = {
+    myTasks: taskUnreadCount,
+    chat: chatUnreadTotal,
+  };
 
   return (
     <nav
@@ -31,7 +37,7 @@ export function NavRail({ variant = "rail" }: { variant?: "rail" | "bottom" }) {
             key={href}
             href={href}
             title={label}
-            className={`group flex items-center justify-center gap-1 whitespace-nowrap font-medium leading-none transition-all duration-300 ${
+            className={`group relative flex items-center justify-center gap-1 whitespace-nowrap font-medium leading-none transition-all duration-300 ${
               variant === "rail"
                 ? "h-11 w-11 flex-col rounded-xl text-[9.5px]"
                 : "mx-1 flex-1 flex-col gap-1 rounded-lg py-1.5 text-[10px]"
@@ -47,6 +53,10 @@ export function NavRail({ variant = "rail" }: { variant?: "rail" | "bottom" }) {
               className="shrink-0 transition-transform duration-300 group-hover:scale-110"
             />
             {label}
+            <UnreadBadge
+              count={unread[key] ?? 0}
+              className={`absolute top-0.5 ${variant === "rail" ? "right-0.5" : "left-1/2 ml-2"}`}
+            />
           </Link>
         );
       })}

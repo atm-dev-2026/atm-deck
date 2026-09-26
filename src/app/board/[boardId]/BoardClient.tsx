@@ -15,6 +15,7 @@ import { InviteMembersPanel, type BoardMemberT } from "@/components/InviteMember
 import { BoardActivityPanel } from "@/components/BoardActivityPanel";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
+import { useNotifications } from "@/components/NotificationsProvider";
 import type { LabelColor } from "@/components/labelColors";
 import { supabase } from "@/lib/supabase";
 import { TaskPanel, type TaskT, type LabelT } from "../TaskPanel";
@@ -76,6 +77,22 @@ export default function BoardClient({
     const isOpenable = taskId && initialBoard.columns.some((c) => c.tasks.some((t) => t.id === taskId));
     return isOpenable ? taskId : null;
   });
+  // A later ?task= on this same board (e.g. clicking a notification while
+  // already here) doesn't remount the page, so open it here too.
+  const taskParam = searchParams.get("task");
+  const [lastTaskParam, setLastTaskParam] = useState(taskParam);
+  if (taskParam !== lastTaskParam) {
+    setLastTaskParam(taskParam);
+    if (taskParam && board.columns.some((c) => c.tasks.some((t) => t.id === taskParam))) {
+      setEditingTaskId(taskParam);
+    }
+  }
+
+  const { markTaskRead } = useNotifications();
+  useEffect(() => {
+    if (editingTaskId) markTaskRead(editingTaskId);
+  }, [editingTaskId, markTaskRead]);
+
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<DragOver | null>(null);
 

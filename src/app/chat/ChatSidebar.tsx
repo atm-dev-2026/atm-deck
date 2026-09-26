@@ -8,6 +8,7 @@ import { Compass, Plus } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { Spinner } from "@/components/Spinner";
 import { useToast } from "@/components/Toast";
+import { UnreadBadge, useNotifications } from "@/components/NotificationsProvider";
 import { ChannelListSkeleton, DmListSkeleton } from "@/components/skeletons/ListRowSkeleton";
 
 type Channel = {
@@ -33,6 +34,7 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
+  const { channelUnread } = useNotifications();
 
   const [joined, setJoined] = useState<Channel[]>([]);
   const [joinable, setJoinable] = useState<Channel[]>([]);
@@ -66,6 +68,17 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
       setLoading(false);
     })();
   }, []);
+
+  // Unread messages from a conversation not listed yet (e.g. someone just
+  // started a DM with you) — refresh the lists so it shows up.
+  const listedIds = new Set([...joined.map((c) => c.id), ...dms.map((d) => d.id)]);
+  const hasUnlistedUnread = !loading && Object.keys(channelUnread).some((id) => !listedIds.has(id));
+  useEffect(() => {
+    if (!hasUnlistedUnread) return;
+    (async () => {
+      await Promise.all([loadChannels(), loadDms()]);
+    })();
+  }, [hasUnlistedUnread]);
 
   const createChannel = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,7 +219,10 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
             {joined.map((c) => (
               <Link key={c.id} href={`/chat/${c.id}`} className={linkClass(c.id)} onClick={onNavigate}>
                 <span className="text-zinc-400">#</span>
-                <span className="truncate">{c.name}</span>
+                <span className={`truncate ${channelUnread[c.id] ? "font-semibold text-zinc-950 dark:text-zinc-50" : ""}`}>
+                  {c.name}
+                </span>
+                <UnreadBadge count={channelUnread[c.id] ?? 0} className="ml-auto shrink-0" />
               </Link>
             ))}
           </nav>
@@ -257,7 +273,10 @@ export function ChatSidebar({ onNavigate }: { onNavigate?: () => void } = {}) {
               return (
                 <Link key={dm.id} href={`/chat/${dm.id}`} className={linkClass(dm.id)} onClick={onNavigate}>
                   <Avatar label={label} image={dm.other?.image} size="xs" />
-                  <span className="truncate">{label}</span>
+                  <span className={`truncate ${channelUnread[dm.id] ? "font-semibold text-zinc-950 dark:text-zinc-50" : ""}`}>
+                    {label}
+                  </span>
+                  <UnreadBadge count={channelUnread[dm.id] ?? 0} className="ml-auto shrink-0" />
                 </Link>
               );
             })}

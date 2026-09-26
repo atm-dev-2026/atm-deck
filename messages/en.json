@@ -374,5 +374,40 @@
       "genericFailed": "Upload failed",
       "removeAria": "Remove {fileName}"
     }
+  },
+  "Notifications": {
+    "someone": "Someone",
+    "chat": {
+      "channelTitle": "#{channel}",
+      "threadTitle": "{title} · Thread",
+      "channelBody": "{name}: {text}",
+      "attachment": "📎 {fileName}",
+      "emptyBody": "New message"
+    },
+    "task": {
+      "title": "New task assigned to you",
+      "body": "{name} assigned you “{task}” · {board}"
+    },
+    "unreadAria": "{count} unread",
+    "settings": {
+      "heading": "Notifications",
+      "hint": "Get alerted about new chat messages and tasks assigned to you, even when ATM Deck is in the background or closed.",
+      "enable": "Turn on notifications",
+      "enabling": "Turning on…",
+      "onThisDevice": "Notifications on this device",
+      "onHint": "You'll get alerts even when ATM Deck is closed.",
+      "onHintNoPush": "You'll get alerts while ATM Deck is open in a tab.",
+      "offHint": "Only in-app alerts while you're using ATM Deck.",
+      "blocked": "Notifications are blocked for this site. Allow them in your browser's site settings, then reload.",
+      "unsupported": "This browser can't show notifications.",
+      "iosInstall": "On iPhone and iPad, tap Share → “Add to Home Screen”, then open ATM Deck from the Home Screen to turn on notifications.",
+      "failed": "Couldn't turn on notifications. Please try again.",
+      "sendTest": "Send a test notification",
+      "sendingTest": "Sending…",
+      "testSent": "Test sent — it should appear in a few seconds.",
+      "testFailed": "Couldn't send the test notification.",
+      "testTitle": "ATM Deck",
+      "testBody": "Notifications are working on this device."
+    }
   }
 }

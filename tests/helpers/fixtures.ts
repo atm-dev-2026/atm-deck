@@ -12,6 +12,7 @@ import type {
 const createdUserIds: string[] = [];
 const createdBoardIds: string[] = [];
 const createdDepartmentIds: string[] = [];
+const createdChannelIds: string[] = [];
 // Role-less users are locked out of the app, so fixture users get this
 // (otherwise unused) department as their role unless a test opts out.
 let defaultRoleDepartmentId: string | null = null;
@@ -154,6 +155,52 @@ export async function createTaskAttachment(
   });
 }
 
+// Messages, members, etc. cascade-delete with their channel.
+export async function createChannel(
+  createdById: string,
+  overrides: { memberIds?: string[]; isDirect?: boolean; name?: string } = {},
+) {
+  const channel = await prisma.channel.create({
+    data: {
+      name: overrides.isDirect ? null : overrides.name ?? `rbac-test-${randomUUID().slice(0, 8)}`,
+      isDirect: overrides.isDirect ?? false,
+      createdById,
+      members: {
+        create: [createdById, ...(overrides.memberIds ?? [])].map((userId) => ({ userId })),
+      },
+    },
+  });
+  createdChannelIds.push(channel.id);
+  return channel;
+}
+
+export function createMessage(
+  channelId: string,
+  userId: string,
+  overrides: { body?: string; parentId?: string; createdAt?: Date } = {},
+) {
+  return prisma.message.create({
+    data: {
+      channelId,
+      userId,
+      body: overrides.body ?? "RBAC test message",
+      parentId: overrides.parentId,
+      createdAt: overrides.createdAt,
+    },
+  });
+}
+
+/** An Auth.js database session (cascades with its user) — for routes that read the session cookie. */
+export function createSession(userId: string, overrides: { expires?: Date } = {}) {
+  return prisma.session.create({
+    data: {
+      userId,
+      sessionToken: randomUUID(),
+      expires: overrides.expires ?? new Date(Date.now() + 24 * 60 * 60_000),
+    },
+  });
+}
+
 // NextAuth's `auth` export is an overloaded function (plain call, middleware
 // use, handler-wrapping use) that vi.mocked() can't cleanly infer a single
 // signature for — cast to a plain async fn for mocking purposes only.
@@ -177,11 +224,14 @@ type RouteHandler<P extends RouteParams = RouteParams> = (
 
 export async function callRoute<P extends RouteParams = RouteParams>(
   handler: RouteHandler<P>,
-  opts: { method?: string; body?: unknown; params?: P } = {},
+  opts: { method?: string; body?: unknown; params?: P; headers?: Record<string, string> } = {},
 ): Promise<Response> {
   const request = new Request("http://localhost/api/test", {
     method: opts.method ?? "GET",
-    headers: opts.body !== undefined ? { "content-type": "application/json" } : undefined,
+    headers: {
+      ...(opts.body !== undefined && { "content-type": "application/json" }),
+      ...opts.headers,
+    },
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
   const response = await handler(request, { params: Promise.resolve((opts.params ?? {}) as P) });
@@ -196,6 +246,11 @@ export async function callRoute<P extends RouteParams = RouteParams>(
  * AppInvites cascade with their department and creator.
  */
 export async function cleanupFixtures() {
+  // Channels restrict deleting their creator, so they go before users.
+  if (createdChannelIds.length > 0) {
+    await prisma.channel.deleteMany({ where: { id: { in: createdChannelIds } } });
+    createdChannelIds.length = 0;
+  }
   if (createdBoardIds.length > 0) {
     await prisma.board.deleteMany({ where: { id: { in: createdBoardIds } } });
     createdBoardIds.length = 0;

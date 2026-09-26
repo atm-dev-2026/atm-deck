@@ -167,12 +167,13 @@ model Task {
   createdById    String?
   assigneeId     String?
 
-  column      Column           @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  createdBy   User?            @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  assignee    User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  labels      Label[]
-  checklist   ChecklistItem[]
-  attachments TaskAttachment[]
+  column        Column           @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdBy     User?            @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assignee      User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  labels        Label[]
+  checklist     ChecklistItem[]
+  attachments   TaskAttachment[]
+  notifications Notification[]
 
   @@index([columnId, deletedAt])
   @@index([createdById])
@@ -259,9 +260,9 @@ model ActivityLog {
 
 // Auth.js (next-auth v5) models — required shape for @auth/prisma-adapter
 model User {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?    @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   // Self-service superuser switch — only the user themselves ever changes it.
@@ -288,6 +289,56 @@ model User {
   createdInvites        AppInvite[]        @relation("AppInviteCreatedBy")
   acceptedInvites       AppInvite[]        @relation("AppInviteAcceptedBy")
   godModeLogs           GodModeLog[]
+  notifications         Notification[]     @relation("NotificationRecipient")
+  actedNotifications    Notification[]     @relation("NotificationActor")
+  pushSubscriptions     PushSubscription[]
+}
+
+enum NotificationType {
+  TASK_ASSIGNED
+}
+
+// Unread-tracked events for one recipient. Chat messages don't get rows here —
+// their unread state is ChannelMember.lastReadAt, so a busy channel doesn't
+// fan out one row per member per message.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  actorId   String?
+  taskId    String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user  User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  task  Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([taskId])
+}
+
+// A browser's Web Push endpoint. Tied to the login session it was registered
+// under, so signing out (which deletes the Session row) stops pushes to that
+// browser — nobody else signing in there later sees the previous user's alerts.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  sessionId String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  // Language the push text is rendered in (the locale when it was registered).
+  locale    String   @default("th")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
 }
 
 model Channel {
@@ -305,10 +356,12 @@ model Channel {
 }
 
 model ChannelMember {
-  id        String   @id @default(cuid())
-  channelId String
-  userId    String
-  joinedAt  DateTime @default(now())
+  id         String   @id @default(cuid())
+  channelId  String
+  userId     String
+  joinedAt   DateTime @default(now())
+  // Messages by others created after this count as unread for this member.
+  lastReadAt DateTime @default(now())
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -336,6 +389,7 @@ model Message {
 
   @@index([channelId, parentId, updatedAt])
   @@index([parentId])
+  @@index([channelId, createdAt])
 }
 
 model Attachment {
@@ -402,7 +456,8 @@ model Session {
   userId       String
   expires      DateTime
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pushSubscriptions PushSubscription[]
 }
 
 model VerificationToken {

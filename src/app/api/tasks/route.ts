@@ -5,6 +5,7 @@ import { handleRouteError } from "@/lib/apiError";
 import { afterResponse } from "@/lib/afterResponse";
 import { broadcast } from "@/lib/supabase";
 import { logActivity } from "@/lib/activityLog";
+import { notifyTaskAssigned } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   const { columnId, title, description, assigneeId, dueDate, dueDateHasTime } =
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
       action: "CREATED",
       actor: gate.user,
     });
+
+    await notifyTaskAssigned({ taskId: task.id, assigneeId: task.assigneeId, actorId: gate.user.id });
 
     afterResponse(() => broadcast(`board:${boardId}`, "task-created", task));
 

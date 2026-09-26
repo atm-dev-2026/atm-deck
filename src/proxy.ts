@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
-// Auth.js names the database-session cookie with a `__Secure-` prefix over HTTPS.
-const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
+import { SESSION_COOKIES } from "@/lib/session-cookie";
 
 /**
  * Optimistic gate only: checks that a session cookie is present, without a
@@ -26,6 +24,8 @@ export default function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // sw.js / the manifest / its icons are fetched by the browser itself (service
+    // worker update checks, installs), which must never be redirected to /login.
+    "/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|pwa-icon|sw\\.js|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
